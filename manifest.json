@@ -7,7 +7,7 @@
     "browser_specific_settings": {
         "gecko": {
             "id": "tb_fullsavemessages@seuret.ch",
-            "strict_min_version": "78.0"
+            "strict_min_version": "105.0"
         }
     },
     "permissions": [
@@ -20,7 +20,8 @@
         "default_title": "Full Save",
         "default_icon": "images/icon-32px.png",
         "default_popup": "action/action_popup.html",
-        "allowed_spaces": ["mail"]
+        "allowed_spaces": ["mail"],
+        "type": "button"
     },
     "icons": {
         "64": "images/icon-64px.png",

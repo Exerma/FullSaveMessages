@@ -9,4 +9,21 @@
  * 
  */
 
- alert("Full Save Messages");
+try {
+    
+    // Load first chunk of messages (about 100)
+    let selection = LoadSelectedMessages();
+
+    for await (let message of selection) {
+
+        console.log(message.subject)
+
+    };
+
+
+} catch (error) {
+
+    selection = null;
+    
+}
+
