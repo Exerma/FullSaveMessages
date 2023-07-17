@@ -1,0 +1,30 @@
+{
+    "manifest_version": 3,
+    "name": "Full Save Messages",
+    "description": "Save messages in EML and PDF formats",
+    "version": "1.0",
+    "author": "Patrick Seuret",
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "tb_fullsavemessages@seuret.ch",
+            "strict_min_version": "78.0"
+        }
+    },
+    "permissions": [
+        "messagesRead"
+    ],
+    "background": {
+        "page": "background/background.html"
+    },
+    "action": {
+        "default_title": "Full Save",
+        "default_icon": "images/icon-32px.png",
+        "default_popup": "action/action_popup.html",
+        "allowed_spaces": ["mail"]
+    },
+    "icons": {
+        "64": "images/icon-64px.png",
+        "32": "images/icon-32px.png",
+        "16": "images/icon-16px.png"
+    }
+}

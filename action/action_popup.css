@@ -1,0 +1,13 @@
+/*****
+ * (c) Patrick Seuret, 2023, action_popup.css
+ * 
+ * Versions:
+ *   2023-07-17: First version
+ *****/ 
+
+.main {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: bold;
+    height: 60px;
+    padding: 10px;
+}
