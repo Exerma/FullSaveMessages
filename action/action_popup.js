@@ -9,14 +9,18 @@
  * 
  */
 
+import {exMessages} from "../exerma_base/exerma_messages.js";
+import {exFiles}    from "../exerma_base/exerma_files.js";
+
 try {
     
-    // Load first chunk of messages (about 100)
-    let selection = LoadSelectedMessages();
-
+    // Load messages by chunks (about 100 per chunk)
+    let selection = exMessages.LoadSelectedMessages();
+    
     for await (let message of selection) {
 
-        console.log(message.subject)
+        console.log(message.subject);
+        //exFiles.openFileDialog();
 
     };
 

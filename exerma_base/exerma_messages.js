@@ -1,13 +1,18 @@
+export {exMessages};
+
 /*----------------------------
  *  (c) Patrick Seuret, 2023  
  *----------------------------
- *  common.js
+ *  exerma_messages.js
  *----------------------------
  *
  * Versions:
  *   2023-07-17: First version
  * 
  */
+
+// Export object
+var exMessages = {
 
 //============================================================================
 // Manage messages
@@ -23,10 +28,12 @@
 //}
 //
 
+
+
 // Retrieve the selected messages in a folder
 // \param folder is the 
 // Return [MessageHeader] an array with all currently selected messages
-async function* LoadSelectedMessages(tabId) {
+LoadSelectedMessages: async function* (tabId) {
 
     let page = await messenger.mailTabs.getSelectedMessages(tabId);
     for (let message of page.messages) {
@@ -40,13 +47,13 @@ async function* LoadSelectedMessages(tabId) {
         }
     }
 
-}
+},
 
 
 
 // Retrieve all messages in a folder
 // Return [MessageHeader] an array with all messages in tabId
-async function* LoadAllMessages(tabId) {
+LoadAllMessages: async function* (tabId) {
 
     let page = await messenger.mailTabs.query(tabId);
     for (let message of page.messages) {
@@ -61,4 +68,8 @@ async function* LoadAllMessages(tabId) {
     }
 
 }
+
+
+
+}; // End of export object "exMessages"
 

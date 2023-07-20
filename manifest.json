@@ -4,6 +4,7 @@
     "description": "Save messages in EML and PDF formats",
     "version": "1.0",
     "author": "Patrick Seuret",
+    "homepage_url": "https://github.com/Exerma/FullSaveMessages",
     "browser_specific_settings": {
         "gecko": {
             "id": "tb_fullsavemessages@seuret.ch",
