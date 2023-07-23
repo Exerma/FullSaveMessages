@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "113",
+            "type": "firefox",
+            "request": "launch",
+            "reAttach": true,
+            "firefoxExecutable": "/Applications/Thunderbird.app/Contents/MacOS/thunderbird-bin",
+            "reloadOnChange": {
+                "watch": "${workspaceFolder}/**/*.js",
+                "ignore": "**/node_modules/**"
+            },
+            "profileDir": "${env:HOME}/Data/Sources/Thunderbird/_DebugProfiles/113",
+            "keepProfileChanges": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "addonPath": "${workspaceFolder}/"
+        },
+    ]
+}
