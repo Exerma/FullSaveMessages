@@ -2,19 +2,39 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "113",
+            "name": "v113",
             "type": "firefox",
             "request": "launch",
             "reAttach": true,
             "firefoxExecutable": "/Applications/Thunderbird.app/Contents/MacOS/thunderbird-bin",
             "reloadOnChange": {
-                "watch": "${workspaceFolder}/**/*.js",
+                "watch": "${workspaceFolder}/out/**/*.js",
                 "ignore": "**/node_modules/**"
             },
             "profileDir": "${env:HOME}/Data/Sources/Thunderbird/_DebugProfiles/113",
             "keepProfileChanges": true,
             "internalConsoleOptions": "openOnSessionStart",
-            "addonPath": "${workspaceFolder}/"
+            "addonPath": "${workspaceFolder}/out/"
         },
+        {
+            "name": "Compile and run v113",
+            
+            "type": "firefox",
+            "request": "launch",
+            "reAttach": true,
+            "firefoxExecutable": "/Applications/Thunderbird.app/Contents/MacOS/thunderbird-bin",
+            "reloadOnChange": {
+                "watch": "${workspaceFolder}/out/**/*.js",
+                "ignore": "**/node_modules/**"
+            },
+            "profileDir": "${env:HOME}/Data/Sources/Thunderbird/_DebugProfiles/113",
+            "keepProfileChanges": true,
+            "internalConsoleOptions": "openOnSessionStart",
+            "addonPath": "${workspaceFolder}/",
+
+            "preLaunchTask": "tsc: build - tsconfig.json; make_out.zsh",
+            "outFiles": ["${workspaceFolder}/out/**/*.js"]
+          },          
+
     ]
 }

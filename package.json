@@ -1,0 +1,18 @@
+{
+    "name": "FullSaveMessages",
+    "version": "0.1.0",
+    "description": "Manage emails",
+    "main": "index.js",
+    "scripts": {
+      "compile": "tsc --project .",
+      "build": "tsc --project .; ./make_out.zsh",
+      "typedoc": "npx typedoc",
+      "clean": "rm -R src/*/*.js"
+    },
+    "author": "Patrick Seuret <https://github.com/exerma>",
+    "license": "MIT",
+    "type": "module",
+    "dependencies": {
+      "typescript": "^5.0.4"
+    }
+}

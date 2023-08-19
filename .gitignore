@@ -1,0 +1,22 @@
+# Source: https://gist.github.com/octocat/9257657
+# Compiled files
+out
+# JS files are compiled TS 
+src/*.js
+
+# Documentation
+docs/
+
+# Structure
+.vscode
+node_modules
+
+
+# MacOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+
+# Project specific to generate-mail-extension-typings
+

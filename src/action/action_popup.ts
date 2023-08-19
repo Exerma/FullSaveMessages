@@ -1,3 +1,7 @@
+import {exMessages} from "../exerma_base/exerma_messages";
+import {exFiles}    from "../exerma_base/exerma_files";
+
+
 /*----------------------------
  *  (c) Patrick Seuret, 2023  
  *----------------------------
@@ -9,9 +13,6 @@
  * 
  */
 
-import {exMessages} from "../exerma_base/exerma_messages.js";
-import {exFiles}    from "../exerma_base/exerma_files.js";
-
 try {
     
     // Load messages by chunks (about 100 per chunk)
@@ -21,13 +22,12 @@ try {
 
         console.log(message.subject);
         //exFiles.openFileDialog();
+        
 
     };
 
 
 } catch (error) {
 
-    selection = null;
     
 }
-

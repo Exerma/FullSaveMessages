@@ -15,18 +15,18 @@
         "messagesRead"
     ],
     "background": {
-        "page": "background/background.html"
+        "page": "./src/background/background.html"
     },
     "action": {
         "default_title": "Full Save",
-        "default_icon": "images/icon-32px.png",
-        "default_popup": "action/action_popup.html",
+        "default_icon": "./images/icon-32px.png",
+        "default_popup": "./src/action/action_popup.html",
         "allowed_spaces": ["mail"],
         "type": "button"
     },
     "icons": {
-        "64": "images/icon-64px.png",
-        "32": "images/icon-32px.png",
-        "16": "images/icon-16px.png"
+        "64": "./images/icon-64px.png",
+        "32": "./images/icon-32px.png",
+        "16": "./images/icon-16px.png"
     }
 }
