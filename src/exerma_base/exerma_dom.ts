@@ -1,6 +1,3 @@
-export {exDom};
-import "./exerma_types";
-
 /*----------------------------
  *  (c) Patrick Seuret, 2023  
  *----------------------------
@@ -8,13 +5,17 @@ import "./exerma_types";
  *----------------------------
  *
  * Versions:
+ *   2023-08-20: Chg: Make this module an export class with static functions
  *   2023-07-23: First version
  * 
  */
 
+//---------- Imports
+import "./exerma_types";
  
+  
  // Export object
-var exDom = {
+export class exDom {
 
 //============================================================================
 // Help to manage DOM elements
@@ -31,11 +32,11 @@ var exDom = {
      *                  as a child of. If empty string, then add to the body of
      *                  the domDoc object (if provided but not found, then fails)
      */
-    getElementBuildOnDemand: function (domDoc: Document, 
-                                       elementId: string, 
-                                       htmlEntry: string, 
-                                       addToParentId: string = '') 
-                                : nHTMLElement {
+    public static getElementBuildOnDemand(domDoc: Document, 
+                                          elementId: string, 
+                                          htmlEntry: string, 
+                                          addToParentId: string = '') 
+                                    : nHTMLElement {
 
         let result = null;
 

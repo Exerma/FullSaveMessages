@@ -1,4 +1,5 @@
 #/bin/zsh
+trash=.trash
 source=src
 target=out
 final=files
@@ -23,3 +24,4 @@ sed -r -i '' -e "s/$source/$final/g" -e 's/\.ts"/.js/gi' $target/$manifest
 
 # Finalisation
 mv $target/$source $target/$final
+find $source -name "*.js" -exec mv {} $trash \;

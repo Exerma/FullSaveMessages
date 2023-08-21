@@ -11,3 +11,4 @@
 
 // Types relative to DOM
 type nHTMLElement = HTMLElement | null;
+

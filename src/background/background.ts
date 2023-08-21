@@ -9,3 +9,27 @@
  * 
  */
 
+//----- Imports
+import { exTbMessages } from "../exerma_tb/exerma_tb_messages";
+import {exMain} from "../project/main";
+
+/**
+ * Background script is begining
+ */
+async function start(): Promise<void> {
+    try { 
+        console.log("Background.ts script has started");
+
+        // Add listener to the action button
+        browser.action.onClicked.addListener(exMain.onActionButtonClick);
+
+    } 
+    catch(error) {
+        console.log(error);
+        throw error;
+    }
+}
+
+
+//---------- Direct code called when the addon is started
+start();

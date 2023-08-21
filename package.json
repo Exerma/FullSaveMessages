@@ -7,7 +7,7 @@
       "compile": "tsc --project .",
       "build": "tsc --project .; ./make_out.zsh",
       "typedoc": "npx typedoc",
-      "clean": "rm -R src/*/*.js"
+      "clean": "rm -R src/*/*.js; rm -R .trash/*"
     },
     "author": "Patrick Seuret <https://github.com/exerma>",
     "license": "MIT",
@@ -15,4 +15,5 @@
     "dependencies": {
       "typescript": "^5.0.4"
     }
+    
 }

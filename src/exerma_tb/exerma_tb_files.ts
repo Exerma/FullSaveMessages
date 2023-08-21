@@ -1,6 +1,3 @@
-export {exFiles};
-import "./exerma_types";
-
 /*----------------------------
  *  (c) Patrick Seuret, 2023  
  *----------------------------
@@ -8,12 +5,17 @@ import "./exerma_types";
  *----------------------------
  *
  * Versions:
+ *   2023-08-20: Chg: Make this module an export class with static functions
  *   2023-07-20: First version
  * 
  */
 
- // Export object
-var exFiles = {
+//---------- Imports
+import "../exerma_base/exerma_types";
+
+//---------- Exported class
+// Export object
+export class exTbFiles  {
 
 //============================================================================
 // Files and directory management
@@ -23,7 +25,7 @@ var exFiles = {
 //   https://github.com/mdn/webextensions-examples/blob/main/imagify/sidebar/choose_file.js
 //
 
-    AskUserForFile: async function* (allowMultiSelect: boolean = false) {
+    public static async *AskUserForFile(allowMultiSelect: boolean = false) {
 
         // Local consts
         let idDOMInputFile:string = "exerma_input_file";
@@ -59,6 +61,6 @@ var exFiles = {
     }
 
 
-}; // End of exFiles
+}; // End of exTbFiles
 
 

@@ -1,2 +1,2 @@
-import "./background/background.ts"
-import "./action/action_popup.ts"
+import "./background/background"
+import "./action/action_popup"

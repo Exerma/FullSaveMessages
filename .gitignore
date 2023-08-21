@@ -1,6 +1,8 @@
 # Source: https://gist.github.com/octocat/9257657
 # Compiled files
 out
+.trash
+
 # JS files are compiled TS 
 src/*.js
 

@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "v113",
+            "name": "Current version",
             "type": "firefox",
             "request": "launch",
             "reAttach": true,
@@ -17,7 +17,7 @@
             "addonPath": "${workspaceFolder}/out/"
         },
         {
-            "name": "Compile and run v113",
+            "name": "Compile and launch",
             
             "type": "firefox",
             "request": "launch",
