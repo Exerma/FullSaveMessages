@@ -24,5 +24,7 @@
 export class EventNames {
     
     static readonly cEventClick:string = "click";
+    static readonly cEventChange:string = "change";
+    static readonly cEventInputChange:string = "input";
 
 }

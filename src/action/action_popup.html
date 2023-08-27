@@ -6,15 +6,17 @@
         <link rel="stylesheet" type="text/css" href="./action_popup.css" />
     </head>
 
-    <body id="main" class="main">
+    <body id="popupBody">
         <script type="module" src="../exerma_tb/exerma_tb_messages.js"></script>
-        <script type="module" src="../exerma_tb/exerma_tb_files.js"></script>
+        <script type="module" src="../exerma_base/exerma_files.js"></script>
         <script type="module" src="./action_popup.js"></script>
 
         <!-- Input external file or directory -->
-        <input type="file" style="display: none;" id="exerma_input_file_multi" multiple />
-        <input type="file" style="display: none;" id="exerma_input_file" />
-        <input type="file" style="display: none;" id="exerma_input_directory" webkitdirectory="true" />
+        <div>
+            <input type="file" style="display: none;" id="exerma_input_file_multi" multiple />
+            <input type="file" style="display: block;" id="exerma_input_file" />
+            <input type="file" style="display: none;" id="exerma_input_directory" webkitdirectory="true" />
+        </div>
 
         <!-- Actions proposed to user -->
         <div>
@@ -23,7 +25,9 @@
         <div>
             <button id="cmdSaveAttachment" class="button">Pièces jointes</button>
         </div>
-
+        <div>
+            <button id="cmdTest" class="button">Test</button>
+        </div>
 
     </body>
 

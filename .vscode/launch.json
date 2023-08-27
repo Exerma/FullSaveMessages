@@ -30,9 +30,9 @@
             "profileDir": "${env:HOME}/Data/Sources/Thunderbird/_DebugProfiles/113",
             "keepProfileChanges": true,
             "internalConsoleOptions": "openOnSessionStart",
-            "addonPath": "${workspaceFolder}/",
+            "addonPath": "${workspaceFolder}/out/",
 
-            "preLaunchTask": "tsc: build - tsconfig.json; make_out.zsh",
+            "preLaunchTask": "build FullSaveMessages",
             "outFiles": ["${workspaceFolder}/out/**/*.js"]
           },          
 

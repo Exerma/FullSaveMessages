@@ -10,24 +10,29 @@
  */
 
 //----- Imports
-import { exTbMessages } from "../exerma_tb/exerma_tb_messages";
-import {exMain} from "../project/main";
+//import { exTbMessages } from "../exerma_tb/exerma_tb_messages";
+//import {exMain} from "../project/main";
 
 /**
  * Background script is begining
  */
 async function start(): Promise<void> {
+    
     try { 
-        console.log("Background.ts script has started");
+        console.log("service_worker script has started");
+
+        // Init
+        //await exMain.Init();
 
         // Add listener to the action button
-        browser.action.onClicked.addListener(exMain.onActionButtonClick);
+        //browser.action.onClicked.addListener(exMain.onActionButtonClick);
 
     } 
     catch(error) {
         console.log(error);
         throw error;
     }
+
 }
 
 

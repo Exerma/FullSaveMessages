@@ -11,11 +11,9 @@
             "strict_min_version": "105.0"
         }
     },
-    "permissions": [
-        "messagesRead"
-    ],
+    "permissions": ["storage", "messagesRead", "messagesMove"],
     "background": {
-        "page": "./src/background/background.html"
+        "scripts": ["./src/background/background.js"]
     },
     "action": {
         "default_title": "Full Save",

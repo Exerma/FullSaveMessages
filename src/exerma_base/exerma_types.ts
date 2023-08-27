@@ -11,4 +11,5 @@
 
 // Types relative to DOM
 type nHTMLElement = HTMLElement | null;
-
+type nHTMLInputElement = HTMLInputElement | null;
+type nFileList = FileList | null;  // FileList is returned by Input.files
