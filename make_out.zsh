@@ -5,6 +5,8 @@ target=out
 final=files
 manifest=manifest.json
 images=images
+dependancies=dependancies
+depNativeFileSystem=$dependancies/native-file-system-adapter-master
 
 # Prepare folders
 cd $(dirname "$0")
@@ -26,9 +28,9 @@ find $target -name "*.js" -exec  sed -r -i '' "s%^(\s*import[^\"]+\"[^\"]*)(/$so
 sed -r -i '' -e "s/$source/$final/g" -e 's/\.ts/.js/gi' $target/$manifest
 
 # Dependancies
-mkdir $target/dependancies
-mkdir $target/dependancies/native-file-system-adapter-master
-cp -R ./dependancies/native-file-system-adapter-master/files $target/dependancies/native-file-system-adapter-master/
+mkdir $target/$dependancies
+mkdir $target/$depNativeFileSystem
+cp -R ./$depNativeFileSystem/$final $target/$depNativeFileSystem/
 
 # Finalisation
 mv $target/$source $target/$final

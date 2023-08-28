@@ -9,9 +9,10 @@
  * 
  */
 
+ // Thunderbird prototypes
  var messenger = browser;
  
-declare namespace tb {
+ declare namespace tb {
     
     // Types related to Thunderbird Messenger
     type nMessageList = messenger.messages.MessageList | null;
@@ -20,4 +21,4 @@ declare namespace tb {
     type nMailFolder  = messenger.folders.MailFolder | null;
     type uMailFolder  = messenger.folders.MailFolder | undefined;
 
-}
+ }

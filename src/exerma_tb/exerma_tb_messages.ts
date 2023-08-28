@@ -11,7 +11,6 @@
  */
 
 //---------- Import
-//import "../exerma_tb/thunderbird";
 import "../exerma_base/exerma_types";
 import "../exerma_tb/exerma_tb_types";
  
