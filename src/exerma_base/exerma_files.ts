@@ -11,7 +11,8 @@
  */
 
 //---------- Imports
-import { EventNames } from "./exerma_consts";
+import { EventNames, cNullString } from "./exerma_consts";
+import { exDom } from "./exerma_dom";
 import "./exerma_types";
 
 //---------- Exported class
@@ -26,37 +27,30 @@ export class exFiles  {
 //   https://github.com/mdn/webextensions-examples/blob/main/imagify/sidebar/choose_file.js
 //   https://stackoverflow.com/questions/16215771/how-to-open-select-file-dialog-via-js
 
-    public static async AskUserForFile(allowMultiSelect:boolean = false, 
-                                       contentType:string = '', 
-                                       timeoutDelay:number = 10000) //15*60*1000)
+    public static async AskUserForFile(params: {
+                                            allowMultiSelect?:boolean|undefined, 
+                                            contentType?:string|undefined, 
+                                            timeoutDelay?:number|undefined, //15*60*1000)
+                                            useInputBox?:HTMLInputElement|undefined
+                                        }) 
                                 : Promise<nFileList> {
 
         // Consts
         const cSourceName:string = "exerma_files::AskUserForFile";
 
-        // Local variables
-        var inputBox:HTMLInputElement; 
 
         try {
-            console.log("AskUserForFile has started");
+            console.log(cSourceName + " has started");
             
-            // Build temporary DOM entry
-            inputBox = <HTMLInputElement>document.getElementById("exerma_input_file")??document.createElement('input');
-            inputBox.multiple = allowMultiSelect;
+            // Build temporary DOM entry if necessary
+            let inputBox:HTMLInputElement=params.useInputBox??document.createElement('input');
+            inputBox.multiple = params.allowMultiSelect??false;
             inputBox.type = 'file';
-            inputBox.accept=contentType;
+            inputBox.accept=params.contentType??cNullString;
 
             // Use the input box
             console.log(cSourceName+" opens input box");
-
             
-            const promiseTimeout:Promise<nFileList> =
-                    new Promise<nFileList>((resolve) => { 
-                        setTimeout(() => {
-                            console.log(cSourceName+" timeout");
-                            resolve(null);
-                    }, timeoutDelay)});
-
             const promiseInput:Promise<nFileList> =
                     new Promise<nFileList>((resolve) => {
                         inputBox.addEventListener("change", () => {
@@ -74,7 +68,6 @@ export class exFiles  {
                         inputBox.addEventListener("click", (event) => {
                             console.log(cSourceName+":inputBox: Click");
                             //resolve(inputBox.files);
-                            (<HTMLInputElement>event.target).value='';
                         });
                         inputBox.addEventListener("close", () => {
                             console.log(cSourceName+":inputBox: Closed");
@@ -86,13 +79,22 @@ export class exFiles  {
                         });
 
                         console.log(cSourceName+" last command before click");
-                        //inputBox.click(); // No effect with: dispatchEvent(new Event(EventNames.cEventClick));
+                        inputBox.click(); //nothing happens with: dispatchEvent(new Event(EventNames.cEventClick));
                         console.log(cSourceName+" input box started");
                     
                     });
-            return Promise.race([promiseTimeout, promiseInput]);
-            //return promiseInput;
-            
+
+            if (params.timeoutDelay) {
+                const promiseTimeout:Promise<nFileList> =
+                new Promise<nFileList>((resolve) => { 
+                    setTimeout(() => {
+                        console.log(cSourceName+" timeout");
+                        resolve(null);
+                }, params.timeoutDelay)});
+                return Promise.race([promiseTimeout, promiseInput]);
+            } else {
+                return promiseInput;
+            }
 
         } catch (error) {
             console.log(cSourceName+":Error: " + error);

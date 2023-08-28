@@ -13,7 +13,7 @@
     },
     "permissions": ["storage", "messagesRead", "messagesMove"],
     "background": {
-        "scripts": ["./src/background/background.js"]
+        "scripts": ["./src/background/background.ts"]
     },
     "action": {
         "default_title": "Full Save",

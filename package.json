@@ -4,16 +4,15 @@
     "description": "Manage emails",
     "main": "index.js",
     "scripts": {
-      "compile": "tsc --project .",
-      "build": "tsc --project .; ./make_out.zsh",
-      "typedoc": "npx typedoc",
-      "clean": "rm -R src/*/*.js; rm -R .trash/*"
+        "compile": "tsc --project .",
+        "build": "rm -R out; tsc --project . ; ./make_out.zsh",
+        "typedoc": "npx typedoc",
+        "clean": "rm -R src/*/*.js && rm -R .trash/*"
     },
     "author": "Patrick Seuret <https://github.com/exerma>",
     "license": "MIT",
     "type": "module",
     "dependencies": {
-      "typescript": "^5.0.4"
+        "typescript": "^5.0.4"
     }
-    
 }

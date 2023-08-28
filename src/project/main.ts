@@ -10,12 +10,14 @@
  * 
  */
 
-//----- Import
+//---------- Import
 import "../exerma_tb/exerma_tb_types"
-import { exTbMessages } from "../exerma_tb/exerma_tb_messages";
-import { exFiles }      from "../exerma_base/exerma_files";
-
-
+import { exTbMessages }   from "../exerma_tb/exerma_tb_messages";
+import { exFiles }        from "../exerma_base/exerma_files";
+import { exMessageNames } from "../exerma_base/exerma_messages";
+import "./messages";
+import { cNullString } from "../exerma_base/exerma_consts";
+import { showSaveFilePicker } from "../../dependancies/native-file-system-adapter-master/src/es6";
 
 export class exMain {
 
@@ -26,8 +28,7 @@ export class exMain {
     static readonly cPopupTestButton:string = "cmdTest";
 
     // Global objects
-    private static globalFiles:HTMLInputElement;
-    private static globalValue:number;
+    private static globalInput:HTMLInputElement;
     
     /**
      * Initialization
@@ -36,9 +37,8 @@ export class exMain {
 
         try {
             console.log("exMain::Init: Start");
-            this.globalFiles=document.createElement("input");
-            this.globalFiles.type="file";
-            this.globalValue=100;
+            this.globalInput=document.createElement("input");
+            this.globalInput.type="file";
    
         } catch (error) {
             console.log(error);
@@ -74,42 +74,42 @@ export class exMain {
     public static async onTestButtonClick(event:Event): Promise<void> {
 
         console.log("User has clicked the test button");
-        console.log("Global value: " + this.globalValue);
-
-        if (this.globalFiles!==undefined) {
-            console.log("onTestButtonClick: Reuse existing");
-        } else {
-            console.log("onTestButtonClick: build on demand");
-            this.globalFiles=document.createElement("input");
-        }
-        this.globalFiles.type = 'file';
-        this.globalFiles.onchange=() => {
-            console.log("onTestButtonClick:  has changed: " + this.globalFiles.name);
-        }
-        this.globalFiles.oncancel=() => {
-            console.log("onTestButtonClick:  was cancelled: " + this.globalFiles.name);
-        }
-        this.globalFiles.click();
-
 
     }
 
     public static async saveAndArchiveMessages(): Promise<void> {
 
-        console.log("saveAndArchiveMessages has started");
+        const cSourceFile:string="main.ts::saveAndArchiveMessages";
+
+        console.log(cSourceFile + " has started");
+
+        const inputBox:HTMLInputElement=<HTMLInputElement>document.getElementById('exerma_input_file');
 
         // Ask user where to save
-        let files:nFileList = await exFiles.AskUserForFile();
-         console.log("saveAndArchiveMessages: result count = " + files?.length);
-        if (files!=null) Array.from(files).map(file => console.log("File: " + file))
+        // let newTab:messenger.tabs.Tab|null=await messenger.tabs.create({url: "../exerma_base/exerma_base.html", 
+        //                                                                 active: false});
+        // console.log("saveAndArchiveMessages: inputBox = " + (newTab?.id));
+        // let inputBox:HTMLInputElement=<HTMLInputElement>document.getElementById("exerma_input_file");
+        // console.log("saveAndArchiveMessages: inputBox = " + (inputBox?.id));
+
+        //let files:nFileList = await exFiles.AskUserForFile({useInputBox: inputBox});
+        //console.log("saveAndArchiveMessages: result count = " + files?.length);
+        //if (files!=null) Array.from(files).map(file => console.log("File: " + file))
             
         // Load messages by chunks (about 100 per chunk)
         let selection = exTbMessages.LoadSelectedMessages();
-        
-        for await (let message of selection) {
+        for await (let messageHeader of selection) {
+            console.log(cSourceFile + " -> " + messageHeader.subject);
+            let rawMessage:nFile=<nFile>await messenger.messages.getRaw(messageHeader.id);
+            if (rawMessage) {
+                // https://developer.mozilla.org/en-US/docs/Web/API/File_System_API
+                // https://github.com/jimmywarting/native-file-system-adapter
+                let fileHandle=await showSaveFilePicker({suggestedName: messageHeader.subject + ".eml"});
+                let fileStream=await fileHandle.createWritable();
+                await fileStream.write(rawMessage);
+                await fileStream.close();
+            }
 
-            console.log(message.subject);
-            //exFiles.openFileDialog();
             
         }
     }

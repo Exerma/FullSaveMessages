@@ -20,7 +20,15 @@ cp -r $images    $target/$images
 
 # Add missing ".js" extension to import instructions
 find $target -name "*.js" -exec  sed -r -i '' 's/^(\s*import[^"]+"[^"]*)(")(;\s*)$/\1.js"\3/gi' {} \;
-sed -r -i '' -e "s/$source/$final/g" -e 's/\.ts"/.js/gi' $target/$manifest
+# Replace "src" by "files" in import instructions
+find $target -name "*.js" -exec  sed -r -i '' "s%^(\s*import[^\"]+\"[^\"]*)(/$source/)([^\"]*\";\s*)$%\1/$final/\3%gi" {} \;
+# Replace ".ts" file extension by ".js" in manifest
+sed -r -i '' -e "s/$source/$final/g" -e 's/\.ts/.js/gi' $target/$manifest
+
+# Dependancies
+mkdir $target/dependancies
+mkdir $target/dependancies/native-file-system-adapter-master
+cp -R ./dependancies/native-file-system-adapter-master/files $target/dependancies/native-file-system-adapter-master/
 
 # Finalisation
 mv $target/$source $target/$final
