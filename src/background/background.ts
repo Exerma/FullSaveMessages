@@ -1,40 +1,42 @@
-/*----------------------------
+/* ---------------------------------------------------------------------------
  *  (c) Patrick Seuret, 2023  
- *----------------------------
+ * ---------------------------------------------------------------------------
  *  background.js
- *----------------------------
+ * ---------------------------------------------------------------------------
  *
  * Versions:
  *   2023-07-17: First version
  * 
  */
 
-//----- Imports
-//import { exTbMessages } from "../exerma_tb/exerma_tb_messages";
-//import {exMain} from "../project/main";
+    // ---------- Imports
+    // import { exTbMessages } from "../exerma_tb/exerma_tb_messages";
+    // import {exMain} from "../project/main";
 
-/**
- * Background script is begining
- */
-async function start(): Promise<void> {
-    
-    try { 
-        console.log("service_worker script has started");
+    /**
+     * Background script is begining
+     */
+    export async function start (): Promise<void> {
+        
+        try {
 
-        // Init
-        //await exMain.Init();
+            console.log('service_worker script has started')
 
-        // Add listener to the action button
-        //browser.action.onClicked.addListener(exMain.onActionButtonClick);
+            // Init
+            // await exMain.Init();
 
-    } 
-    catch(error) {
-        console.log(error);
-        throw error;
+            // Add listener to the action button
+            // browser.action.onClicked.addListener(exMain.onActionButtonClick);
+
+        } catch (error) {
+
+            console.log(error)
+            throw error
+
+        }
+
     }
 
-}
 
-
-//---------- Direct code called when the addon is started
-start();
+    // ---------- Direct code called when the addon is started
+    await start()

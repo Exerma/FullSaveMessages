@@ -1,19 +1,19 @@
-/*----------------------------
+/* ---------------------------------------------------------------------------
  *  (c) Patrick Seuret, 2023  
- *----------------------------
+ * ---------------------------------------------------------------------------
  *  exerma_messages.js
- *----------------------------
+ * ---------------------------------------------------------------------------
  *
  * Versions:
  *   2023-08-27: First version
  * 
  */
 
-    //---------- Imports
-    import { cNullString } from "./exerma_consts";
+    // ---------- Imports
+    import { cNullString } from './exerma_consts'
 
-    //---------- Exports
-    //type exMessageCallback = ()
+    // ---------- Exports
+    // type exMessageCallback = ()
 
     /**
      * Exerma messages are always made of:
@@ -24,9 +24,9 @@
     export interface exMessages {
 
         // Message minimum members
-        readonly name:exMessageNames;
-        readonly caller:string;
-        readonly uid:string;
+        readonly name: exMessageNames
+        readonly caller: string
+        readonly uid: string
         
     }
 
@@ -48,7 +48,7 @@
      */
     export enum exMessageNames {
 
-        GetState = "GetState",
+        GetState = 'GetState'
 
     }
 
@@ -58,15 +58,16 @@
      */
     export class msgGetState implements exMessages {
 
-        name:exMessageNames = exMessageNames.GetState;
-        caller:string=cNullString;
-        uid:string=cNullString;
+        name: exMessageNames = exMessageNames.GetState
+        caller: string = cNullString
+        uid: string = cNullString
 
-        constructor(caller:string=cNullString, 
-                    uid:string=cNullString) { 
-            this.caller=caller;
-            this.uid=uid;
-        };
+        constructor (caller: string = cNullString,
+                     uid: string = cNullString) {
+
+            this.caller = caller
+            this.uid = uid
+
+        }
 
     }
-    
