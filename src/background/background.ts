@@ -16,7 +16,7 @@
     /**
      * Background script is begining
      */
-    export async function start (): Promise<void> {
+    export function start (): any {
         
         try {
 
@@ -39,4 +39,4 @@
 
 
     // ---------- Direct code called when the addon is started
-    await start()
+    start()

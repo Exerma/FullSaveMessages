@@ -13,30 +13,30 @@
     },
     "permissions": ["storage", "messagesRead", "messagesMove"],
     "background": {
-        "scripts": ["./src/background/background.ts"]
+        "scripts": ["background.js"]
     },
     "action": {
         "default_title": "Full Save",
         "default_icon": {
-            "16": "./images/icon-16px-light.png",
-            "32": "./images/icon-32px-light.png"
+            "16": "images/icon-16px-light.png",
+            "32": "images/icon-32px-light.png"
         },
         "theme_icons": [{
-            "light": "./images/icon-16px-lightpng",
-            "dark": "./images/icon-16px-dark.png",
+            "light": "images/icon-16px-lightpng",
+            "dark": "images/icon-16px-dark.png",
             "size": 16
           }, {
-            "light": "./images/icon-32px-light.png",
-            "dark": "./images/icon-32px-dark.png",
+            "light": "images/icon-32px-light.png",
+            "dark": "images/icon-32px-dark.png",
             "size": 32
           }],
-        "default_popup": "./src/action/action_popup.html",
+        "default_popup": "action_popup.html",
         "allowed_spaces": ["mail"],
         "type": "button"
     },
     "icons": {
-        "64": "./images/icon-64px-light.png",
-        "32": "./images/icon-32px-light.png",
-        "16": "./images/icon-16px-light.png"
+        "64": "images/icon-64px-light.png",
+        "32": "images/icon-32px-light.png",
+        "16": "images/icon-16px-light.png"
     }
 }

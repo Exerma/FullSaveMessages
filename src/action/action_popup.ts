@@ -22,7 +22,7 @@ import * as exMain from '../project/main'
  * the user clicks the button)
  * It is actually called as the last command in this file
  */
-async function start (): Promise<void> {
+export function start (): any {
 
     try {
 
@@ -50,4 +50,4 @@ async function start (): Promise<void> {
 }
 
 // ---------- Direct code called when user clicks the button
-await start()
+start()

@@ -9,6 +9,8 @@
  * 
  */
 
+import '../../dependancies/generate-mail-extension-typings'
+
 // Thunderbird prototypes
 export const messenger = browser
  

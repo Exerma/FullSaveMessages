@@ -2,9 +2,14 @@
     "env": {
         "browser": true,
         "es2022": true,
-        "jest": true
+        "jest": true,
+        "node": true
     },
-    "extends": "standard-with-typescript",
+    "extends": [
+        "standard-with-typescript",
+		"plugin:jsdoc/recommended"
+    ],
+    "ignorePatterns": ["/node_module/","*.js","*.cjs"],
     "overrides": [
         {
             "env": {
@@ -18,11 +23,19 @@
             }
         }
     ],
-    "parserOptions": {
+    "parser": "@typescript-eslint/parser",
+	"parserOptions": {
+        "project": [
+            "tsconfig.json"
+        ],
         "ecmaVersion": "latest",
         "sourceType": "module"
     },
-    "rules": {
+    "plugins": ["@typescript-eslint", "jsdoc"],
+
+
+
+	"rules": {
         "no-multiple-empty-lines": ["warn", {
             "max": 5,
             "maxBOF": 0,

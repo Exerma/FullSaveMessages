@@ -8,13 +8,12 @@
             "reAttach": true,
             "firefoxExecutable": "/Applications/Thunderbird.app/Contents/MacOS/thunderbird-bin",
             "reloadOnChange": {
-                "watch": "${workspaceFolder}/out/**/*.js",
-                "ignore": "**/node_modules/**"
+                "watch": "${workspaceFolder}/dist/release/**/*.js"
             },
             "profileDir": "${env:HOME}/Data/Sources/Thunderbird/_DebugProfiles/113",
             "keepProfileChanges": true,
             "internalConsoleOptions": "openOnSessionStart",
-            "addonPath": "${workspaceFolder}/out/"
+            "addonPath": "${workspaceFolder}/dist/release/"
         }        
     ]
 }

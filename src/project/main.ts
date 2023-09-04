@@ -10,12 +10,10 @@
  *   2023-08-20: First version
  *
  */
-
 import type * as tb              from '../exerma_base/exerma_types'
 import { loadSelectedMessages }  from '../exerma_tb/exerma_tb_messages'
-import { showSaveFilePicker }    from '../../dependancies/native-file-system-adapter-master/src/es6'
-import { jsPDF }                 from '../../dependancies/jspdf/src/jspdf'
-
+import { jsPDF }                 from 'jspdf'
+import { showSaveFilePicker }    from '../../dependancies/native-file-system-adapter/native-file-system-adapter'
 
 // Consts
 export const cPopupBody: string = 'popupBody'
