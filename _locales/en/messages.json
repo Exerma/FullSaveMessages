@@ -1,0 +1,8 @@
+{
+	"extensionName": {
+		"message": "FullSaveMessages"
+	},
+	"extensionDescription": {
+		"message": "Allow grouped exfiltration of your messages in EML and PDF formats"
+	}
+}

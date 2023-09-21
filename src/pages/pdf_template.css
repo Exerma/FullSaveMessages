@@ -1,0 +1,19 @@
+/**
+ * ---------------------------------------------------------------------------
+ *  (c) Patrick Seuret, 2023
+ * ---------------------------------------------------------------------------
+ *  pdf_template.css
+ * ---------------------------------------------------------------------------
+ *
+ * Versions:
+ *   2023-09-08: First version
+ *****/
+
+ body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: normal;
+    font-size: 10pt;
+    /*height: 60px;*/
+    padding: 5px;
+    color: red;
+}

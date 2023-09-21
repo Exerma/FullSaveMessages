@@ -1,0 +1,8 @@
+{
+	"extensionName": {
+		"message": "FullSaveMessages"
+	},
+	"extensionDescription": {
+		"message": "Permet d'exfiltrer vos messages aux formats EML et PDf de façon groupée"
+	}
+}

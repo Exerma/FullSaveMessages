@@ -12,9 +12,10 @@
 
 // ---------- Import
 import type * as ex from '../exerma_base/exerma_types'
+import type * as exTb from '../exerma_tb/exerma_tb_types'
 import * as EventNames from '../exerma_base/exerma_consts'
-import * as exMain from '../project/main'
-// import { exTbMessages } from '../exerma_tb/exerma_tb_messages'
+import * as exMain from '../project/project_main'
+import log, { cRaiseUnexpected, cInfoCancelled, cInfoStarted } from '../exerma_base/exerma_log'
 
 
 /**
@@ -22,13 +23,16 @@ import * as exMain from '../project/main'
  * the user clicks the button)
  * It is actually called as the last command in this file
  */
-export function start (): any {
+export async function start (): Promise<void> {
 
+    const cSourceName = 'action/action_popup.ts/start'
+    
     try {
 
-        console.log('Popup window has started')
+        log().debugInfo(cSourceName, cInfoStarted)
 
-
+        // Store the current MailTab.id to make it available by the welcome_archive page
+        await exMain.storeCurrentMailTabId()
 
         // Source: https://developer.mozilla.org/en-US/docs/Web/Events#event_listing
         //         https://bobbyhadz.com/blog/typescript-add-click-event-to-button
@@ -36,13 +40,9 @@ export function start (): any {
         document.getElementById(exMain.cPopupSaveAttachButton)?.addEventListener(EventNames.cEventClick, exMain.onSaveAttachButtonClick)
         document.getElementById(exMain.cPopupTestButton)?.addEventListener(EventNames.cEventClick, exMain.onTestButtonClick)
 
-        const body: ex.nHTMLElement = document.getElementById('main')
-        const cmd: ex.nHTMLElement = document.getElementById('cmdArchive')
-
-
     } catch (error) {
 
-        console.log(error)
+        log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
         throw error
 
     }
@@ -50,4 +50,4 @@ export function start (): any {
 }
 
 // ---------- Direct code called when user clicks the button
-start()
+await start()

@@ -34,6 +34,8 @@ module.exports = [
         name: 'webextension',
         mode: defaultMode,
         entry: {
+            welcome_archives: './src/pages/welcome_archives.ts',
+            pdf_template: './src/pages/pdf_template.ts',
             background:   './src/background/background.ts',
             action_popup: './src/action/action_popup.ts',
         },

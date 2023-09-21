@@ -36,10 +36,11 @@ module.exports = (grunt) => {
 		copy: {
 			main: {
 				files: [
-					{ expand: true, cwd: "resources/", src: ["**"], dest: outDirExtracted },
+					{ expand: true, cwd:          "./resources/", src: ["**"],              dest: outDirExtracted },
+					{ expand: true, cwd: srcDir + "/pages/",      src: ["**", "!**/*.ts"],  dest: outDirExtracted },
 					{ expand: true, cwd: srcDir + "/background/", src: ["**", "!**/*.ts", "!**/tsconfig*.json"], dest: outDirExtracted },
-					{ expand: true, cwd: srcDir + "/action/", src: ["**", "!**/*.ts", "!**/tsconfig*.json"], dest: outDirExtracted },
-					{ expand: true, src: ["./README.md"], dest: outDirExtracted },
+					{ expand: true, cwd: srcDir + "/action/",     src: ["**", "!**/*.ts", "!**/tsconfig*.json"], dest: outDirExtracted },
+					{ expand: true,                               src: ["./README.md"],     dest: outDirExtracted },
 				],
 			},
 		},

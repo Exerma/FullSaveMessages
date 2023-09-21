@@ -36,6 +36,8 @@
 
 
 	"rules": {
+        "operator-linebreak": ["warn", "before"],
+        "space-in-parens": "off",
         "no-multiple-empty-lines": ["warn", {
             "max": 5,
             "maxBOF": 0,
@@ -43,7 +45,7 @@
         }],
         "indent": "off",
         "@typescript-eslint/indent": "off",
-        "padded-blocks": ["warn", "always"],
+        "padded-blocks": ["off", "always", { "allowSingleLineBlocks": true }],
         "no-multi-spaces": "off",
         "no-unused-vars": "off", 
         "@typescript-eslint/no-unused-vars": "off",

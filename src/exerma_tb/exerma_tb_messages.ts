@@ -3,14 +3,14 @@
  * ---------------------------------------------------------------------------
  *  exerma_messages.js
  * ---------------------------------------------------------------------------
- *
+ * 
  * Versions:
  *   2023-08-20: Chg: Make this module an export class with static functions
  *   2023-07-17: First version
  * 
  */
 
-    // ---------- Import
+    // --------------- Import
     import type * as ex from '../exerma_base/exerma_types'
     import type * as tb from '../exerma_tb/exerma_tb_types'
     
@@ -30,12 +30,14 @@
     //
 
 
-
-    // Retrieve the selected messages in a folder
-    // \param folder is the 
-    // Return [MessageHeader] an array with all currently selected messages
-    export async function * loadSelectedMessages (tabId: number | undefined = undefined):
-                                                AsyncGenerator<messenger.messages.MessageHeader> {
+    /**
+     * Retrieve the selected messages in a folder
+     * @param {ex.uNumber} tabId is the ID of the tab the caller want to retrive the mails of
+     * @yields {AsyncGenerator<messenger.messages.MessageHeader>} is an array with 
+     *             all currently selected messages
+     */
+    export async function * loadSelectedMails (tabId: ex.uNumber = undefined):
+                                           AsyncGenerator<messenger.messages.MessageHeader> {
 
         try {
 
@@ -73,10 +75,14 @@
     }
 
 
-
-    // Retrieve all messages in a folder
+    /**
+     * Retrieve all messages in a folder
+     * @param {ex.uNumber} tabId is the ID of the tab the caller want to retrive the mails of
+     * @yields {AsyncGenerator<messenger.messages.MessageHeader>} is the list of all mails
+     */
+    // 
     // Return [MessageHeader] an array with all messages in tabId
-    export async function * loadAllMessages (tabId: number | undefined = undefined):
+    export async function * loadAllMails (tabId: ex.uNumber = undefined):
                                             AsyncGenerator<messenger.messages.MessageHeader>  {
 
         const tabs: tb.mailTab[] | null = await messenger.mailTabs.query({ windowId: tabId })

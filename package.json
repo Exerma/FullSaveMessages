@@ -13,22 +13,18 @@
         "grunt:copy": "grunt copy",
         "grunt:build": "grunt webpack",
         "grunt:rebuild": "grunt clean copy webpack",
-        "cli": "ts-node src/cli.ts",
+        "compile": "tsc",
+        "build": "webpack",
         "lint": "eslint src/ --ignore-pattern /node_module/ --ext .ts --ext .cjs --ext .js ",
         "test": "jest",
-        "clean": "rm -rf dist build package",
-        "ts-node": "ts-node",
-        "docs": "typedoc --entryPoints src/root.ts",
-        "build": "webpack",
-        "build-all": "clean && yarn build && yarn esbuild-node && yarn esbuild-browser",
-        "esbuild-browser": "esbuild src/browser.ts --bundle --minify --outfile=dist/browser.js; ./_make-out.zsh",
-        "esbuild-browser:dev": "esbuild src/browser.ts --sourcemap=external --outfile=dist/browser.js; ./_make-out.zsh",
-        "esbuild-browser:watch": "esbuild src/browser.ts --bundle --watch --outfile=dist/browser.js; ./_make-out.zsh"
+        "clean": "rm -rf dist build package; ./_clean.zsh",
+        "docs": "typedoc --entryPoints src/root.ts"
     },
     "author": "Patrick Seuret <https://github.com/exerma>",
     "license": "MIT",
     "type": "module",
     "devDependencies": {
+        "@types/file-saver": "^2.0.5",
         "@types/jest": "^29.5.4",
         "@types/node": "^20.5.9",
         "@typescript-eslint/eslint-plugin": "^6.5.0",
@@ -55,6 +51,7 @@
         "webpack-cli": "^5.1.4"
     },
     "dependencies": {
+        "file-saver": "^2.0.5",
         "jspdf": "^2.5.1"
     }
 }

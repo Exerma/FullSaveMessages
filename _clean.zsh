@@ -3,6 +3,7 @@ trash=.trash
 
 # Prepare folders
 cd $(dirname "$0")
+mkdir $trash
 
 #-----------------------------------------------------------------------------
 # Main files of the project

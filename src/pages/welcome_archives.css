@@ -1,0 +1,43 @@
+/**
+ * ---------------------------------------------------------------------------
+ *  (c) Patrick Seuret, 2023
+ * ---------------------------------------------------------------------------
+ *  welcome_archives.css
+ * ---------------------------------------------------------------------------
+ *
+ * Versions:
+ *   2023-09-09: First version
+ *****/
+
+    #footer_buttons {
+        position:    relative;
+        height:      100%;
+        width:       90%;
+        left:        0%;
+        top:         0%;
+        overflow:    hidden;
+        white-space: nowrap;
+        text-align:  right;
+    }
+
+    /* ---------- Footer buttons ---------- */
+
+    #continue {
+        background-color: #1b1ba42a;
+    }
+
+    .foot_button {
+        font-weight: bold;
+        background-color: white;
+        border: 1px solid #ceceff;
+        border-radius: 10px;
+        padding: 10px 20px;
+        margin: 5px;
+        color: #616161;
+    }
+
+    .foot_button:hover {
+        background-color: #1b1ba4 !important;
+        border-color: black;
+        color: white;
+    }

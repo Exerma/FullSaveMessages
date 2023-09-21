@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "Full Save Messages",
-    "description": "Save messages in EML and PDF formats",
+    "name": "Message save and archive exfiltration",
+    "description": "Allow grouped exfiltration of your messages in EML and PDF formatsonDescription",
     "version": "1.0",
     "author": "Patrick Seuret",
     "homepage_url": "https://github.com/Exerma/FullSaveMessages",
@@ -34,6 +34,13 @@
         "allowed_spaces": ["mail"],
         "type": "button"
     },
+    "web_accessible_resources": [{
+        "resources": [ 
+            "pdf_template.*",
+            "welcome_archives.*"
+        ],
+        "matches": ["<all_urls>"]
+    }],
     "icons": {
         "64": "images/icon-64px-light.png",
         "32": "images/icon-32px-light.png",

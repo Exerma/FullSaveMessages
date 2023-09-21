@@ -4,70 +4,173 @@
  *  exerma_messages.js
  * ---------------------------------------------------------------------------
  *
+ * This file describe our standard runtime.sendMessage and runtime.onMessage
+ * listener management.
+ * 
+ * All our messages sent are inheriting from CMessage. This allows the use of
+ * the "if (request instanceof CMessage)" to select only the good messages. Then 
+ * specific requests are identified using the "if (request instanceof CMyMessage)"
+ * identification (we also use unique names in the "name" member of the message
+ * if prefered).
+ * 
+ * Typical message implementation:
+ * 
+        **
+        * Implements the message used to initialize a "welcome_archives.html" page
+        * with messages of the correct tablId
+        *
+        export class CMessageInitWelcomeArchiveWithTab extends CMessage {
+ 
+            public readonly fromTabId: ex.uNumber
+ 
+            constructor (
+                        sentBy: string,
+                        fromTabId: ex.uNumber,
+                        messageId: string = cNullString) {
+  
+                            super(exMessageNameInitWelcomeArchiveWithTab,
+                                sentBy,
+                                messageId)
+  
+                            this.fromTabId = fromTabId
+  
+                        }
+ 
+        }
+        // This is the unique name of this message: can be used to compare
+        // if (request.name === exMessageNameInitWelcomeArchiveWithTab) ...
+        export const exMessageNameInitWelcomeArchiveWithTab: exMessageName = 'initWelcomeArchiveWithTab'
+ *  
+ * 
+ * Typical dispatcher implementation:
+ * 
+ * 
+ *
+     **
+     * Catch and dispatch messages in the main thread. This is usefull as content script 
+     * and service workers have no access to the MailTabs and main window.
+     * 
+     * IMPORTANT: DON'T MAKE THIS LISTENER "async": return an "async" function (aka a 
+     *            Promise) if it is not possible to return synchronously
+     * 
+     * It currently manage the following messages (defined in project_messages):
+     * - exMessageNameLoadMailHeaders: to load all mail headers from a MailTab
+     *             and return them in a MessageHeader[] array                  
+     * @param {any} request is the received message we have to answer to (or not)
+     * @param {messenger.runtime.MessageSender} sender is the caller object
+     * @param {() => void} sendResponse is a callback function to return the answer with,
+     *             but the best practice is to return **synchronously** a Promise object
+     *             or return false if the message is not handled:
+     * @returns {DispatcherReturnType} is a premise if the message was processed, 
+     *             and is false if the message was not handled
+     *
+    export function projectDispatcher (request: any, 
+                                       sender: messenger.runtime.MessageSender, 
+                                       sendResponse: () => void): DispatcherReturnType {
+
+        const cSourceName = 'project/project_dispatcher.ts/projectDispatcher'
+
+        try {
+    
+            if (request instanceof CMessageLoadMailHeaders) {
+                    
+                    // Main process starts initialisation
+                    log().debugInfo(cSourceName, 'Message received: ' + request.name)
+                    void loadFromTab({
+                                        tabId: request.fromTabId,
+                                        selectedOnly: request.selectedOnly
+                                    })    // an "async" function returning a Promise
+            }
+        
+            // Message not handled
+            return false
+    
+        } catch (error) {
+            
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+
+            // Message not handled
+            return false
+
+        }
+    }
+
+ * 
+ * 
  * Versions:
  *   2023-08-27: First version
  * 
  */
 
-    // ---------- Imports
+    // --------------- Imports
     import { cNullString } from './exerma_consts'
 
-    // ---------- Exports
-    // type exMessageCallback = ()
+    // --------------- Types
+    export type exMessageName = string
 
+    /**
+     * This is *our* standard return type for runtime.onMessage() listener (we call it
+     * "dispatcher"). We choose to always return "false" for unhandled message and a
+     * Promise<any> for handled messages
+     */
+    // export type DispatcherReturnType = Promise<any> | false
+    export type DispatcherReturnType = boolean
+
+    // --------------- Classes
     /**
      * Exerma messages are always made of:
-     * @name The name of the message (which is unique in the application through the exMessageNames enum)
-     * @caller The name of the caller
+     * @param {string} name it the name of the message (which is unique in the application 
+     *             through the exMessageNames namespace)
+     * @param {string} sentBy is the name of the sender (typically the cSourceName const) 
+     *             which allow differenciated response
+     * @param {string} messageId is an optional unique message identifier (per caller)
+     *             allowing to uniquely associate the returned message. This ID can be used
+     *             in the response to create a kind of conversation
      * Data have to be message specific
      */
-    export interface exMessages {
+    export class CMessage {
 
         // Message minimum members
-        readonly name: exMessageNames
-        readonly caller: string
-        readonly uid: string
+        readonly name: exMessageName
+        readonly sentBy: string
+        readonly messageId: string
+
+        constructor (params: {
+                        name: exMessageName
+                        sentBy: string
+                        messageId: string }) {
+                            this.name = params.name
+                            this.sentBy = params.sentBy
+                            this.messageId = params.messageId
+                        }
         
     }
+    
 
-    /**
-     * List of unique message names in the application
-     * You can extend it in your `main.ts` or a dedicated `messages.ts` file
-     * using the following code structure:
-     * 
-     *  ``` 
-     * declare module "../exerma_base/exerma_messages" {
-     *      export enum exMessageNames {
-     *          myMessage = "myMessage",
-     *      }
-     *  }
-     * ```
-     * 
-     * See: https://www.typescriptlang.org/docs/handbook/declaration-merging.html
-     * 
-     */
-    export enum exMessageNames {
 
-        GetState = 'GetState'
-
-    }
 
     /**
      * Example of a message used to require the state of the application
      * (see exerma_states.ts)
+     * Note: Unique name of this message is defined after the class
      */
-    export class msgGetState implements exMessages {
+    export class CMessageGetState extends CMessage {
 
-        name: exMessageNames = exMessageNames.GetState
-        caller: string = cNullString
-        uid: string = cNullString
-
-        constructor (caller: string = cNullString,
-                     uid: string = cNullString) {
-
-            this.caller = caller
-            this.uid = uid
-
-        }
+        /**
+         * A message used to requires the state of the application
+         * @param {object} params is the list of parameters to provide to this class
+         * @param {string} params.sentBy is the name of the function requiring the stat
+         * @param {string} params.messageId is the UID of the message (to identify it uniquely)
+         */
+        constructor (params: {
+                        sentBy: string
+                        messageId: string }) {
+                            super({
+                                name: exMessageNameGetState,
+                                sentBy: params.sentBy,
+                                messageId: params.messageId
+                            })
+                    }
 
     }
+    export const exMessageNameGetState: exMessageName = 'getState'
