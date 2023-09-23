@@ -33,7 +33,7 @@
     /**
      * Retrieve the selected messages in a folder
      * @param {ex.uNumber} tabId is the ID of the tab the caller want to retrive the mails of
-     * @yields {AsyncGenerator<messenger.messages.MessageHeader>} is an array with 
+     * @yields {AsyncGenerator<object.messages.MessageHeader>} is an array with 
      *             all currently selected messages
      */
     export async function * loadSelectedMails (tabId: ex.uNumber = undefined):
@@ -78,7 +78,7 @@
     /**
      * Retrieve all messages in a folder
      * @param {ex.uNumber} tabId is the ID of the tab the caller want to retrive the mails of
-     * @yields {AsyncGenerator<messenger.messages.MessageHeader>} is the list of all mails
+     * @yields {AsyncGenerator<object.messages.MessageHeader>} is the list of all mails
      */
     // 
     // Return [MessageHeader] an array with all messages in tabId

@@ -103,7 +103,8 @@
  */
 
     // --------------- Imports
-    import { cNullString } from './exerma_consts'
+    import { cNullString }           from './exerma_consts'
+    import log, { cRaiseUnexpected } from './exerma_log'
 
     // --------------- Types
     export type exMessageName = string
@@ -148,7 +149,6 @@
     
 
 
-
     /**
      * Example of a message used to require the state of the application
      * (see exerma_states.ts)
@@ -174,3 +174,37 @@
 
     }
     export const exMessageNameGetState: exMessageName = 'getState'
+
+
+
+    /**
+     * Check if the provided "request-candidate" has the same name than the requires
+     * message name
+     * @param {any}    request is the object to check if it is a message with the required name
+     * @param {string} messageName is the name of the message to test for
+     * @returns {boolean} is true if the request has the required name, false if not
+     *                  (including if the request is not an object or doesn't have a name) 
+     */
+    export function isCMessage (request: any, messageName: exMessageName): boolean {
+
+        const cSourceName = 'exerma_base/exerma_message.ts/isCMessage'
+
+        try {
+            
+            if ((typeof request === 'object') && ('name' in request)) {
+
+                return (request.name === messageName)
+
+            }
+
+            // Invalid type
+            return false
+
+        } catch (error) {
+            
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+            return false
+
+        }
+
+    }

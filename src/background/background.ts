@@ -12,7 +12,8 @@
     // ---------- Imports
     // import { exTbMessages } from "../exerma_tb/exerma_tb_messages";
     import log, { cInfoStarted }     from '../exerma_base/exerma_log'
-    import { projectDispatcher } from '../project/project_dispatcher'
+    import { cEventLoad }            from '../exerma_base/exerma_consts'
+    import { projectDispatcher }     from '../project/project_dispatcher'
 
     /**
      * Background script is begining
@@ -42,4 +43,4 @@
 
 
     // ---------- Direct code called when the addon is started
-    start()
+    window.addEventListener(cEventLoad, start, { once: true, passive: true })

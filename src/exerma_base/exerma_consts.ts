@@ -35,3 +35,4 @@
     export const cTypeNameDate: string = 'Date'
     export const cTypeNameString: string = 'string'
     export const cTypeNameNumber: string = 'number'
+    export const cTypeNameObject: string = 'object'

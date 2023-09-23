@@ -166,15 +166,10 @@
             let target: nHTMLElement = (options?.target ?? null)
             if (target == null) {
                 
-log().debugInfo(cSourceName, 'looking for target object')
-
                 if (options?.targetId !== undefined) {
 
                     // Retrieve the target by Id
                     target = doc.getElementById(options.targetId)
-
-log().debugInfo(cSourceName, 'Target object is ' + target?.nodeName)
-log().debugInfo(cSourceName, 'DOM: ' + doc.body.innerHTML)
 
                 }
 
@@ -188,13 +183,10 @@ log().debugInfo(cSourceName, 'DOM: ' + doc.body.innerHTML)
 
                     target.insertAdjacentElement(options.insertPosition, result)
 
-log().debugInfo(cSourceName, 'New object added to target as ' + options.insertPosition)
-
                 } else {
 
                     target.appendChild(result)
 
-log().debugInfo(cSourceName, 'New object added to target as child')
                 }
 
             }

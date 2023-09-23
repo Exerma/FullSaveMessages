@@ -10,11 +10,12 @@
  *
  */
     // --------------- Imports
-    import log, { cRaiseUnexpected } from '../exerma_base/exerma_log'
+    import log, { cInfoStarted, cRaiseUnexpected } from '../exerma_base/exerma_log'
     import type * as exTb from '../exerma_tb/exerma_tb_types'
-    import { type DispatcherReturnType, CMessage } from '../exerma_base/exerma_messages'
-    import { CMessageLoadMailHeaders } from './project_messages'
+    import { type DispatcherReturnType, type CMessage, isCMessage } from '../exerma_base/exerma_messages'
+    import { CMessageLoadMailHeaders, exMessageNameLoadMailHeaders } from './project_messages'
     import { loadMailsOfTabAndSendResult } from './project_main'
+import { isCClass } from '../exerma_base/exerma_types'
 
     // --------------- Functions
     /**
@@ -41,9 +42,13 @@
 
         const cSourceName = 'project/project_dispatcher.ts/projectDispatcher'
 
+        log().debugInfo(cSourceName, cInfoStarted)
+
         try {
     
-            if (request instanceof CMessageLoadMailHeaders) {
+            log().debugInfo(cSourceName, 'Message name: ' + (request as CMessage).name + ' instanceof -> ' + isCMessage(request, exMessageNameLoadMailHeaders))
+
+            if (isCMessage(request, exMessageNameLoadMailHeaders)) {
                     
                 // Main process starts initialisation
                 log().debugInfo(cSourceName, 'Message received: ' + request.name)

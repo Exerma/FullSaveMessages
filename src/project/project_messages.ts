@@ -25,9 +25,21 @@
      */
     export class CMessageInitWelcomeArchiveWithTab extends CMessage {
 
+        // Local members
         public readonly mailsOfTabId: ex.uNumber
         public readonly answerTo: ex.uNumber
 
+        /**
+         * Create the message used to Init the archive welcome popup
+         * @param {object}     params are the required parameters of the message
+         * @param {string}     params.sentBy is the cSourceName of the caller
+         * @param {ex.uNumber} params.answerTo is the window.id to send the
+         *              response to
+         * @param {ex.uNumber} params.mailsOfTabId is the id of the mail tab to
+         *              load the mails of (current tab if undefined)
+         * @param {string}     params.messageId is a unique message ID to propagate to 
+         *              identify the response message (creating a conversation)
+         */
         constructor (params: {
                         sentBy: string
                         mailsOfTabId: ex.uNumber
@@ -53,10 +65,25 @@
      */
     export class CMessageLoadMailHeaders extends CMessage {
 
+        // Class members
         public readonly mailsOfTabId: ex.uNumber
         public readonly selectedOnly: boolean
         public readonly answerTo: ex.uNumber
 
+        /**
+         * Create the message used to load headers of all (or selected) messages
+         * of the provided mailTab
+         * @param {object}     params are the required parameters of the message
+         * @param {string}     params.sentBy is the cSourceName of the caller
+         * @param {ex.uNumber} params.answerTo is the window.id to send the
+         *              response to
+         * @param {ex.uNumber} params.mailsOfTabId is the id of the mail tab to
+         *              load the mails of (current tab if undefined)
+         * @param {boolean}    params.selectedOnly is used to load only the selected
+         *              messages (if true) or all messages (if false)
+         * @param {string}     params.messageId is a unique message ID to propagate to 
+         *              identify the response message (creating a conversation)
+         */
         constructor (params: {
                         sentBy: string
                         answerTo: ex.uNumber
@@ -64,7 +91,7 @@
                         selectedOnly: boolean
                         messageId: string }) {
                             super({
-                                name: exMessageNameInitWelcomeArchiveWithTab,
+                                name: exMessageNameLoadMailHeaders,
                                 sentBy: params.sentBy,
                                 messageId: params.messageId
                             })
@@ -83,10 +110,26 @@
      */
     export class CMessageMailHeadersLoaded extends CMessage {
 
+        // Class members
         public readonly mailsOfTabId: ex.uNumber
         public readonly selectedOnly: boolean
         public readonly messageHeaders: exTb.AMessageHeader
 
+        /**
+         * Create the message used to return the loaded headers of all (or 
+         * selected) messages of the provided mailTab
+         * @param {object}     params are the required parameters of the message
+         * @param {string}     params.sentBy is the cSourceName of the caller
+         * @param {ex.uNumber} params.mailsOfTabId is the id of the mail tab the
+         *              mails were loaded from (current tab if undefined)
+         * @param {boolean}    params.selectedOnly is true if only the selected
+         *              messages were loaded or false if all messages are returned
+         * @param {exTb.AMessageHeader} params.messageHeaders is an array
+         *              containing all the loaded message headers
+         * @param {string}     params.messageId is the unique message ID received
+         *              with initial CMessageLoadMailHeaders message to
+         *              identify the response message (creating a conversation)
+         */
         constructor (params: {
                         sentBy: string
                         mailsOfTabId: ex.uNumber
@@ -94,7 +137,7 @@
                         messageHeaders: exTb.AMessageHeader
                         messageId: string }) {
                             super({
-                                name: exMessageNameInitWelcomeArchiveWithTab,
+                                name: exMessageNameMailHeadersLoaded,
                                 sentBy: params.sentBy,
                                 messageId: params.messageId
                             })
@@ -104,4 +147,4 @@
                     }
 
     }
-    export const exMessageNameMailHeadersLoaded: exMessageName = 'mailHeadersLoaded'
+    export const exMessageNameMailHeadersLoaded: exMessageName = 'mailHeaderLoaded'

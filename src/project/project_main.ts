@@ -32,6 +32,7 @@
             } from './project_messages'
     import { exMessageName } from '../exerma_base/exerma_messages'
 
+    import { isCClass, CClassTest, CClass } from '../exerma_base/exerma_types'
 
 
     // --------------- Consts
@@ -135,7 +136,11 @@
 
         const cSourceName = 'project/main.ts/onTestButtonClick'
 
-        
+        const aTest = new CClassTest()
+
+        log().debugInfo(cSourceName, ': test is ExClass = ' + isCClass(aTest, CClass.exClassType))
+        log().debugInfo(cSourceName, ': test is ExClassTest = ' + isCClass(aTest, CClassTest.exClassType))
+
         try {
 
             console.log(cSourceName + 'User has clicked the test button')
@@ -237,7 +242,7 @@
      *             mails to load
      * @returns {Promise<boolean>} is true if success, false if an error occurs
      */
-    export async function loadMailsOfTabAndSendResult   (message: CMessageLoadMailHeaders): Promise<boolean> {
+    export async function loadMailsOfTabAndSendResult (message: CMessageLoadMailHeaders): Promise<boolean> {
 
         const cSourceName: string = 'project/main.ts/loadMailsOfTabAndSendResult'
 

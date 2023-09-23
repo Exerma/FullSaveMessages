@@ -17,8 +17,8 @@
     import { cEventClick, cEventLoad } from '../exerma_base/exerma_consts'
     import { createAndAddElement } from '../exerma_base/exerma_dom'
     import log, { cRaiseUnexpected, cInfoStarted } from '../exerma_base/exerma_log'
-    import { type DispatcherReturnType, CMessage } from '../exerma_base/exerma_messages'
-    import { CMessageInitWelcomeArchiveWithTab } from '../project/project_messages'
+    import { CMessageInitWelcomeArchiveWithTab, CMessageLoadMailHeaders, CMessageMailHeadersLoaded } from '../project/project_messages'
+    import { welcomeArchivesDispatcher } from './welcome_archives_dispatcher'
 
 
     // ----- Popup page for archiving
@@ -43,9 +43,28 @@
             // Activate the message catcher to manage requests and answers
             messenger.runtime.onMessage.addListener(welcomeArchivesDispatcher)
 
-
             // Init page
-            void initWelcomeArchive()
+            await initWelcomeArchive()
+
+            // Start loading emails
+            // 1) Load emails in main project context: 
+            //    - with CMessageLoadMailHeaders() catched by projectDispatcher
+            //    - answer with a CMessageMailHeadersLoaded() catched by welcomeArchivesDispatcher 
+            // 2) Apply filters in popup context: message C
+            // 3) 
+
+            log().debugInfo(cSourceName, 'Sending message')
+
+            void messenger.runtime.sendMessage(new CMessageLoadMailHeaders({
+                                                        sentBy: cSourceName,
+                                                        answerTo: undefined,
+                                                        mailsOfTabId: undefined,
+                                                        selectedOnly: true,
+                                                        messageId: cSourceName
+                                                    }))
+
+            log().debugInfo(cSourceName, 'Message sent')
+                                
 
         } catch (error) {
 
@@ -55,54 +74,12 @@
 
     }
 
-    // eslint-disable-next-line jsdoc/no-undefined-types
-    /**
-     * Catch and dispatch messages received by the welcome_archives content-script
-     * https://developer.chrome.com/docs/extensions/mv3/messaging/
-     * @param {any} request is the received message we have to answer to (or not)
-     * @param {object.runtime.MessageSender} sender is the caller object
-     * @param {() => void} sendResponse is a callback function to return the answer with,
-     *             but the best practice is to return **synchronously** a Promise object
-     *             or return false if the message is not handled
-     * @returns {DispatcherReturnType} is a premise if the message was processed, 
-     *             and is false if the message was not handled
-     */
-    function welcomeArchivesDispatcher (request: any,
-                                        sender: messenger.runtime.MessageSender,
-                                        sendResponse: () => void): DispatcherReturnType {
-
-        const cSourceName = 'pages/welcome_archives.ts/welcomeArchivesDispatcher'
-
-        try {
-                    
-            if (request instanceof CMessageInitWelcomeArchiveWithTab) {
-                
-                // Main process starts initialisation
-                log().debugInfo(cSourceName, 'Message received: ' + request.name)
-
-                void initWelcomeArchive(request.mailsOfTabId) // document is undefined
-                sendResponse()
-                return true
-
-            }
-        
-            // Message not managed
-            return false
-
-        } catch (error) {
-            
-            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
-            return false
-
-        }
-
-    }
 
     /**
      * Initialisation of the welcome panel of archives
      * @param {number} tabId is the tabId to load the messages of
      */
-    async function initWelcomeArchive (tabId?: ex.uNumber): Promise<void> {
+    export async function initWelcomeArchive (tabId?: ex.uNumber): Promise<void> {
 
         const cSourceName = 'pages/welcome_archives.ts/initWelcomeArchive'
 
@@ -125,7 +102,6 @@
 
         }
     }
-
 
     /**
      * Connect the buttons
@@ -170,5 +146,5 @@
 
     // Start the welcome popup for archives
     // void start()
-    window.addEventListener(cEventLoad, start, false)
+    window.addEventListener(cEventLoad, start, { once: true, passive: true })
 
