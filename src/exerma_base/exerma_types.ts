@@ -22,9 +22,12 @@ import log, { cInfoStarted, cRaiseUnexpected } from './exerma_log'
     export type nFile = File | null
 
     // Basic types
-    export type nNumber = number | null
-    export type uNumber = number | undefined
-    export type nString = string | null
+    export type nBoolean = boolean | null
+    export type uBoolean = boolean | undefined
+    export type nNumber  = number  | null
+    export type uNumber  = number  | undefined
+    export type nString  = string  | null
+    export type uString  = string  | undefined
 
     /**
      * Manage a safe way to determine if an unknown object (type "any") belongs to

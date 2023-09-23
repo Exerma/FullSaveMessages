@@ -5,6 +5,7 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2023-09-23: Chg: Make CMessage inheriting of exerma_base CClass
  *   2023-09-10: Add: My first message: exMessageNameInitWithTab
  *   2023-08-27: First version
  * 

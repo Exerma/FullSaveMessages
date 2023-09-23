@@ -11,7 +11,7 @@
  */
 
     // --------------- Import
-    import log from './exerma_log'
+    import log, { cRaiseUnexpected } from './exerma_log'
 
     // --------------- Numbers
 
@@ -103,46 +103,80 @@
                                             timeSep?: string
                                         }): string {
 
-    const cSourceName: string = 'exerma_base/exerma_misc/datetimeToStringTag'
-    const defaultDateSep = '-'
-    const defaultTimeSep = ''
-    const defaultDateTimeSep = '--'
+        const cSourceName: string = 'exerma_base/exerma_misc/datetimeToStringTag'
+        const defaultDateSep = '-'
+        const defaultTimeSep = ''
+        const defaultDateTimeSep = '--'
 
-    let sep: string = ''
-    let result: string = ''
+        let sep: string = ''
+        let result: string = ''
 
-    // Add date part
-    if (options?.noDate !== true) {
+        // Add date part
+        if (options?.noDate !== true) {
 
-        result = numberToStringRightAlign(aDate.getFullYear(), 4)
-               + (options?.dateSep ?? defaultDateSep)
-               + numberToStringRightAlign(aDate.getMonth(), 2)
-               + (options?.dateSep ?? defaultDateSep)
-               + numberToStringRightAlign(aDate.getDate(), 2)
-        
-        sep = (options?.datetimeSep ?? defaultDateTimeSep)
+            result = numberToStringRightAlign(aDate.getFullYear(), 4)
+                + (options?.dateSep ?? defaultDateSep)
+                + numberToStringRightAlign(aDate.getMonth(), 2)
+                + (options?.dateSep ?? defaultDateSep)
+                + numberToStringRightAlign(aDate.getDate(), 2)
+            
+            sep = (options?.datetimeSep ?? defaultDateTimeSep)
+
+        }
+
+        // Add time part
+        if (options?.noTime !== true) {
+
+            result = result
+                + sep
+                + numberToStringRightAlign(aDate.getHours(), 2)
+                + (options?.timeSep ?? defaultTimeSep)
+                + numberToStringRightAlign(aDate.getMinutes(), 2)
+                + ( (options?.noSeconds === true)
+                    ? ''
+                    : numberToStringRightAlign(aDate.getSeconds(), 2)
+                    + ( (options?.addMilliseconds === true)
+                        ? (options?.timeSep ?? defaultTimeSep)
+                        + numberToStringRightAlign(aDate.getMilliseconds(), 3)
+                        : '')
+                    )
+
+        }
+
+        return result
 
     }
 
-    // Add time part
-    if (options?.noTime !== true) {
 
-        result = result
-               + sep
-               + numberToStringRightAlign(aDate.getHours(), 2)
-               + (options?.timeSep ?? defaultTimeSep)
-               + numberToStringRightAlign(aDate.getMinutes(), 2)
-               + ( (options?.noSeconds === true)
-                  ? ''
-                  : numberToStringRightAlign(aDate.getSeconds(), 2)
-                  + ( (options?.addMilliseconds === true)
-                     ? (options?.timeSep ?? defaultTimeSep)
-                     + numberToStringRightAlign(aDate.getMilliseconds(), 3)
-                     : '')
-                 )
+    /**
+     * It is suprisingly complicated to retrieve a property by name from an object with
+     * an undefined type. This function allows to parse all values of the object to find
+     * the required key.
+     * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
+     * https://stackoverflow.com/questions/41993515/access-object-key-using-variable-in-typescript
+     * @param {object | undefined} obj is the undefined object we want to retrieve the "key" value of
+     * @param {string} key is the key to find in the obj object
+     * @returns {any} is the found value associated to the key or undefined if not found
+     */
+    export function retrieveValueFromUnstructuredObject (obj: object | undefined, key: string): any | undefined {
+
+        const cSourceName = 'exerma_base/exerma_misc.ts/retrieveValueFromUnstructuredObject'
+
+        try {
+
+            if (obj !== undefined) {
+    
+                const resultPair: [string, any] | undefined = Object.entries(obj).find((pair, index) => pair[0] === key )
+                if (resultPair !== undefined) {
+                    return resultPair[1]
+                }
+            
+            }
+    
+        } catch (error) {
+
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+
+        }
 
     }
-
-    return result
-
-}

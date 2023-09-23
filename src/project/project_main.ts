@@ -31,6 +31,7 @@
                 CMessageMailHeadersLoaded
             } from './project_messages'
     import { exMessageName } from '../exerma_base/exerma_messages'
+    import { ProjectStorage } from './project_storage'
 
     import { isCClass, CClassTest, CClass } from '../exerma_base/exerma_types'
 
@@ -209,12 +210,14 @@
         log().debugInfo(cSourceName, cInfoStarted)
 
         
-        // Retrieve the active tab id
+        // Retrieve the active tab id and save it for later use
         const activeTab: exTb.nMailTab = await messenger.mailTabs.getCurrent()
         const tabId: number | undefined = activeTab?.id
+        await messenger.storage.session.set({ [ProjectStorage.currentTabId]: tabId })
 
         // Show the Welcome panel of archive as popup
         const popUrl = messenger.runtime.getURL(cResourcePopArchives)
+
         // const popPage: exTb.nWindow  = await messenger.windows.create({
         await messenger.windows.create({
                 type: 'popup', // 'normal'

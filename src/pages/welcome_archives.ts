@@ -19,6 +19,8 @@
     import log, { cRaiseUnexpected, cInfoStarted } from '../exerma_base/exerma_log'
     import { CMessageInitWelcomeArchiveWithTab, CMessageLoadMailHeaders, CMessageMailHeadersLoaded } from '../project/project_messages'
     import { welcomeArchivesDispatcher } from './welcome_archives_dispatcher'
+    import { ProjectStorage } from '../project/project_storage'
+    import { StorageKind, getStorageAsNumber } from '../exerma_tb/exerma_tb_storage'
 
 
     // ----- Popup page for archiving
@@ -55,16 +57,17 @@
 
             log().debugInfo(cSourceName, 'Sending message')
 
+            const tabId: ex.uNumber = await getStorageAsNumber(StorageKind.session,
+                                                               ProjectStorage.currentTabId)
             void messenger.runtime.sendMessage(new CMessageLoadMailHeaders({
                                                         sentBy: cSourceName,
                                                         answerTo: undefined,
-                                                        mailsOfTabId: undefined,
+                                                        mailsOfTabId: tabId,
                                                         selectedOnly: true,
                                                         messageId: cSourceName
                                                     }))
 
             log().debugInfo(cSourceName, 'Message sent')
-                                
 
         } catch (error) {
 
