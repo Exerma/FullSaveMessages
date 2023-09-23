@@ -15,6 +15,7 @@
     // --------------- Imports
     import log, { cRaiseUnexpected }             from '../exerma_base/exerma_log'
     import { isCClass }                          from '../exerma_base/exerma_types'
+    import { createAndAddElement }               from '../exerma_base/exerma_dom'
     import {
             CMessageInitWelcomeArchiveWithTab,
             CMessageMailHeadersLoaded,
@@ -52,7 +53,7 @@
 
         try {
                       
-            if (isCMessage(request, exMessageNameInitWelcomeArchiveWithTab)) {
+            if (isCClass(request, CMessageInitWelcomeArchiveWithTab.CClassType)) {
                 
                 // Main process starts initialisation
                 log().debugInfo(cSourceName, 'Message received: ' + request.name)
@@ -62,12 +63,22 @@
                 return true
 
             } else
-            if (isCMessage(request, exMessageNameMailHeadersLoaded)) {
+            if (isCClass(request, CMessageMailHeadersLoaded.CClassType)) {
                 
+                const message: CMessageMailHeadersLoaded = (request as CMessageMailHeadersLoaded)
+
                 // Main process starts initialisation
-                log().debugInfo(cSourceName, 'Message received: ' + request.name)
+                log().debugInfo(cSourceName, 'Message received: ' + message.name)
 
                 // TODO: implement messagee reaction
+
+                // Show title to the user
+                createAndAddElement(document, 'h1', {
+                    innerText: 'Received ' + message.messageHeaders.length + ' messages',
+                    targetId: 'header',
+                    insertPosition: 'beforeend'
+                })
+                
 
                 sendResponse()
                 return true

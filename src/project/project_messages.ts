@@ -25,6 +25,12 @@
      */
     export class CMessageInitWelcomeArchiveWithTab extends CMessage {
 
+        // Extends CClass
+        static readonly CClassType: string = 'CMessageInitWelcomeArchiveWithTab'
+        static readonly CClassHeritage: string[] = [...CMessage.CClassHeritage, CMessageInitWelcomeArchiveWithTab.CClassType]
+        public readonly classHeritage: string[] = CMessageInitWelcomeArchiveWithTab.CClassHeritage
+
+
         // Local members
         public readonly mailsOfTabId: ex.uNumber
         public readonly answerTo: ex.uNumber
@@ -64,6 +70,11 @@
      * (only currently selected message or all messages)
      */
     export class CMessageLoadMailHeaders extends CMessage {
+
+        // Extends CClass
+        static readonly CClassType: string = 'CMessageLoadMailHeaders'
+        static readonly CClassHeritage: string[] = [...CMessage.CClassHeritage, CMessageLoadMailHeaders.CClassType]
+        public readonly classHeritage: string[] = CMessageLoadMailHeaders.CClassHeritage
 
         // Class members
         public readonly mailsOfTabId: ex.uNumber
@@ -109,6 +120,11 @@
      * the provided MailTab ID (only currently selected message or all messages)
      */
     export class CMessageMailHeadersLoaded extends CMessage {
+
+        // Extends CClass
+        static readonly CClassType: string = 'CMessageMailHeadersLoaded'
+        static readonly CClassHeritage: string[] = [...CMessage.CClassHeritage, CMessageMailHeadersLoaded.CClassType]
+        public readonly classHeritage: string[] = CMessageMailHeadersLoaded.CClassHeritage
 
         // Class members
         public readonly mailsOfTabId: ex.uNumber

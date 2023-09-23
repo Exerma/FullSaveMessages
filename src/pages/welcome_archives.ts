@@ -32,7 +32,7 @@
      * Start the welcome popup page for archives
      * @returns {Promise<void>}
      */
-    async function start (): Promise<void> {
+    async function initPopup (): Promise<void> {
 
         const cSourceName = 'pages/welcome_archives.ts/start'
 
@@ -146,5 +146,5 @@
 
     // Start the welcome popup for archives
     // void start()
-    window.addEventListener(cEventLoad, start, { once: true, passive: true })
+    window.addEventListener(cEventLoad, initPopup, { once: true, passive: true })
 

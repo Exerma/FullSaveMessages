@@ -15,7 +15,7 @@
     import { type DispatcherReturnType, type CMessage, isCMessage } from '../exerma_base/exerma_messages'
     import { CMessageLoadMailHeaders, exMessageNameLoadMailHeaders } from './project_messages'
     import { loadMailsOfTabAndSendResult } from './project_main'
-import { isCClass } from '../exerma_base/exerma_types'
+    import { isCClass } from '../exerma_base/exerma_types'
 
     // --------------- Functions
     /**
@@ -48,7 +48,7 @@ import { isCClass } from '../exerma_base/exerma_types'
     
             log().debugInfo(cSourceName, 'Message name: ' + (request as CMessage).name + ' instanceof -> ' + isCMessage(request, exMessageNameLoadMailHeaders))
 
-            if (isCMessage(request, exMessageNameLoadMailHeaders)) {
+            if (isCClass(request, CMessageLoadMailHeaders.CClassType)) {
                     
                 // Main process starts initialisation
                 log().debugInfo(cSourceName, 'Message received: ' + request.name)

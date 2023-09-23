@@ -138,8 +138,8 @@
 
         const aTest = new CClassTest()
 
-        log().debugInfo(cSourceName, ': test is ExClass = ' + isCClass(aTest, CClass.exClassType))
-        log().debugInfo(cSourceName, ': test is ExClassTest = ' + isCClass(aTest, CClassTest.exClassType))
+        log().debugInfo(cSourceName, ': test is ExClass = ' + isCClass(aTest, CClass.CClassType))
+        log().debugInfo(cSourceName, ': test is ExClassTest = ' + isCClass(aTest, CClassTest.CClassType))
 
         try {
 
@@ -249,15 +249,17 @@
 
         try {
 
-            const result: exTb.AMessageHeader = await loadMessagesOfTab({
-                                                            mailsOfTabId: message?.mailsOfTabId,
-                                                            selectedOnly: message?.selectedOnly
-                                                        })
+            const mails: exTb.AMessageHeader = await loadMessagesOfTab({
+                                                        mailsOfTabId: message?.mailsOfTabId,
+                                                        selectedOnly: message?.selectedOnly
+                                                    })
             
-            void messenger.runtime.sendMessage(new CMessageMailHeadersLoaded({
+            log().debugInfo(cSourceName, 'Found ' + mails.length + ' mails')
+            void messenger.runtime.sendMessage(message.answerTo,
+                                               new CMessageMailHeadersLoaded({
                                                         sentBy: cSourceName,
                                                         mailsOfTabId: message?.mailsOfTabId,
-                                                        messageHeaders: result,
+                                                        messageHeaders: mails,
                                                         messageId: message.messageId,
                                                         selectedOnly: message.selectedOnly
                                                     }))
@@ -344,6 +346,7 @@
         }
 
     }
+
 
     //         // Allow unified renaming rules here
     //         // subjectCorrections is the translation Map oldSubject (key) --> newSubject (value)

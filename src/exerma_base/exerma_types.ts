@@ -39,9 +39,9 @@ import log, { cInfoStarted, cRaiseUnexpected } from './exerma_log'
      */
     export class CClass {
 
-        static readonly exClassType: symbol = Symbol('CClass')
-        static readonly exClassHeritage: symbol[] = [CClass.exClassType]
-        public classHeritage (): symbol[] { return CClass.exClassHeritage }
+        static readonly CClassType: string = 'CClass'
+        static readonly CClassHeritage: string[] = [CClass.CClassType]
+        public readonly classHeritage: string[] = CClass.CClassHeritage
 
     }
 
@@ -54,25 +54,26 @@ import log, { cInfoStarted, cRaiseUnexpected } from './exerma_log'
      * @returns {boolean} is true if the candidate has the exClassHeritage property and
      *                  this property contains the required classType symbol.
      */
-    export function isCClass (candidate: any, classType: symbol): boolean {
+    export function isCClass (candidate: any, classType: string): boolean {
         
         const cSourceName = 'exerma_base/exerma_types.ts/isCClass'
 
         try {
 
-            log().debugInfo(cSourceName, cInfoStarted)
+            /*
+                log().debugInfo(cSourceName, cInfoStarted)
 
-            log().debugInfo(cSourceName, ': Type = ' + (typeof candidate))
-            log().debugInfo(cSourceName, ': Name = ' + (candidate.name))
-            log().debugInfo(cSourceName, ': Heritage = ' + ((candidate as CClass).classHeritage().length))
+                log().debugInfo(cSourceName, ': Type = ' + (typeof candidate))
+                log().debugInfo(cSourceName, ': Name = ' + (candidate.name))
+                log().debugInfo(cSourceName, ': Heritage = ' + ((candidate as CClass).classHeritage.length))
+            */
 
             // Check if the candidate has the exClassType map and, if yes,
             // if this map contains the required class symbol
             if ((typeof candidate === 'object') && ('classHeritage' in candidate)) {
-    
-                log().debugInfo(cSourceName, ': Heritage found with ' + candidate.classHeritage().length + ' items')
 
-                return (candidate.classHeritage().find((item: symbol) =>  item === classType ) !== undefined)
+                const descendant: CClass = (candidate as CClass)
+                return (descendant.classHeritage.find((item: string) =>  item === classType ) !== undefined)
     
             }
     
@@ -92,9 +93,9 @@ import log, { cInfoStarted, cRaiseUnexpected } from './exerma_log'
     export class CClassTest extends CClass {
 
         // Extends CClass
-        static readonly exClassType: symbol = Symbol('CClassTest')
-        static readonly exClassHeritage: symbol[] = [...CClass.exClassHeritage, CClassTest.exClassType]
-        public classHeritage (): symbol[] { return CClassTest.exClassHeritage }
+        static readonly CClassType: string = 'CClassTest'
+        static readonly CClassHeritage: string[] = [...CClass.CClassHeritage, CClassTest.CClassType]
+        public readonly classHeritage: string[] = CClassTest.CClassHeritage
 
     }
     
@@ -105,7 +106,7 @@ import log, { cInfoStarted, cRaiseUnexpected } from './exerma_log'
 
         const aTest = new CClassTest()
 
-        console.log('exerma_types::exClassTest: test if ExClass = ' + isCClass(aTest, CClass.exClassType))
-        console.log('exerma_types::exClassTest: test if ExClassTest = ' + isCClass(aTest, CClassTest.exClassType))
+        console.log('exerma_types::exClassTest: test if CClass = ' + isCClass(aTest, CClass.CClassType))
+        console.log('exerma_types::exClassTest: test if CClassTest = ' + isCClass(aTest, CClassTest.CClassType))
 
     }

@@ -104,6 +104,7 @@
 
     // --------------- Imports
     import { cNullString }           from './exerma_consts'
+    import { CClass, isCClass }                from './exerma_types'
     import log, { cRaiseUnexpected } from './exerma_log'
 
     // --------------- Types
@@ -129,7 +130,12 @@
      *             in the response to create a kind of conversation
      * Data have to be message specific
      */
-    export class CMessage {
+    export class CMessage extends CClass {
+
+        // Extends CClass
+        static readonly CClassType: string = 'CMessage'
+        static readonly CClassHeritage: string[] = [...CClass.CClassHeritage, CMessage.CClassType]
+        public readonly classHeritage: string[] = CMessage.CClassHeritage
 
         // Message minimum members
         readonly name: exMessageName
@@ -140,6 +146,7 @@
                         name: exMessageName
                         sentBy: string
                         messageId: string }) {
+                            super()
                             this.name = params.name
                             this.sentBy = params.sentBy
                             this.messageId = params.messageId
@@ -155,6 +162,11 @@
      * Note: Unique name of this message is defined after the class
      */
     export class CMessageGetState extends CMessage {
+
+        // Extends CClass
+        static readonly CClassType: string = 'CMessageGetState'
+        static readonly CClassHeritage: string[] = [...CMessage.CClassHeritage, CMessageGetState.CClassType]
+        public readonly classHeritage: string[] = CMessageGetState.CClassHeritage
 
         /**
          * A message used to requires the state of the application
@@ -181,24 +193,19 @@
      * Check if the provided "request-candidate" has the same name than the requires
      * message name
      * @param {any}    request is the object to check if it is a message with the required name
-     * @param {string} messageName is the name of the message to test for
+     * @param {string} classType is the static CClassType value of the class to test against.
+     *                  Default is to check if a CMessage descendant but it is possible (and 
+     *                  advised) to check for a specific message constant.
      * @returns {boolean} is true if the request has the required name, false if not
      *                  (including if the request is not an object or doesn't have a name) 
      */
-    export function isCMessage (request: any, messageName: exMessageName): boolean {
+    export function isCMessage (request: any, classType: string = CClass.CClassType): boolean {
 
         const cSourceName = 'exerma_base/exerma_message.ts/isCMessage'
 
         try {
             
-            if ((typeof request === 'object') && ('name' in request)) {
-
-                return (request.name === messageName)
-
-            }
-
-            // Invalid type
-            return false
+            return isCClass(request, classType)
 
         } catch (error) {
             
