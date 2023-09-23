@@ -117,8 +117,7 @@
                                         options?: {
                                             innerHtml?: string
                                             innerText?: string
-                                            setAttribute?: { name: string, value: string }
-                                                         | Map<string, string>
+                                            setAttribute?: Array<{ name: string, value: string }>
                                             target?: HTMLElement
                                             targetId?: string
                                             insertPosition?: InsertPosition
@@ -148,18 +147,9 @@
             // Set properties
             if ((options?.setAttribute !== undefined) && (result !== null)) {
 
-                if (options.setAttribute instanceof Map) {
-
-                    // Add each pair of the Map as {name,value} pairs
-                    options.setAttribute.forEach((value, name) => { result.setAttribute(name, value) })
+                // Add each pair of the Map as {name,value} pairs
+                options.setAttribute.forEach((pair) => { result.setAttribute(pair.name, pair.value) })
                     
-                } else {
-
-                    // Add the provided {name,value} attribute
-                    result.setAttribute(options.setAttribute.name, options.setAttribute.value)
-
-                }
-
             }
 
             // Add to DOM: retrieve the target element

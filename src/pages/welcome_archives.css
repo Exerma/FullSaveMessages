@@ -9,6 +9,25 @@
  *   2023-09-09: First version
  *****/
 
+    /* ---------- Unique mail subjects ---------- */
+
+    .subject {
+        width: auto;
+    }
+    .subject .original {
+        font-size:   10pt;
+        width:       80%;
+        margin-bottom: 0;
+    }
+
+    .subject .textbox {
+        margin-top:  0;
+        font-size:   11pt;
+        width:       80%;
+    }
+
+    /* ---------- Footer buttons ---------- */
+
     #footer_buttons {
         position:    relative;
         height:      100%;
@@ -19,8 +38,6 @@
         white-space: nowrap;
         text-align:  right;
     }
-
-    /* ---------- Footer buttons ---------- */
 
     #continue {
         background-color: #1b1ba42a;

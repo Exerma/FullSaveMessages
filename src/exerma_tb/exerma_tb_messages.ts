@@ -41,7 +41,7 @@
 
         try {
 
-            let page: tb.nMessageList = await messenger.mailTabs.getSelectedMessages(tabId)
+            let page: tb.nMailList = await messenger.mailTabs.getSelectedMessages(tabId)
             
             if (page != null) { // != tests if not null nor undefined; !== will test only null (or undefined)
 
@@ -90,7 +90,7 @@
 
         if (folder != null) {
 
-            let page: tb.nMessageList = await messenger.messages.list(folder)
+            let page: tb.nMailList = await messenger.messages.list(folder)
         
             if (page != null) { // != tests if not null nor undefined; !== will test only null (or undefined)
 

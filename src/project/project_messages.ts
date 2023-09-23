@@ -130,7 +130,7 @@
         // Class members
         public readonly mailsOfTabId: ex.uNumber
         public readonly selectedOnly: boolean
-        public readonly messageHeaders: exTb.AMessageHeader
+        public readonly messageHeaders: exTb.AMailHeader
 
         /**
          * Create the message used to return the loaded headers of all (or 
@@ -141,7 +141,7 @@
          *              mails were loaded from (current tab if undefined)
          * @param {boolean}    params.selectedOnly is true if only the selected
          *              messages were loaded or false if all messages are returned
-         * @param {exTb.AMessageHeader} params.messageHeaders is an array
+         * @param {exTb.AMailHeader} params.messageHeaders is an array
          *              containing all the loaded message headers
          * @param {string}     params.messageId is the unique message ID received
          *              with initial CMessageLoadMailHeaders message to
@@ -151,7 +151,7 @@
                         sentBy: string
                         mailsOfTabId: ex.uNumber
                         selectedOnly: boolean
-                        messageHeaders: exTb.AMessageHeader
+                        messageHeaders: exTb.AMailHeader
                         messageId: string }) {
                             super({
                                 name: exMessageNameMailHeadersLoaded,

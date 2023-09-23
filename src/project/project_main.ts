@@ -37,11 +37,17 @@
 
 
     // --------------- Consts
-    export const cPopupBody: string = 'popupBody'
-    export const cPopupArchiveButton: string = 'cmdArchive'
+    export const cPopupBody:             string = 'popupBody'
+    export const cPopupArchiveButton:    string = 'cmdArchive'
     export const cPopupSaveAttachButton: string = 'cmdSaveAttachment'
-    export const cPopupTestButton: string = 'cmdTest'
+    export const cPopupTestButton:       string = 'cmdTest'
 
+    // --------------- Types
+    interface NameCleaningRule {
+                                rule: RegExp | string
+                                result: string
+                               }
+    type ANameCleaningRules = NameCleaningRule[]
 
 
     // ---------- Consts related to resources
@@ -135,7 +141,7 @@
      */
     export async function onTestButtonClick (event: Event): Promise<void> {
 
-        const cSourceName = 'project/main.ts/onTestButtonClick'
+        const cSourceName = 'project/project_main.ts/onTestButtonClick'
 
         const aTest = new CClassTest()
 
@@ -205,7 +211,7 @@
      */
     export async function initWelcomePage (): Promise<boolean> {
 
-        const cSourceName: string = 'project/main.ts/saveAndArchiveInit'
+        const cSourceName: string = 'project/project_main.ts/saveAndArchiveInit'
 
         log().debugInfo(cSourceName, cInfoStarted)
 
@@ -247,12 +253,12 @@
      */
     export async function loadMailsOfTabAndSendResult (message: CMessageLoadMailHeaders): Promise<boolean> {
 
-        const cSourceName: string = 'project/main.ts/loadMailsOfTabAndSendResult'
+        const cSourceName: string = 'project/project_main.ts/loadMailsOfTabAndSendResult'
 
 
         try {
 
-            const mails: exTb.AMessageHeader = await loadMessagesOfTab({
+            const mails: exTb.AMailHeader = await loadMessagesOfTab({
                                                         mailsOfTabId: message?.mailsOfTabId,
                                                         selectedOnly: message?.selectedOnly
                                                     })
@@ -291,9 +297,9 @@
     export async function loadMessagesOfTab (options?: {
                                                 mailsOfTabId?: ex.uNumber
                                                 selectedOnly?: boolean
-                                            }): Promise<exTb.AMessageHeader> {
+                                            }): Promise<exTb.AMailHeader> {
 
-        const cSourceName: string = 'project/main.ts/loadFromTab'
+        const cSourceName: string = 'project/project_main.ts/loadFromTab'
 
         log().debugInfo(cSourceName, 'Has started')
 
@@ -309,7 +315,7 @@
         // log().debugInfo(cSourceName, 'Directory is ' + targetFolder.name)
 
         const success: boolean = true
-        const result: exTb.AMessageHeader = []
+        const result: exTb.AMailHeader = []
 
         try {
 
@@ -384,7 +390,7 @@
     /**
      * Create the map of the oldSubject --> newSubject values after having
      * applied the provided rules to the current list of headers
-     * @param {exTb.AMessageHeader} allHeaders is the array containing all the
+     * @param {exTb.AMailHeader} allHeaders is the array containing all the
      *         messageheader to clean the subjects of. They will stay untouched
      *         as only the modification dictionary are returned in the 
      *         <oldSubject;newSubject> result.
@@ -392,29 +398,27 @@
      *         to the subjects. It can be a 'string' --> 'string' replacement
      *         or a /RegExp/ --> 'string' replacement where the matching groups
      *         of the regexp can be used with the $1, $2, etc. syntax 
-     * @returns {Promise<Map<string, string> | null>} is the map of 
-     *         <oldSubject;newSubject> pairs.
-     *         Is null if an error occurs; 
+     * @returns {Map<string, string> | undefined} is the map of <oldSubject;newSubject> pairs.
+     *         Is undefined if an error occurs; 
      *         Is empty if no change is observed or if there where no message
      */
-    async function cleanNames (allHeaders: exTb.AMessageHeader,
-                                rules: Map<RegExp | string, string>):
-                        Promise<Map<string, string> | null> {
+    function cleanNamesWithRules (allHeaders: exTb.AMailHeader,
+                                  rules: ANameCleaningRules): ex.uMStringString {
 
-        const cSourceName = 'project/main.ts/cleanNames'
+        const cSourceName = 'project/project_main.ts/cleanNamesWithRules'
+
+        const result: ex.MStringString = new Map<string, string>()
 
         // Trivial case
-        if (rules.size === 0) {
+        if (rules.length === 0) {
 
             // No rule, no entry in the map
-            return (new Map<string, string>())
+            return result
 
         }
 
         // Do
         try {
-            
-            const result: Map<string, string> = new Map<string, string>()
 
             // Parse every header with every rule
             allHeaders.forEach((header) => {
@@ -425,9 +429,9 @@
 
                     let   newSubject: string = oldSubject
 
-                    rules.forEach((replacement, rule) => {
+                    rules.forEach((rule: NameCleaningRule) => {
 
-                        newSubject = newSubject.replace(rule, replacement)
+                        newSubject = newSubject.replace(rule.rule, rule.result)
 
                     })
 
@@ -447,13 +451,42 @@
         } catch (error) {
 
             log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
-            return null
 
         }
 
     }
 
+    /**
+     * Retrieve the replacment rules and apply them to the provided mail headers
+     * @param {exTb.AMailHeader} headers is the list of message headers to clean
+     * @returns {Promise<Map<string, string> | undefined>} is the list of <initial mail
+     *                  subject; new mail subject> replacement to use     
+     */
+    export async function cleanNames (headers: exTb.AMailHeader): Promise<ex.uMStringString> {
 
+        const cSourceName = 'project/project_main.ts/cleanNames'
+
+        try {
+            
+            // Retrieve rules to apply
+            const rules: ANameCleaningRules = []
+            rules.push({
+                          rule: /^(Re[:_]|Fwd+[:_]|!|TR[:_]|I[:_]|R[:_]|WG[:_]|AW[:_]|Urgent[:_]|SPAM_LOW[:_]| )*/i,
+                          result: ''
+                        })
+
+            // Clean names
+            const result: ex.uMStringString = cleanNamesWithRules(headers, rules)
+
+            // Done
+            return result
+            
+        } catch (error) {
+            
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+        }
+
+    }
 
     // --------------- Utility functions
 
@@ -469,7 +502,7 @@
     async function createPdf (header: messenger.messages.MessageHeader,
                               message: messenger.messages.MessagePart): Promise<jsPDF> {
         
-        const cSourceName: string = 'project/main.ts/createPdf'
+        const cSourceName: string = 'project/project_main.ts/createPdf'
 
         // Retrieve the template page
         let myHtml: Document | undefined = await loadResourceHtml(cResourcePdfTemplate)
@@ -530,7 +563,7 @@
                                             }
                                         ): Promise<void> {
 
-        const cSourceName: string = 'project/main.ts/exfilterMessage'
+        const cSourceName: string = 'project/project_main.ts/exfilterMessage'
 
 
         try {

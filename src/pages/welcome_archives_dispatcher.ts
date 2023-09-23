@@ -27,9 +27,10 @@
             isCMessage
             }                                    from '../exerma_base/exerma_messages'
     import {
-            initWelcomeArchive
+            initWelcomeArchive,
+            presentUniqueNamesToUser
             }                                    from './welcome_archives'
-
+ 
 
     // --------------- Dispatcher implementation
 
@@ -58,11 +59,12 @@
                 // Main process starts initialisation
                 log().debugInfo(cSourceName, 'Message received: ' + request.name)
 
-                void initWelcomeArchive(request.mailsOfTabId) // document is undefined
+                void initWelcomeArchive() // document is undefined
                 sendResponse()
                 return true
 
-            } else
+            }
+
             if (isCClass(request, CMessageMailHeadersLoaded.CClassType)) {
                 
                 const message: CMessageMailHeadersLoaded = (request as CMessageMailHeadersLoaded)
@@ -70,16 +72,7 @@
                 // Main process starts initialisation
                 log().debugInfo(cSourceName, 'Message received: ' + message.name)
 
-                // TODO: implement messagee reaction
-
-                // Show title to the user
-                createAndAddElement(document, 'h1', {
-                    innerText: 'Received ' + message.messageHeaders.length + ' messages',
-                    targetId: 'header',
-                    insertPosition: 'beforeend'
-                })
-                
-
+                void presentUniqueNamesToUser(message.messageHeaders)
                 sendResponse()
                 return true
 

@@ -16,9 +16,9 @@
     export const messenger = browser
     
     // Types related to Thunderbird Messenger
-    export type nMessageList   = messenger.messages.MessageList | null
-    export type nMessageHeader = messenger.messages.MessageHeader | null
-    export type AMessageHeader = messenger.messages.MessageHeader[]
+    export type nMailList      = messenger.messages.MessageList | null
+    export type nMailHeader    = messenger.messages.MessageHeader | null
+    export type AMailHeader    = messenger.messages.MessageHeader[]
     export type  mailTab       = messenger.mailTabs.MailTab
     export type nMailTab       = messenger.mailTabs.MailTab | null
     export type uMailTab       = messenger.mailTabs.MailTab | undefined

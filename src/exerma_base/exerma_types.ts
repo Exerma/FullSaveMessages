@@ -29,6 +29,12 @@ import log, { cInfoStarted, cRaiseUnexpected } from './exerma_log'
     export type nString  = string  | null
     export type uString  = string  | undefined
 
+    // Advanced types
+    export type MStringString  = Map<string, string>
+    export type uMStringString = MStringString | undefined
+    export type AString        = string[]
+    export type uAString       = AString | undefined
+
     /**
      * Manage a safe way to determine if an unknown object (type "any") belongs to
      * the ExClass class hierarchy.
