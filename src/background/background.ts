@@ -22,9 +22,10 @@
 
         const cSourceName = 'background/background.ts/start'
         
+        log().trace(cSourceName, cInfoStarted)
+
         try {
 
-            log().debugInfo(cSourceName, cInfoStarted)
 
             // Init service worker
             messenger.runtime.onMessage.addListener(projectDispatcher)

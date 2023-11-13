@@ -5,6 +5,7 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2023-10-08: Add: cTypeNameBoolean
  *   2023-08-20: First version
  * 
  */
@@ -32,7 +33,12 @@
     export const cEventInputChange: string = 'input'
     export const cEventLoad: string = 'load'
 
+    export const cTypeNameUnknown: string = 'unknown'
+    export const cTypeNameUndefined: string = 'undefined'
     export const cTypeNameDate: string = 'Date'
     export const cTypeNameString: string = 'string'
     export const cTypeNameNumber: string = 'number'
+    export const cTypeNameBoolean: string = 'boolean'
     export const cTypeNameObject: string = 'object'
+    export const cTypeNameArray: string = 'array'
+    export const cTypeNameMap: string = 'map'

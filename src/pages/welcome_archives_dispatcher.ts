@@ -72,7 +72,9 @@
                 // Main process starts initialisation
                 log().debugInfo(cSourceName, 'Message received: ' + message.name)
 
-                void presentUniqueNamesToUser(message.messageHeaders)
+                void presentUniqueNamesToUser(message.mailsHeaders,
+                                              message.mailsOfTabId,
+                                              message.selectedOnly)
                 sendResponse()
                 return true
 

@@ -11,6 +11,7 @@
  * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage
  * 
  * Versions:
+ *   2023-10-02: Add: Map as accepted type for setStorage() and getStorageAsMap() to retrieve it as a Map<any, any> object
  *   2023-09-23: First version
  * 
  */
@@ -20,9 +21,9 @@
             type uString,
             type uNumber,
             type uBoolean
-            }                                  from '../exerma_base/exerma_types'
-    import log, { cRaiseUnexpected }           from '../exerma_base/exerma_log'
-import { retrieveValueFromUnstructuredObject } from '../exerma_base/exerma_misc'
+            }                                      from '../exerma_base/exerma_types'
+    import log, { cInfoStarted, cRaiseUnexpected, cInfoToImplement } from '../exerma_base/exerma_log'
+    import { retrieveValueFromUnstructuredObject } from '../exerma_base/exerma_misc'
 
     // --------------- Inteface with messenger.storage
     /**
@@ -47,28 +48,46 @@ import { retrieveValueFromUnstructuredObject } from '../exerma_base/exerma_misc'
      */
     export async function setStorage (kind: StorageKind,
                                       key: string,
-                                      value: string | object | number | boolean | undefined ): Promise<boolean> {
+                                      value: string | object | number | boolean | Map<any, any> | undefined ): Promise<boolean> {
 
         const cSourceName = 'exerma_tb/exerma_tb_storage/setStorage'
 
+        log().trace(cSourceName, cInfoStarted)
+
         try {
         
+            // Convert Maps and Arrays
+            let storeValue: any
+            if (value instanceof Map) {
+                storeValue = JSON.stringify(Array.from(value.entries()))
+                log().debugInfo(cSourceName, 'Is a Map (' + value.size + '): ' + storeValue)
+            } else
+            if (value instanceof Array) {
+                // Create an object with 
+                let tempObj: object = { type: 'array', count: value.length }
+                value.forEach((iValue, index) => { tempObj = { ...tempObj, [index]: JSON.stringify(iValue) } } )
+                storeValue = JSON.stringify(tempObj)
+                log().debugInfo(cSourceName, 'Is an Array: ' + storeValue)
+            } else {
+                storeValue = value
+            }
+
             switch (kind) {
     
                 case StorageKind.session:
-                    await messenger.storage.session.set({ [key]: value })
+                    await messenger.storage.session.set({ [key]: storeValue })
                     return true
                     
                 case StorageKind.local:
-                    await messenger.storage.local.set({ [key]: value })
+                    await messenger.storage.local.set({ [key]: storeValue })
                     return true
 
                 case StorageKind.managed:
-                    await messenger.storage.managed.set({ [key]: value })
+                    await messenger.storage.managed.set({ [key]: storeValue })
                     return true
 
                 case StorageKind.sync:
-                    await messenger.storage.sync.set({ [key]: value })
+                    await messenger.storage.sync.set({ [key]: storeValue })
                     return true
 
             }
@@ -80,7 +99,9 @@ import { retrieveValueFromUnstructuredObject } from '../exerma_base/exerma_misc'
 
         }
 
-}
+    }
+
+
 
     /**
      * Retrieve a value from the storage
@@ -239,3 +260,75 @@ import { retrieveValueFromUnstructuredObject } from '../exerma_base/exerma_misc'
         
     }
 
+    /**
+     * Retrive the value associated to the provided key in the required storage and
+     * return it as a Map object
+     * Source: https://stackoverflow.com/questions/50153172/how-to-serialize-a-map-in-javascript
+     * @param {StorageKind} kind is the kind of storage to retrieve the value from
+     * @param {string}      key is the key to retrieve the value of
+     * @returns {Map<any, any> | undefined} is the found Map in Map<any, any> format
+     *                  or undefined if the key doesn't exist, if the value cannot be
+     *                  converted into a Map or if an error occurs
+     */
+    export async function getStorageAsMap (kind: StorageKind,
+                                           key: string): Promise<Map<any, any> | undefined> {
+
+        const cSourceName = 'exerma_tb/exerma_tb_storage/getStorageAsMap'
+
+        try {
+            
+            const foundObject: object | undefined = await getStorage(kind, key)
+            const foundValue: any = retrieveValueFromUnstructuredObject(foundObject, key)
+            
+            if (typeof foundValue === 'string') {
+
+                return new Map(JSON.parse(foundValue))
+
+            }
+
+
+        } catch (error) {
+            
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+
+        }
+        
+    }
+
+
+    /**
+     * Retrive the value associated to the provided key in the required storage and
+     * return it as an Array object
+     * Source: https://stackoverflow.com/questions/50153172/how-to-serialize-a-map-in-javascript
+     * @param {StorageKind} kind is the kind of storage to retrieve the value from
+     * @param {string}      key is the key to retrieve the value of
+     * @returns {Map<any, any> | undefined} is the found Array in any[] format
+     *                  or undefined if the key doesn't exist, if the value cannot be
+     *                  converted into a Map or if an error occurs
+     */
+    export async function getStorageAsArray<T> (kind: StorageKind,
+                                                key: string): Promise<T[] | undefined> {
+
+        const cSourceName = 'exerma_tb/exerma_tb_storage/getStorageAsArray'
+
+        try {
+            
+            const foundObject: object | undefined = await getStorage(kind, key)
+            const foundValue: any = retrieveValueFromUnstructuredObject(foundObject, key)
+            
+            if (typeof foundValue === 'string') {
+
+                // TODO: Find a way to convert the found value
+                log().debugInfo(cSourceName, cInfoToImplement)
+                return undefined
+
+            }
+
+
+        } catch (error) {
+            
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+
+        }
+        
+    }

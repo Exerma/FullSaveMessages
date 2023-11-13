@@ -105,7 +105,7 @@
     // --------------- Imports
     import { cNullString }           from './exerma_consts'
     import { CClass, isCClass }                from './exerma_types'
-    import log, { cRaiseUnexpected } from './exerma_log'
+    import log, { cInfoStarted, cRaiseUnexpected } from './exerma_log'
 
     // --------------- Types
     export type exMessageName = string
@@ -203,6 +203,8 @@
 
         const cSourceName = 'exerma_base/exerma_message.ts/isCMessage'
 
+        log().trace(cSourceName, cInfoStarted)
+        
         try {
             
             return isCClass(request, classType)

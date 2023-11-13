@@ -44,6 +44,7 @@
             "maxEOF": 2
         }],
         "indent": "off",
+        "valid-typeof": ["error", { "requireStringLiterals": false }],
         "@typescript-eslint/indent": "off",
         "padded-blocks": ["off", "always", { "allowSingleLineBlocks": true }],
         "no-multi-spaces": "off",

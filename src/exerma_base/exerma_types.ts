@@ -28,11 +28,15 @@ import log, { cInfoStarted, cRaiseUnexpected } from './exerma_log'
     export type uNumber  = number  | undefined
     export type nString  = string  | null
     export type uString  = string  | undefined
+    export type nDate    = Date    | null
+    export type uDate    = Date    | undefined
 
     // Advanced types
-    export type MStringString  = Map<string, string>
+    export type  MStringString = Map<string, string>
     export type uMStringString = MStringString | undefined
-    export type AString        = string[]
+    export type  MNumberString = Map<number, string>
+    export type uMNumberString = MNumberString | undefined
+    export type  AString       = string[]
     export type uAString       = AString | undefined
 
     /**

@@ -9,22 +9,36 @@
  *   2023-09-09: First version
  *****/
 
-    /* ---------- Unique mail subjects ---------- */
+    /* ---------- Unique mail objects ---------- */
 
-    .subject {
+    .mailsubject {
         width: auto;
     }
-    .subject .original {
-        font-size:   10pt;
-        width:       80%;
-        margin-bottom: 0;
+
+    .mailsender .original,
+    .mailsubject .original {
+        font-size:       9pt;
+        color:     #AAAAAA;
+        width:           80%;
+        margin-bottom:     0;
     }
 
-    .subject .textbox {
-        margin-top:  0;
-        font-size:   11pt;
-        width:       80%;
+    .mailsender .textbox,
+    .mailsubject .textbox {
+        margin-top:       0;
+        margin-bottom: 10px;
+        font-size:     11pt;
+        width:          80%;
     }
+
+    /* ---------- Unique mail names ---------- */
+
+    .mailsender {
+        width: auto;
+    }
+
+    /* Share format with mailsubject above */
+    
 
     /* ---------- Footer buttons ---------- */
 

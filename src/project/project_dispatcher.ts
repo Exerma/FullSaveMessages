@@ -13,8 +13,8 @@
     import log, { cInfoStarted, cRaiseUnexpected } from '../exerma_base/exerma_log'
     import type * as exTb from '../exerma_tb/exerma_tb_types'
     import { type DispatcherReturnType, type CMessage, isCMessage } from '../exerma_base/exerma_messages'
-    import { CMessageLoadMailHeaders, exMessageNameLoadMailHeaders } from './project_messages'
-    import { loadMailsOfTabAndSendResult } from './project_main'
+    import { CMessageExfilterMails, CMessageLoadMailHeaders, exMessageNameLoadMailHeaders } from './project_messages'
+    import { loadMailsOfTabAndSendResult, exfilterEMails } from './project_main'
     import { isCClass } from '../exerma_base/exerma_types'
 
     // --------------- Functions
@@ -42,11 +42,15 @@
 
         const cSourceName = 'project/project_dispatcher.ts/projectDispatcher'
 
-        log().debugInfo(cSourceName, cInfoStarted)
+        log().trace(cSourceName, cInfoStarted)
 
         try {
     
-            log().debugInfo(cSourceName, 'Message name: ' + (request as CMessage).name + ' instanceof -> ' + isCMessage(request, exMessageNameLoadMailHeaders))
+            if (isCMessage(request)) {
+            
+                log().debugInfo(cSourceName, 'Message name: ' + (request as CMessage).name)
+            
+            }
 
             if (isCClass(request, CMessageLoadMailHeaders.CClassType)) {
                     
@@ -57,7 +61,26 @@
                 return true
 
             }
-        
+
+
+            if (isCClass(request, CMessageExfilterMails.CClassType)) {
+                    
+                const message: CMessageExfilterMails = (request as CMessageExfilterMails)
+                // The welcome archives has finished to calculate the filenames
+                log().debugInfo(cSourceName, 'Message received: ' + request.name)
+                void exfilterEMails({
+                                    mailsHeaders: message.mailsHeaders,
+                                    mailsOfTabId: message.mailsOfTabId,
+                                    selectedOnly: message.selectedOnly,
+                                    targetDirectory: message.targetDirectory,
+                                    mailsSubjects: message.mailsSubjects,
+                                    mailsSenders: message.mailsSenders
+                                    })
+                sendResponse()
+                return true
+
+            }
+
             // Message not handled
             return false
     

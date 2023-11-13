@@ -14,7 +14,8 @@
     // ---------- Consts
     export enum ProjectStorage {
 
-        currentTabId = 'currentTabId'
+        currentTabId = 'currentTabId',
+        mailHeaders = 'mailHeaders(exTb.AMailHeader)',
+        cleanedSubjects = 'cleanedSubjects(ex.MStringString)'
 
     }
-

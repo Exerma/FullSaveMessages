@@ -4,7 +4,12 @@
  *  exerma_log.js
  * ---------------------------------------------------------------------------
  *
+ * For later improvments:
+ * https://javascript.plainenglish.io/alternative-libraries-for-console-log-for-your-next-javascript-project-af6bc9a2f2ba
+ * https://github.com/unjs/consola
+ * 
  * Versions:
+ *   2023-09-25: Add: Add the "Trace" level as lowest level (below errDebug)
  *   2023-09-09: Add: Allow creation of different logger with name (default name = '')
  *               Add: Allow user to change information and raising levels using levelInfo and levelRaise setters
  *   2023-09-07: First version
@@ -24,11 +29,24 @@ import { cNewLine } from './exerma_consts'
     export enum ErrLevel {
 
         errUndefined = 0,  // Makes this error level Falsy
-        errDebug = 1,
-        errInfo = 2,
-        errBenine = 3,
-        errError = 4,
-        errCritical = 5
+        errTrace = 1,
+        errDebug = 2,
+        errInfo = 3,
+        errBenine = 4,
+        errError = 5,
+        errCritical = 6
+
+    }
+
+    /**
+     * Define the kind of log 
+     */
+    export enum LogKind {
+
+        logUndefined = 0,
+        logSuccess = 1,
+        logFailure = 2,
+        logStart = 3
 
     }
 
@@ -37,6 +55,7 @@ import { cNewLine } from './exerma_consts'
     export const cInfoStarted: string            = 'Has started'
     export const cInfoCancelled: string          = 'Cancelled'
     export const cInfoEnded: string              = 'Has finished'
+    export const cInfoToImplement: string        = 'Not implemented yet'
 
     // Generic error messages
     export const cRaiseUnexpected: string        = 'Unexpected error'
@@ -60,7 +79,7 @@ import { cNewLine } from './exerma_consts'
         /**
          * The infoLevel is the minimum level for which a log entry will be created
          */
-        private _infoLevel: ErrLevel = ErrLevel.errDebug
+        private _infoLevel: ErrLevel = ErrLevel.errTrace // ErrLevel.errDebug
 
         /**
          * The raiseLevel is the minimum level for which the error will be propagated
@@ -142,13 +161,17 @@ import { cNewLine } from './exerma_consts'
          * @param {ErrLevel} level is the level of the error
          * @param {string} where is the name of the function raising the error
          * @param {string} what is the description of the error
-         * @param {Error} error is the original Error object if provided. It will be
+         * @param {object}  options is a list of optional parameters
+         * @param {Error}   options.error is the original Error object if provided. It will be
          *                 propagated if the level of the error requires it.
+         * @param {LogKind} options.kind is the kind of message to show additional formatting
+         *                 with the message
          */
         public raise (level: ErrLevel,
                       where: string,
                       what: string,
-                      error?: Error): void {
+                      options?: { error?: Error
+                                  kind?: LogKind }): void {
 
             const cSourceName: string = 'exerma_base/exerma_log/Raise'
             const cFieldSep: string = ' '
@@ -173,10 +196,10 @@ import { cNewLine } from './exerma_consts'
                                         + cFieldSep
                                         + what.replaceAll(cFieldSep, ' ')
                                             .replaceAll('\n', ' ')
-                                        + ((error == null)
+                                        + ((options?.error == null)
                                             ? ''
                                             : cFieldSep
-                                            + '[' + error.name + ': ' + error.message + ']'
+                                            + '[' + options.error.name + ': ' + options.error.message + ']'
                                         )
 
                 // Keep message in history
@@ -192,9 +215,9 @@ import { cNewLine } from './exerma_consts'
                 // Raise error ?
                 if (level >= this._raiseLevel) {
 
-                    if (error !== undefined) {
+                    if (options?.error != null) {
 
-                        throw error
+                        throw options.error
 
                     } else {
 
@@ -211,6 +234,18 @@ import { cNewLine } from './exerma_consts'
 
 
         // --------------- Aliases for raise()
+
+        /**
+         * Show a message (level = ErrLevel.errTrace) in the logging system
+         * @param {string} where is same than in raise()
+         * @param {string} what is same than in raise()
+         */
+        public trace (where: string,
+                      what: string): void {
+
+            this.raise(ErrLevel.errTrace, where, what)
+
+        }
 
         /**
          * Show a message (level = ErrLevel.errDebug) in the logging system
@@ -246,7 +281,7 @@ import { cNewLine } from './exerma_consts'
                             what: string,
                             error?: Error): void {
 
-            this.raise(ErrLevel.errBenine, where, what, error)
+            this.raise(ErrLevel.errBenine, where, what, { error })
 
         }
 
@@ -260,7 +295,7 @@ import { cNewLine } from './exerma_consts'
                            what: string,
                            error?: Error): void {
 
-            this.raise(ErrLevel.errError, where, what, error)
+            this.raise(ErrLevel.errError, where, what, { error })
 
         }
 
@@ -274,7 +309,7 @@ import { cNewLine } from './exerma_consts'
                               what: string,
                               error?: Error): void {
 
-            this.raise(ErrLevel.errError, where, what, error)
+            this.raise(ErrLevel.errError, where, what, { error })
 
         }
 
