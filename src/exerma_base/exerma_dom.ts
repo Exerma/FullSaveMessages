@@ -113,8 +113,8 @@
      * @returns {uHTMLElement} is the newly created element or undefined if an error occurs
      */
     export function createAndAddElement (doc: Document,
-                                        tag: keyof HTMLElementTagNameMap,
-                                        options?: {
+                                         tag: keyof HTMLElementTagNameMap,
+                                         options?: {
                                             innerHtml?: string
                                             innerText?: string
                                             setAttribute?: Array<{ name: string, value: string }>
@@ -190,5 +190,83 @@
             return undefined
 
         }
+
+    }
+
+    /**
+     * Look for an Html element by Id and assign a value to one of her attribute (if found)
+     * @param {Document} doc is the HTML DOM document to alter an element of
+     * @param {string} elementId is the Id of the element to alter the display property of
+     * @param {string} attribute is the name of the property to alter
+     * @param {string} value is the new value to assign to the required property
+     * @returns {Promise<boolean>} is true if success, false if an error occurs
+     */
+    export async function setElementByIdAttribute (doc: Document,
+                                                   elementId: string,
+                                                   attribute: string,
+                                                   value: string ): Promise<boolean> {
+
+        const cSourceName = 'exerma_base/exerma_dom/setElementByIdAttribute'
+
+        try {
+
+            const element = doc.getElementById(elementId)
+            if (element != null) {
+                element.setAttribute(attribute, value)
+                return true
+            }
+
+        } catch (error) {
+            
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+
+        }
+        
+        return false
+
+    }
+
+    /**
+     * Look for an Html element by Id and assign its text value (if found)
+     * @param {Document} doc is the HTML DOM document to alter an element of
+     * @param {string} elementId is the Id of the element to alter the content of
+     * @param {string} value is the new value to assign to the contant
+     * @param {boolean} isHtml is true if 'value' is an Html text, false if it is a
+     *                  simple text string
+     * @returns {Promise<boolean>} is true if success, false if an error occurs
+     */
+    export async function setElementByIdInnerContent (doc: Document,
+                                                      elementId: string,
+                                                      value: string,
+                                                      isHtml: boolean ): Promise<boolean> {
+
+        const cSourceName = 'exerma_base/exerma_dom/setElementByIdInnerContent'
+
+        try {
+
+            const element = doc.getElementById(elementId)
+            if (element !== null) {
+                
+                if (isHtml) {
+                    // Set the Html content of the element
+                    element.innerHTML = value
+                    return true
+                
+                } else {
+                
+                    // Set the Text content of the element
+                    element.innerText = value
+                    return true
+                }
+
+            }
+
+        } catch (error) {
+            
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+
+        }
+        
+        return false
 
     }

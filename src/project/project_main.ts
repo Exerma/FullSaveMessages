@@ -14,10 +14,10 @@
     // --------------- Imports
     import type * as ex              from '../exerma_base/exerma_types'
     import type * as exTb            from '../exerma_tb/exerma_tb_types'
-    import { loadResourceHtml }      from '../exerma_tb/exerma_tb_misc'
     import log, { cRaiseUnexpected, cInfoStarted } from '../exerma_base/exerma_log'
     import { loadAllMails, loadSelectedMails }  from '../exerma_tb/exerma_tb_messages'
     import { jsPDF }                 from 'jspdf'
+    import { createPdf }             from '../exerma_tb/exerma_tb_pdf'
     import {
                 type FileSystemDirectoryHandle,
                 showDirectoryPicker,
@@ -34,7 +34,6 @@
                 type CMessageLoadMailHeaders,
                 CMessageMailHeadersLoaded
             } from './project_messages'
-    import { exMessageName } from '../exerma_base/exerma_messages'
     import { ProjectStorage } from './project_storage'
     import { isCClass, CClassTest, CClass } from '../exerma_base/exerma_types'
     import { cNullString, cTypeNameString } from '../exerma_base/exerma_consts'
@@ -790,55 +789,7 @@
 
     // --------------- Utility functions
 
-    /**
-     * Create a jsPDF document displaying the provided message
-     * Sources:
-     *      https://stackoverflow.com/questions/18191893/generate-pdf-from-html-in-div-using-javascript
-     *      https://github.com/parallax/jsPDF                  
-     * @param {object.messages.MessageHeader} header is the header of the message (contains subject, sender or date)
-     * @param {object.messages.MessagePart} message is the full message (contains body and attachments)
-     * @returns {Promise<jsPDF>} is the PDF file created from the provided message
-     */
-    async function createPdf (header: messenger.messages.MessageHeader,
-                              message: messenger.messages.MessagePart): Promise<jsPDF> {
-        
-        const cSourceName: string = 'project/project_main.ts/createPdf'
 
-        log().trace(cSourceName, cInfoStarted)
-
-        // Retrieve the template page
-        let myHtml: Document | undefined = await loadResourceHtml(cResourcePdfTemplate)
-
-        log().debugInfo(cSourceName, 'Resource loaded: ' + (myHtml === undefined ? 'failure' : 'success'))
-
-        if (myHtml === undefined) {
-
-            log().debugInfo(cSourceName, 'Build Html locally')
-
-            // Create the Html page from scratch
-            const myDOM: DOMImplementation = document.implementation
-            myHtml = myDOM.createHTMLDocument(header.subject)
-            const myTag: HTMLElement = myHtml.createElement('p')
-            myTag.setAttribute('id', cHtmlPdfTemplateSubjectId)
-            myHtml.body.appendChild(myTag)
-
-        }
-
-        // Get html code of the page
-        const rawHtml = myHtml.textContent
-        log().debugInfo(cSourceName, 'Html code: ' + rawHtml)
-
-        // Set properties of header
-        const myTag = myHtml.getElementById(cHtmlPdfTemplateSubjectId)
-        if ( myTag != null) myTag.innerHTML = header.subject
-
-        // Create the PDF from the Html
-        const pdfFile = new jsPDF()
-        await pdfFile.html(myHtml.body)
-        myHtml.close()
-        return pdfFile
-
-    }
 
     /**
      * Exfilter messages of the provided tab
@@ -968,7 +919,7 @@
                 log().debugInfo(cSourceName, 'rawMessage loaded')
 
                 // Save PDF File
-                const pdfDoc: jsPDF = await createPdf(messageHeader, rawMessage)
+                const pdfDoc: jsPDF = await createPdf(messageHeader, rawMessage, cResourcePdfTemplate)
                 const pdfBlob: Blob = pdfDoc.output('blob')
                 // const exportFile: File = new File([pdfBlob], (filename + '.pdf'), { type: 'application/pdf' })
                 // saveAs(exportFile)
@@ -980,7 +931,8 @@
                 // const emlFile: File = new File([rawMessage], (filename + '.eml'), { type: 'text/eml' })
                 // saveAs(emlFile, (filename + '.eml'))
                 log().debugInfo(cSourceName, 'EML File ready to be saved')
-                downloadFile(rawMessage, (filename + '.eml'), 'text/eml')
+                // RESTORE: Restore the Download to save email into EML format
+                // downloadFile(rawMessage, (filename + '.eml'), 'text/eml')
                 log().debugInfo(cSourceName, 'EML File saved as ' + (filename + '.eml'))
 
                 // Print message
