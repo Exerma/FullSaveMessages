@@ -9,6 +9,9 @@
  * https://github.com/unjs/consola
  * 
  * Versions:
+ *   2023-12-22: Chg: Remove explicit ': string' declarators in constants
+ *               Add: cRaiseNotFound
+ *   2023-12-03: Chg: Rename class "Logger" into "CLogger"
  *   2023-09-25: Add: Add the "Trace" level as lowest level (below errDebug)
  *   2023-09-09: Add: Allow creation of different logger with name (default name = '')
  *               Add: Allow user to change information and raising levels using levelInfo and levelRaise setters
@@ -17,8 +20,7 @@
  */
 
     // --------------- Imports
-    import { setMaxListeners } from 'events'
-import { cNewLine } from './exerma_consts'
+    import { cNewLine } from './exerma_consts'
     // import { datetimeToStringTag } from './exerma_misc'  --> Use a locally optimised version of it
 
 
@@ -52,22 +54,23 @@ import { cNewLine } from './exerma_consts'
 
     // --------------- Constants
     // Generic information messages
-    export const cInfoStarted: string            = 'Has started'
-    export const cInfoCancelled: string          = 'Cancelled'
-    export const cInfoEnded: string              = 'Has finished'
-    export const cInfoToImplement: string        = 'Not implemented yet'
+    export const cInfoStarted            = 'Has started'
+    export const cInfoCancelled          = 'Cancelled'
+    export const cInfoEnded              = 'Has finished'
+    export const cInfoToImplement        = 'Not implemented yet'
 
     // Generic error messages
-    export const cRaiseUnexpected: string        = 'Unexpected error'
-    export const cRaiseInvalidParameter: string  = 'Invalid parameter value'
-    export const cRaiseUninitialized: string     = 'Object is not initialized'
-    export const cRaiseOutOfRange: string        = 'Out of range value'
+    export const cRaiseUnexpected        = 'Unexpected error'
+    export const cRaiseInvalidParameter  = 'Invalid parameter value'
+    export const cRaiseUninitialized     = 'Object is not initialized'
+    export const cRaiseOutOfRange        = 'Out of range value'
+    export const cRaiseNotFound          = 'Not found'
 
 
 
     // --------------- Class
 
-    export class Logger {
+    export class CLogger {
 
         // ---------- Private members
         /**
@@ -106,7 +109,7 @@ import { cNewLine } from './exerma_consts'
                      setRaiseLevel: ErrLevel = ErrLevel.errUndefined) {
 
             const cSourceName = 'exerma_base/exerma_log.ts/constructor'
-
+    
             // Clean name to remove newlines and leading/tailing whitespaces
             name = name.replaceAll('\n', ' ')
                        .replaceAll(/^[ \t]/g, '')
@@ -431,34 +434,34 @@ import { cNewLine } from './exerma_consts'
 
         }
 
-    } // Class Logger
+    } // Class CLogger
 
 
     // ---------- Declare main logger as global variable
-    let mainLogger: Map<string, Logger>
+    let mainLogger: Map<string, CLogger>
 
     /**
      * Get the main centralized logger
      * @param {string} name is the name of the log to retrieve
-     * @returns {Logger} is the main logger object (built on demand)
+     * @returns {CLogger} is the main logger object (built on demand)
      */
-    export function log (name: string = ''): Logger {
+    export function log (name: string = ''): CLogger {
 
         if (mainLogger === undefined) {
 
             // Create map of logger on demand
-            mainLogger = new Map<string, Logger>()
+            mainLogger = new Map<string, CLogger>()
 
         }
 
         if (!mainLogger.has(name)) {
 
             // Create logger on demand
-            mainLogger.set(name, new Logger(name))
+            mainLogger.set(name, new CLogger(name))
 
         }
 
-        return mainLogger.get(name) as Logger
+        return mainLogger.get(name) as CLogger
 
     }
 

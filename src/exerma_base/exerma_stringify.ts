@@ -5,7 +5,11 @@
  *  exerma_stringify.js
  * ---------------------------------------------------------------------------
  *
+ * Reference:
+ *   https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
+ * 
  * Versions:
+ *   2023-12-03: Rem: Add hyperling reference to the "Structured_clone_algorithm" 
  *   2023-10-08: First version
  *
  */

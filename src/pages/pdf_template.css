@@ -14,7 +14,7 @@ html, body {
     width: 210mm;
     height: 297mm;
     margin: 10mm;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: Barlow, Tahoma, Geneva, Verdana, sans-serif;
     font-weight: normal;
     font-size: 10pt;
     padding: 5px;
@@ -36,14 +36,13 @@ html, body {
 }
 
 .header .subject {
-    background-color: rgb(196, 196, 244);
+    background-color: #F0F0FF;
 }
 .header .content.subject {
     font-weight: 600;
     color: black;
     font-size: 12pt;
 }
-
 
 #mailheader {
     display: grid;
@@ -53,9 +52,8 @@ html, body {
     margin: 0;
     width: 100%;
     height: auto;
-    background-color: #DDD;
-    border-top: 1px solid #CCC;
-    border-bottom: 1px solid #CCC;
+    background-color: #FAFAFA;
+    border-top: 1px solid white;
+    border-bottom: 1px solid white;
     row-gap: 3px;
 }
-

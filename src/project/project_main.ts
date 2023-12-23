@@ -84,19 +84,19 @@
 
         // Save current tabId to manage the emails of
         const currentTab: exTb.nMailTab = await messenger.mailTabs.getCurrent()
-        void messenger.storage.session.set({ name: cStorageCurrentMailTabId, value: currentTab?.id })
+        void messenger.storage.session.set({ name: cStorageCurrentMailTabId, header: currentTab?.id })
 
     }
 
     /**
      * Retrieve the current mailTab.tablId from session storage
-     * @returns {Promise<ex.uNumber>} is the last value stored with storeCurrentMailTabId()
+     * @returns {Promise<ex.uNumber>} is the last header stored with storeCurrentMailTabId()
      */
     export async function unstoreCurrentMailTabId (): Promise<ex.uNumber> {
 
         // Save current tabId to manage the emails of
         const loaded: object | undefined = await messenger.storage.session.get(cStorageCurrentMailTabId)
-        const result: ex.uNumber = (loaded as { name: string, value: number } | undefined)?.value
+        const result: ex.uNumber = (loaded as { name: string, header: number } | undefined)?.header
         return await Promise.resolve(result)
         
 
@@ -376,7 +376,7 @@
     // --------------- Cleaning of subjects
 
     /**
-     * Create the map of the oldSubject --> newSubject values after having
+     * Create the map of the oldSubject --> newSubject headers after having
      * applied the provided rules to the current list of headers
      * @param {exTb.AMailHeader} allHeaders is the array containing all the
      *         messageheader to clean the subjects of. They will stay untouched
@@ -516,7 +516,7 @@
     }
 
     /**
-     * Create the map of the oldPerson --> newPerson values after having
+     * Create the map of the oldPerson --> newPerson headers after having
      * applied the provided rules to the current list of headers
      * @param {exTb.AMailHeader} allHeaders is the array containing all the
      *         messageheader to clean the subjects of. They will stay untouched
@@ -826,17 +826,17 @@
 
         try {
 
-            // TODO: Retrive the template from settings
+            // TODO: Retrieve template from settings
             const filenames: ex.uMNumberString = await buildExfiltrationFilenames(params.mailsHeaders,
                                                                                   params.mailsSubjects,
                                                                                   params.mailsSenders,
                                                                                   cDefaultTemplate)
-            params.mailsHeaders.forEach((value, index) => {
-                log().debugInfo(cSourceName, '[' + index + '] = ' + params.mailsSubjects.get(value.id))
-                void exfilterEMail(value, {
-                                     filename: filenames?.get(value.id),
-                                     subject: params.mailsSubjects.get(value.id),
-                                     sender: params.mailsSenders.get(value.id)
+            params.mailsHeaders.forEach((header, index) => {
+                log().debugInfo(cSourceName, '[' + index + '] = ' + params.mailsSubjects.get(header.id))
+                void exfilterEMail(header, {
+                                     filename: filenames?.get(header.id),
+                                     subject: params.mailsSubjects.get(header.id),
+                                     sender: params.mailsSenders.get(header.id)
                                     })
             })
             log().debugInfo(cSourceName, 'Done')
@@ -912,14 +912,14 @@
             log().debugInfo(cSourceName, 'filename = ' + filename)
 
             // Retrive full message
-            const rawMessage: ex.nFile = await messenger.messages.getRaw(messageHeader.id) as ex.nFile
+            const rawMessage: ex.nFile = await messenger.messages.getRaw(messageHeader.id, { data_format: 'File' }) as ex.nFile
             
-            if (rawMessage != null) {
+            if (rawMessage != null)  {
 
                 log().debugInfo(cSourceName, 'rawMessage loaded')
 
                 // Save PDF File
-                const pdfDoc: jsPDF = await createPdf(messageHeader, rawMessage, cResourcePdfTemplate)
+                const pdfDoc: jsPDF = await createPdf(messageHeader, cResourcePdfTemplate)
                 const pdfBlob: Blob = pdfDoc.output('blob')
                 // const exportFile: File = new File([pdfBlob], (filename + '.pdf'), { type: 'application/pdf' })
                 // saveAs(exportFile)

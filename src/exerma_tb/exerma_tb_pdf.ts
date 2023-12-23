@@ -13,11 +13,16 @@
  */
 
     // --------------- Imports
-    import { jsPDF }                 from 'jspdf'
+    import { HTMLWorker, jsPDF }                 from 'jspdf'
+    import { saveAs } from 'file-saver'
+    import { exploreMessagePartStructure, getMessagePartBody } from './exerma_tb_messages'
+    import jsPDFImportBarlowFont from './Barlow-Regular-normal'
+    import { datetimeToFieldReplacement } from '../exerma_base/exerma_misc'
     import { loadResourceHtml }      from './exerma_tb_misc'
     import { setElementByIdAttribute, setElementByIdInnerContent } from '../exerma_base/exerma_dom'
     import log, { cRaiseUnexpected, cInfoStarted } from '../exerma_base/exerma_log'
-    
+    import lang from '../exerma_base/exerma_lang'
+
     // ----- PDF template
     const cResourcePdfTemplate: string   = './pdf_template.html'
     const cHtmlPdfTemplateSubjectLabelId: string = 'subjectLabelId'
@@ -30,6 +35,9 @@
     const cHtmlPdfTemplateToContentId: string = 'toContentId'
     const cHtmlPdfTemplateCcLabelId: string = 'ccLabelId'
     const cHtmlPdfTemplateCcContentId: string = 'ccContentId'
+    const cHtmlPdfTemplateBccLabelId: string = 'bccLabelId'
+    const cHtmlPdfTemplateBccContentId: string = 'bccContentId'
+    const cHtmlPdfTemplateMailBodyId: string = 'mailBodyId'
 
     /**
      * Create a jsPDF document displaying the provided message
@@ -37,7 +45,6 @@
      *      https://stackoverflow.com/questions/18191893/generate-pdf-from-html-in-div-using-javascript
      *      https://github.com/parallax/jsPDF                  
      * @param {object.messages.MessageHeader} header is the header of the message (contains subject, sender or date)
-     * @param {object.messages.MessagePart} message is the full message (contains body and attachments)
      * @param {string} resourceName is the name of the resource containing the Html template file to feed
      *                  with the data of the provided message
      * @param {object} htmlTargets is an object giving alternative Id of the fields to feed instead of the 
@@ -53,10 +60,12 @@
      * @param {string} htmlTargets.toContentId is the field Id to use instead of the default field
      * @param {string} htmlTargets.ccLabelId is the field Id to use instead of the default field
      * @param {string} htmlTargets.ccContentId is the field Id to use instead of the default field
+     * @param {string} htmlTargets.bccLabelId is the field Id to use instead of the default field
+     * @param {string} htmlTargets.bccContentId is the field Id to use instead of the default field
+     * @param {string} htmlTargets.mailBodyId is the field Id to use instead of the default field
      * @returns {Promise<jsPDF>} is the PDF file created from the provided message
      */
     export async function createPdf (header: messenger.messages.MessageHeader,
-                                     message: messenger.messages.MessagePart,
                                      resourceName: string,
                                      htmlTargets?: {
                                         subjectLabelId?: string
@@ -69,9 +78,12 @@
                                         toContentId?: string
                                         ccLabelId?: string
                                         ccContentId?: string
+                                        bccLabelId?: string
+                                        bccContentId?: string
+                                        mailBodyId?: string
                                      }): Promise<jsPDF> {
         
-        const cSourceName: string = 'exerma_tb/exerma_tb_pdf.ts/createPdf'
+        const cSourceName = 'exerma_tb/exerma_tb_pdf.ts/createPdf'
 
         log().trace(cSourceName, cInfoStarted)
 
@@ -79,7 +91,6 @@
         let myDoc: Document | undefined = await loadResourceHtml(resourceName)
 
         log().debugInfo(cSourceName, 'Resource loaded: ' + (myDoc === undefined ? 'failure' : 'success'))
-
         if (myDoc === undefined) {
 
             log().debugInfo(cSourceName, 'Unable to load resource file: ' + resourceName)
@@ -101,10 +112,10 @@
         // 1) Set subject
         void feedHeaderField(myDoc,
                              htmlTargets?.subjectLabelId ?? cHtmlPdfTemplateSubjectLabelId,
-                             'Sujet:',
+                             'Sujet:', // lang().getMessage('subject', { ifNotFound: 'Sujet:' }),
                              htmlTargets?.subjectContentId ?? cHtmlPdfTemplateSubjectContentId,
                              header.subject)
-                             
+
         // 2) Set sender
         void feedHeaderField(myDoc,
                              htmlTargets?.senderLabelId ?? cHtmlPdfTemplateSenderLabelId,
@@ -112,6 +123,88 @@
                              htmlTargets?.senderContentId ?? cHtmlPdfTemplateSenderContentId,
                              header.author)
 
+        // 3) Set date
+        let mailDate: Date = new Date(Date.now())
+        if (typeof header.date === 'string') {
+            mailDate = new Date(Date.parse(header.date))
+        } else
+        if (typeof header.date === 'number') {
+            mailDate = new Date(header.date)
+        }
+        void feedHeaderField(myDoc,
+                             htmlTargets?.senderLabelId ?? cHtmlPdfTemplateDateLabelId,
+                             'Date:',
+                             htmlTargets?.senderContentId ?? cHtmlPdfTemplateDateContentId,
+                             datetimeToFieldReplacement(mailDate).get('full'))
+
+        // 4) Set To
+        void feedHeaderField(myDoc,
+                             htmlTargets?.senderLabelId ?? cHtmlPdfTemplateToLabelId,
+                             'À:',
+                             htmlTargets?.senderContentId ?? cHtmlPdfTemplateToContentId,
+                             concatenateListOfPersons(header.recipients))
+
+        // 5) Set Cc
+        void feedHeaderField(myDoc,
+                             htmlTargets?.senderLabelId ?? cHtmlPdfTemplateCcLabelId,
+                             'Copie:',
+                             htmlTargets?.senderContentId ?? cHtmlPdfTemplateCcContentId,
+                             concatenateListOfPersons(header.ccList))
+
+        // 6) Set Bcc
+        void feedHeaderField(myDoc,
+                             htmlTargets?.senderLabelId ?? cHtmlPdfTemplateBccLabelId,
+                             'Caché:',
+                             htmlTargets?.senderContentId ?? cHtmlPdfTemplateBccContentId,
+                             concatenateListOfPersons(header.bccList))
+
+
+        // Set body of email
+        const message = await messenger.messages.getFull(header.id)
+        let content = ''
+        if (message === null) {
+            log().debugInfo(cSourceName, 'Cannot retrieve main message')
+            content = '<p>Cannot retrieve main message</p>'
+        } else {
+            content = getMessagePartBody(message, 'text/html')
+            log().debugInfo(cSourceName, 'Found: ' + content)
+            if (content === '') {
+                content = exploreMessagePartStructure(message, 'text/html')
+            }
+        }
+
+        // Extract head and body of the message
+        const parser = new DOMParser()
+        const msgDoc: Document = parser.parseFromString(content, 'text/html')
+        const msgHead = msgDoc.getElementsByTagName('head')
+        const msgBody = msgDoc.getElementsByTagName('body')
+
+        // void setElementByIdInnerContent(myDoc,
+        //                                 htmlTargets?.mailBodyId ?? cHtmlPdfTemplateMailBodyId,
+        //                                 (message.size?.toString() ?? '(zero)')
+        //                                 + ' coucou: ' + content
+        //                                 + (message.body?.length.toString() ?? '(vide)')
+        //                                 + (subject?.subject ?? '(no subject)'),
+        //                                 false)
+        const headContainer = myDoc.getElementsByTagName('head')[0]
+        if ((headContainer !== null) && (msgHead.length > 0)) {
+            headContainer.insertAdjacentHTML('beforeend', msgHead[0].innerHTML)
+        }
+
+        const bodyContainer = myDoc.getElementById(htmlTargets?.mailBodyId ?? cHtmlPdfTemplateMailBodyId)
+        if ((bodyContainer !== null) && (msgBody.length > 0)) {
+            bodyContainer.innerHTML = msgBody[0].innerHTML
+        }
+
+        // Set document title
+        const titleContainers = myDoc.getElementsByTagName('title')
+        if (titleContainers.length > 0) {
+            titleContainers[0].innerText = header.subject
+        }
+
+
+        // Save html file for control
+        // saveAs(new Blob([myDoc.documentElement.outerHTML], { type: 'text/html' } ), 'debug.html')
 
         // Create the PDF from the Html
         //   export interface jsPDFOptions {
@@ -128,22 +221,27 @@
         //         floatPrecision?: number | "smart";
         //     }
         // Doc: https://rawgit.com/MrRio/jsPDF/master/docs/jsPDF.html
+        // const htmlBody = message.parts?.[0].body ?? ''
+        jsPDFImportBarlowFont()
         const pdfFile = new jsPDF({
-            orientation: 'p',
+            orientation: 'portrait',
             unit: 'px',
             format: 'a4',
-            compress: true,
-            precision: 64,
+            compress: false,
+            // precision: 64,
             hotfixes: ['px_scaling']
         })
-        await pdfFile.html(myDoc.body, {   // Doc: https://rawgit.com/MrRio/jsPDF/master/docs/module-html.html
-            // margin: [17, 15, 20, 15],
+        pdfFile.setFont('Barlow')
+        await pdfFile.html(myDoc?.body ?? '', {   // Doc: https://rawgit.com/MrRio/jsPDF/master/docs/module-html.html
+            // margin: [25, 50, 25, 50],
             html2canvas: { scale: 0.9 }
         })
+        
         myDoc.close()
         return pdfFile
 
     }
+
 
     /**
      * Feed a "label - content" pair of Html elements
@@ -163,17 +261,17 @@
                                     fieldContentId: string,
                                     fieldContentValue: string | undefined): Promise<boolean> {
 
-        const cSourceName: string = 'exerma_tb/exerma_tb_pdf.ts/feedHeaderField'
+        const cSourceName = 'exerma_tb/exerma_tb_pdf.ts/feedHeaderField'
 
         log().trace(cSourceName, cInfoStarted)
 
         try {
             
-            if (fieldContentValue === undefined) {
+            if ((fieldContentValue === undefined) || (fieldContentValue === '')) {
 
                 // Hide the label and content boxes
-                void setElementByIdAttribute(doc, fieldLabelId, 'display', 'hide')
-                void setElementByIdAttribute(doc, fieldContentId, 'display', 'hide')
+                void setElementByIdAttribute(doc, fieldLabelId,   'hidden', 'true')
+                void setElementByIdAttribute(doc, fieldContentId, 'hidden', 'true')
                 return true
 
             } else {
@@ -189,6 +287,41 @@
             
             log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
             return false
+
+        }
+
+    }
+
+    /**
+     * Concatenate a list of "Person <email@address.com>" into a single string
+     * @param {string[]} listOfPersons is the list of persons (with email addresses) to concatenate into a single
+     *                  string containing all of them
+     * @returns {string} is the concatenation of all the provided individual persons (with or 
+     *                  without their adresses)
+     */
+    function concatenateListOfPersons (listOfPersons: string[]): string {
+
+        const cSourceName = 'exerma_tb/exerma_tb_pdf.ts/concatenateListOfPersons'
+
+        log().trace(cSourceName, cInfoStarted)
+
+        try {
+            
+            if (listOfPersons.length === 0) {
+                return ''
+            }
+
+            return listOfPersons.reduce((previousValue, currentValue) => {
+                                            return previousValue
+                                                + ((previousValue.length === 0 ? '' : ', ')
+                                                + currentValue)
+                                        })
+
+            
+        } catch (error) {
+            
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+            return ''
 
         }
 

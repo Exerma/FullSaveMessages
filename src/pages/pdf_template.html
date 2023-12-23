@@ -1,33 +1,37 @@
-<!doctydive html>
+<!doctype html>
 <html>
-    <header>
+    <head>
         <meta charset="utf-8" />
-        <title></title>
-        <link rel="stylesheet" type="text/css" href="./pdf_template.css" />
+        <meta http-equiv="content-type" content="text/html; ">
+        <title>PDF Export</title>
         <script type="text/javascript" src="./pdf_template.js"></script>
-    </header>
+        <link rel="stylesheet" type="text/css" href="./pdf_template.css" />
+        <!-- message head will be inserted hereafter -->
+    </head>
     <body>
-        <div>
-            <p style="font-size: 10pt">Mail généré automatiquement</p>
-        </div>
+        <link rel="stylesheet" type="text/css" href="./pdf_template.css" />
         <div id="mailheader" class="header">
-            <div id="subjectLabelId" class="gridItem label subject">Sujet&nbsp;:</div>
-            <div id="subjectContentId" class="gridItem content subject">aaaaaaasssssssaaa</div>
-            <div id="senderLabelId"  class="gridItem label">De&nbsp;:</div>
-            <div id="senderContentId"  class="gridItem content">bbb</div>
-            <div id="dateLabelId"    class="gridItem label">Date&nbsp;:</div>
-            <div id="dateContentId"    class="gridItem content">ccc</div>
-            <div id="toLabelId"      class="gridItem label">Pour&nbsp;:</div>
-            <div id="toContentId"      class="gridItem content">ddd</div>
-            <div id="ccLabelId"      class="gridItem label">Copie&nbsp;:</div>
-            <div id="ccContentId"      class="gridItem content">eee</div>
+            <div id="subjectLabelId"   class="gridItem label subject"></div>
+            <div id="subjectContentId" class="gridItem content subject"></div>
+            <div id="senderLabelId"    class="gridItem label"></div>
+            <div id="senderContentId"  class="gridItem content"></div>
+            <div id="dateLabelId"      class="gridItem label"></div>
+            <div id="dateContentId"    class="gridItem content"></div>
+            <div id="toLabelId"        class="gridItem label"></div>
+            <div id="toContentId"      class="gridItem content"></div>
+            <div id="ccLabelId"        class="gridItem label"></div>
+            <div id="ccContentId"      class="gridItem content"></div>
+            <div id="bccLabelId"       class="gridItem label"></div>
+            <div id="bccContentId"     class="gridItem content"></div>
         </div>
-        <hr id="beforebody" />
-        <div id="mailbody">
 
-        </div>
+        <hr id="beforebody" />
+        
+        <div id="mailBodyId" />
+        
         <hr id="afterbody" />
-        <div id="attachment">
+        
+        <div id="attachmentsId">
 
         </div>
 

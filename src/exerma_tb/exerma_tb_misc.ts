@@ -5,6 +5,8 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2023-12-22: Add: loadResourceFond()
+ *   2023-12-03: Fix: Correction of othe cSourceName constant of loadResourceHtml()
  *   2023-09-09: Add: loadResourceHtml() moved from project/main.ts
  *   2023-09-09: First version
  * 
@@ -30,7 +32,7 @@
 
         // https://stackoverflow.com/questions/48969495/in-javascript-how-do-i-should-i-use-async-await-with-xmlhttprequest
 
-        const cSourceName: string = 'project/main/loadResourceHtml'
+        const cSourceName: string = 'exerma_tb/exerma_tb_misc/loadResourceHtml'
 
         return await new Promise<Document | undefined>(function (resolve, reject) {
 
@@ -79,5 +81,3 @@
         })
 
     }
-
-
