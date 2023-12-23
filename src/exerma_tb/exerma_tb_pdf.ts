@@ -13,13 +13,14 @@
  */
 
     // --------------- Imports
-    import { HTMLWorker, jsPDF }                 from 'jspdf'
+    import { jsPDF }                 from 'jspdf'
     import { saveAs } from 'file-saver'
     import { exploreMessagePartStructure, getMessagePartBody } from './exerma_tb_messages'
     import { datetimeToFieldReplacement } from '../exerma_base/exerma_misc'
-    import { loadResourceHtml }      from './exerma_tb_misc'
-    import { setElementByIdAttribute, setElementByIdInnerContent } from '../exerma_base/exerma_dom'
+    import { loadResourceHtml, loadResource }      from './exerma_tb_misc'
+    import { createAndAddElement, setElementByIdAttribute, setElementByIdInnerContent } from '../exerma_base/exerma_dom'
     import log, { cRaiseUnexpected, cInfoStarted } from '../exerma_base/exerma_log'
+    import type { uString } from '../exerma_base/exerma_types'
     import lang from '../exerma_base/exerma_lang'
 
     // ----- PDF template
@@ -80,7 +81,7 @@
                                         bccLabelId?: string
                                         bccContentId?: string
                                         mailBodyId?: string
-                                     }): Promise<jsPDF> {
+                                     }): Promise<[jsPDF, Document]> {
         
         const cSourceName = 'exerma_tb/exerma_tb_pdf.ts/createPdf'
 
@@ -202,9 +203,6 @@
         }
 
 
-        // Save html file for control
-        // saveAs(new Blob([myDoc.documentElement.outerHTML], { type: 'text/html' } ), 'debug.html')
-
         // Create the PDF from the Html
         //   export interface jsPDFOptions {
         //         orientation?: "p" | "portrait" | "l" | "landscape";
@@ -219,8 +217,11 @@
         //         hotfixes?: string[];
         //         floatPrecision?: number | "smart";
         //     }
-        // Doc: https://rawgit.com/MrRio/jsPDF/master/docs/jsPDF.html
-        // const htmlBody = message.parts?.[0].body ?? ''
+        // Documentation: 
+        //  - https://rawgit.com/MrRio/jsPDF/master/docs/jsPDF.html (main entry)
+        //  - https://html2canvas.hertzen.com/proxy/ (about proxy for external images and fonts)
+        //  - https://rawgit.com/MrRio/jsPDF/master/docs/module-html.html (about jsPDF.html() function)
+        //  - 
         const pdfFile = new jsPDF({
             orientation: 'portrait',
             unit: 'px',
@@ -229,13 +230,27 @@
             // precision: 64,
             hotfixes: ['px_scaling']
         })
-        await pdfFile.html(myDoc?.body ?? '', {   // Doc: https://rawgit.com/MrRio/jsPDF/master/docs/module-html.html
+        await pdfFile.html(myDoc.documentElement, {
             // margin: [25, 50, 25, 50],
-            html2canvas: { scale: 0.9 }
+            html2canvas: {
+                scale: 0.9,
+                proxy: 'node.js'
+            }
         })
-        
+
+        // Make html file self-consistant Save html file for control
+        const cssFile: uString = await loadResource(resourceName.replace('html', 'css'), 'text') as uString
+        void createAndAddElement(myDoc,
+                                 'style', {
+                                 innerHtml: cssFile,
+                                 setAttribute: [{ name: 'type', value: 'text/css' }],
+                                 target: myDoc.getElementsByTagName('head')[0],
+                                 insertPosition: 'beforeend'
+                                 })
         myDoc.close()
-        return pdfFile
+
+        // Finished
+        return [pdfFile, myDoc]
 
     }
 

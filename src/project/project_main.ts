@@ -918,14 +918,19 @@
 
                 log().debugInfo(cSourceName, 'rawMessage loaded')
 
+                // Create the Html file and its PDF 
+                const [pdfDoc, htmlDoc] = await createPdf(messageHeader, cResourcePdfTemplate)
+
                 // Save PDF File
-                const pdfDoc: jsPDF = await createPdf(messageHeader, cResourcePdfTemplate)
                 const pdfBlob: Blob = pdfDoc.output('blob')
                 // const exportFile: File = new File([pdfBlob], (filename + '.pdf'), { type: 'application/pdf' })
                 // saveAs(exportFile)
                 pdfDoc.save((filename + '.pdf'))
                 pdfDoc.close()
                 log().debugInfo(cSourceName, 'PDF File saved as ' + (filename + '.pdf'))
+
+                // Save HTML file
+                saveAs(new Blob([htmlDoc.documentElement.outerHTML], { type: 'text/html' } ), (filename + '.html'))
 
                 // Save EML File
                 // const emlFile: File = new File([rawMessage], (filename + '.eml'), { type: 'text/eml' })
