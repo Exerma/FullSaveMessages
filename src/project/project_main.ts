@@ -754,7 +754,7 @@
             const mailSubject: string = header.subject
 
             // Remove email from the sender
-            // TODO: Clean the list of to and cc
+            // TODO: Clean the list of "to" and "cc"
             const rule = /(.+) <.*>,?/g
             const cleanedFrom = cleanEntryWithRules(mailFrom, getCleanPersonRules())
             const cleanedTo = mailTo.replace(rule, '$1')

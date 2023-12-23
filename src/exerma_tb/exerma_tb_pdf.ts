@@ -16,7 +16,6 @@
     import { HTMLWorker, jsPDF }                 from 'jspdf'
     import { saveAs } from 'file-saver'
     import { exploreMessagePartStructure, getMessagePartBody } from './exerma_tb_messages'
-    import jsPDFImportBarlowFont from './Barlow-Regular-normal'
     import { datetimeToFieldReplacement } from '../exerma_base/exerma_misc'
     import { loadResourceHtml }      from './exerma_tb_misc'
     import { setElementByIdAttribute, setElementByIdInnerContent } from '../exerma_base/exerma_dom'
@@ -169,7 +168,7 @@
             content = getMessagePartBody(message, 'text/html')
             log().debugInfo(cSourceName, 'Found: ' + content)
             if (content === '') {
-                content = exploreMessagePartStructure(message, 'text/html')
+                content = exploreMessagePartStructure(message)
             }
         }
 
@@ -222,7 +221,6 @@
         //     }
         // Doc: https://rawgit.com/MrRio/jsPDF/master/docs/jsPDF.html
         // const htmlBody = message.parts?.[0].body ?? ''
-        jsPDFImportBarlowFont()
         const pdfFile = new jsPDF({
             orientation: 'portrait',
             unit: 'px',
@@ -231,7 +229,6 @@
             // precision: 64,
             hotfixes: ['px_scaling']
         })
-        pdfFile.setFont('Barlow')
         await pdfFile.html(myDoc?.body ?? '', {   // Doc: https://rawgit.com/MrRio/jsPDF/master/docs/module-html.html
             // margin: [25, 50, 25, 50],
             html2canvas: { scale: 0.9 }
