@@ -32,9 +32,35 @@
 
         // https://stackoverflow.com/questions/48969495/in-javascript-how-do-i-should-i-use-async-await-with-xmlhttprequest
 
-        const cSourceName: string = 'exerma_tb/exerma_tb_misc/loadResourceHtml'
+        const cSourceName: string = 'exerma_tb/exerma_tb_misc.ts/loadResourceHtml'
 
         return await new Promise<Document | undefined>(function (resolve, reject) {
+
+            void loadResource(resourcePath, 'document')
+                        .then(result => { resolve(result as Document) },
+                              reason => { reject(new URIError(reason)) } )
+
+        })
+
+    }
+
+    /**
+     * Load a resource of the extension
+     * @param {string} resourcePath is the name of the resource to load
+     * @param {XMLHttpRequestResponseType} responseType is the expected response type to provide to the HMLHttpRequest call
+     * @returns {Promise<any | undefined>} is the loaded resource or undefined if load failed.
+     *                Typically cause of error if the page is not available or wasn't made 
+     *                available in the manifest in the "web_accessible_resources" section
+     *   https://developer.mozilla.org/fr/docs/Mozilla/Add-ons/WebExtensions/manifest.json/web_accessible_resources
+     */
+    export async function loadResource (resourcePath: string,
+                                        responseType?: XMLHttpRequestResponseType): Promise<any | undefined> {
+
+        // https://stackoverflow.com/questions/48969495/in-javascript-how-do-i-should-i-use-async-await-with-xmlhttprequest
+
+        const cSourceName: string = 'exerma_tb/exerma_tb_misc.ts/loadResource'
+
+        return await new Promise<any | undefined>(function (resolve, reject) {
 
             // Build extension context-dependant URL of the resource
             const resourceUrl: string = messenger.runtime.getURL(resourcePath)
@@ -48,7 +74,9 @@
             // Request the Html page
             const xhr = new XMLHttpRequest()
             xhr.open('GET', resourceUrl)
-            xhr.responseType = 'document'
+            if (responseType !== undefined) {
+                xhr.responseType = responseType
+            }
             xhr.onload = function () {
 
                 // Possible status:
@@ -58,7 +86,7 @@
 
                     // Success
                     log().debugInfo(cSourceName, 'success')
-                    resolve(xhr.response as Document)
+                    resolve(xhr.response)
 
                 } else {
 
