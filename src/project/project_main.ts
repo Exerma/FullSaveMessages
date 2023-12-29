@@ -497,7 +497,7 @@
             // Retrieve rules to apply
             const rules: ANameCleaningRules = []
             rules.push({
-                          rule: /^(Re[:_]|Fwd+[:_]|!|TR[:_]|I[:_]|R[:_]|WG[:_]|AW[:_]|Urgent[:_]|SPAM_LOW[:_]| )*/i,
+                          rule: /^(\[?External\]?[:_]?|Re[:_]|Fwd?[:_]|!|TR[:_]|I[:_]|R[:_]|WG[:_]|AW[:_]|Urgent[:_]|SPAM_LOW[:_]| )*/i,
                           result: ''
                         })
 
