@@ -43,18 +43,42 @@
     /* ---------- Footer buttons ---------- */
 
     #footer_buttons {
-        position:    relative;
-        height:      100%;
-        width:       90%;
-        left:        0%;
-        top:         0%;
-        overflow:    hidden;
-        white-space: nowrap;
-        text-align:  right;
+        width: 95%;
+        display: flex;
+        flex-wrap: nowrap;
+    }
+
+    .footer_buttons_left {
+        display: flex;
+        flex: 1;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .footer_buttons_right {
+        display: flex;
+        flex: 1;
+        justify-content: flex-end;
+        align-items: center;
     }
 
     #continue {
         background-color: #1b1ba42a;
+    }
+
+    .directory_picker {
+        font-weight: bold;
+        background-color: rgb(32, 54, 222);
+        border: 1px solid rgb(21, 35, 145);
+        border-radius: 10px;
+        padding: 10px 20px;
+        margin: 5px;
+        color: #eeeeee;
+    }
+    .directory_picker:hover {
+        background-color: rgb(21, 35, 145) !important;
+        border-color: black;
+        color: white;
     }
 
     .foot_button {

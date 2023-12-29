@@ -38,7 +38,6 @@
     import { isCClass, CClassTest, CClass } from '../exerma_base/exerma_types'
     import { cNullString, cTypeNameString } from '../exerma_base/exerma_consts'
 
-
     // --------------- Consts
     export const cPopupBody:             string = 'popupBody'
     export const cPopupArchiveButton:    string = 'cmdArchive'
@@ -922,20 +921,35 @@
                 const [pdfDoc, htmlDoc] = await createPdf(messageHeader, cResourcePdfTemplate)
 
                 // Save PDF File
-                const pdfBlob: Blob = pdfDoc.output('blob')
+                // Attention: if MIME type is set to 'application/pdf', then the file is always saved on
+                //            desktop (no idea why) 
+                // Alternative 1
                 // const exportFile: File = new File([pdfBlob], (filename + '.pdf'), { type: 'application/pdf' })
                 // saveAs(exportFile)
-                pdfDoc.save((filename + '.pdf'))
+                const pdfBlob: Blob = pdfDoc.output('blob')
+                const exportFile: File = new File([pdfBlob], (filename + '.pdf'), { type: 'text/plain' })
+                saveAs(exportFile)
+
+                // Alternative 2: cannot choose the MIME type
+                // const pdfBlob: Blob = pdfDoc.output('blob')
+                // pdfDoc.save((filename + '.pdf'))
+
+                // Alternative 3
+                // const pdfData = pdfDoc.output('arraybuffer')
+                // const pdfUnicode = new Uint8Array(pdfData)
+                // const pdfBlob = new Blob([pdfUnicode])
+                // downloadFile(pdfBlob,  (filename + '.pdf'), 'text/plain') // 'application/pdf'
+
                 pdfDoc.close()
                 log().debugInfo(cSourceName, 'PDF File saved as ' + (filename + '.pdf'))
 
                 // Save HTML file
                 saveAs(new Blob([htmlDoc.documentElement.outerHTML], { type: 'text/html' } ), (filename + '.html'))
+                log().debugInfo(cSourceName, 'HTML File saved as ' + (filename + '.html'))
 
                 // Save EML File
                 // const emlFile: File = new File([rawMessage], (filename + '.eml'), { type: 'text/eml' })
                 // saveAs(emlFile, (filename + '.eml'))
-                log().debugInfo(cSourceName, 'EML File ready to be saved')
                 downloadFile(rawMessage, (filename + '.eml'), 'text/eml')
                 log().debugInfo(cSourceName, 'EML File saved as ' + (filename + '.eml'))
 

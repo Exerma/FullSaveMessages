@@ -87,6 +87,20 @@
             gMailsOfTabId = undefined
             gSelectedOnly = false
 
+            // Force download of a dummy file to set the default "current path"
+            const picker = document.getElementById('directory_picker')
+            picker?.addEventListener('click', async function () {
+
+                const tempLink = document.createElement('a')
+                const taBlob = new Blob(['You can delete this file'], { type: 'text/plain' })
+                tempLink.setAttribute('href', URL.createObjectURL(taBlob))
+                tempLink.setAttribute('download', 'dummy.txt')
+                tempLink.click()
+                URL.revokeObjectURL(tempLink.href)
+
+            })
+
+
             // Init page
             await initWelcomeArchive()
 
