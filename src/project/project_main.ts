@@ -936,8 +936,7 @@
                 // const emlFile: File = new File([rawMessage], (filename + '.eml'), { type: 'text/eml' })
                 // saveAs(emlFile, (filename + '.eml'))
                 log().debugInfo(cSourceName, 'EML File ready to be saved')
-                // RESTORE: Restore the Download to save email into EML format
-                // downloadFile(rawMessage, (filename + '.eml'), 'text/eml')
+                downloadFile(rawMessage, (filename + '.eml'), 'text/eml')
                 log().debugInfo(cSourceName, 'EML File saved as ' + (filename + '.eml'))
 
                 // Print message
