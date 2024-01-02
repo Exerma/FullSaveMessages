@@ -106,7 +106,7 @@
 
         // Get html code of the page
         const rawHtml = myDoc.textContent
-        log().debugInfo(cSourceName, 'Html code: ' + rawHtml)
+        // log().debugInfo(cSourceName, 'Html code: ' + rawHtml)
 
         // Set properties of header
         // 1) Set subject
@@ -167,7 +167,7 @@
             content = '<p>Cannot retrieve main message</p>'
         } else {
             content = getMessagePartBody(message, 'text/html')
-            log().debugInfo(cSourceName, 'Found: ' + content)
+            // log().debugInfo(cSourceName, 'Found: ' + content)
             if (content === '') {
                 content = exploreMessagePartStructure(message)
             }
