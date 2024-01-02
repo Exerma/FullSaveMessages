@@ -24,6 +24,7 @@
 const webpackConfig = require("./webpack.config.cjs");
 
 module.exports = (grunt) => {
+
 	const srcDir = "src/";
 	const outDir = "dist/";
 	const outDirExtracted = outDir + "/release/";
@@ -32,8 +33,10 @@ module.exports = (grunt) => {
 	// Project configuration.
 	grunt.initConfig({
 		pkg: grunt.file.readJSON("package.json"),
-		clean: [outDir],
-		copy: {
+		
+        clean: [outDir],
+		
+        copy: {
 			main: {
 				files: [
 					{ expand: true, cwd:          "./resources/", src: ["**"],              dest: outDirExtracted },
@@ -44,9 +47,11 @@ module.exports = (grunt) => {
 				],
 			},
 		},
-		webpack: {
+		
+        webpack: {
 			myConfig: webpackConfig,
 		},
+
 		// make a zipfile
 		compress: {
 			main: {
@@ -59,9 +64,11 @@ module.exports = (grunt) => {
 				],
 			},
 		},
+
 		eslint: {
 			target: [srcDir + "/**/*.ts", srcDir + "/**/*.js"],
 		},
+
 	});
 
     grunt.loadNpmTasks("grunt-contrib-copy");
@@ -71,5 +78,8 @@ module.exports = (grunt) => {
 	grunt.loadNpmTasks("grunt-eslint");
 
 	//tasks
-	grunt.registerTask("default", ["clean", "copy", "webpack", "compress", "eslint"]);
+	grunt.registerTask("debug",   ["clean", "copy", "webpack", "eslint"]);
+	grunt.registerTask("release", ["clean", "copy", "webpack", "compress", "eslint"]);
+    grunt.registerTask("default", ["clean", "copy", "webpack", "compress", "eslint"]);
+    
 };

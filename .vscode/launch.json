@@ -13,7 +13,10 @@
             "profileDir": "${env:HOME}/Data/Sources/Thunderbird/_DebugProfiles/113",
             "keepProfileChanges": true,
             "internalConsoleOptions": "openOnSessionStart",
-            "addonPath": "${workspaceFolder}/dist/release"
+            "addonPath": "${workspaceFolder}/dist/release",
+            "env": {
+                "NODE_ENV": "development"
+            }
         }        
     ]
 }

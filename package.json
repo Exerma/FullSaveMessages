@@ -11,13 +11,11 @@
     "scripts": {
         "grunt:clean": "grunt clean",
         "grunt:copy": "grunt copy",
-        "grunt:build": "grunt webpack",
-        "grunt:rebuild": "grunt clean copy webpack",
-        "compile": "tsc",
-        "build": "webpack",
+        "grunt:build": "grunt webpackdev",
+        "grunt:debug": "grunt debug",
+        "grunt:release": "grunt release",
         "lint": "eslint src/ --ignore-pattern /node_module/ --ext .ts --ext .cjs --ext .js ",
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-        "clean": "rm -rf dist build package; ./_clean.zsh",
         "docs": "typedoc --entryPoints src/root.ts"
     },
     "author": "Patrick Seuret <https://github.com/exerma>",

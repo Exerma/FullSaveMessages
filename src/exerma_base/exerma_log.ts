@@ -9,6 +9,7 @@
  * https://github.com/unjs/consola
  * 
  * Versions:
+ *   2024-01-02: Add: Set different information and raise error levels in production (using exerma_debug.ts/isProduction() )
  *   2023-12-22: Chg: Remove explicit ': string' declarators in constants
  *               Add: cRaiseNotFound
  *   2023-12-03: Chg: Rename class "Logger" into "CLogger"
@@ -20,6 +21,7 @@
  */
 
     // --------------- Imports
+    import { isProduction } from './exerma_debug'
     import { cNewLine } from './exerma_consts'
     // import { datetimeToStringTag } from './exerma_misc'  --> Use a locally optimised version of it
 
@@ -82,12 +84,12 @@
         /**
          * The infoLevel is the minimum level for which a log entry will be created
          */
-        private _infoLevel: ErrLevel = ErrLevel.errTrace // ErrLevel.errDebug
+        private _infoLevel: ErrLevel = isProduction() ? ErrLevel.errBenine : ErrLevel.errTrace // ErrLevel.errDebug
 
         /**
          * The raiseLevel is the minimum level for which the error will be propagated
          */
-        private _raiseLevel: ErrLevel = ErrLevel.errCritical
+        private _raiseLevel: ErrLevel = isProduction() ? ErrLevel.errCritical : ErrLevel.errError
 
         /**
          * 
@@ -179,7 +181,9 @@
             const cSourceName: string = 'exerma_base/exerma_log/Raise'
             const cFieldSep: string = ' '
 
-            if (level !== ErrLevel.errUndefined) {
+            if (   (level !== ErrLevel.errUndefined)
+                && (   (level >= this._infoLevel)
+                    || (level >= this._raiseLevel))) {
                 
                 // Create the common message
                 const when = new Date(Date.now())
