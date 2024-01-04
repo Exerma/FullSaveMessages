@@ -22,7 +22,7 @@
 
     // --------------- Imports
     import { isProduction } from './exerma_debug'
-    import { cNewLine } from './exerma_consts'
+    import { cNewLine }     from './exerma_consts'
     // import { datetimeToStringTag } from './exerma_misc'  --> Use a locally optimised version of it
 
 
