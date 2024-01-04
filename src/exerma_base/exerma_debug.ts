@@ -27,7 +27,15 @@
      */
     export function isProduction (): boolean {
 
-        return (process?.env?.NODE_ENV === 'production')
+        try {
+
+            return (process?.env?.NODE_ENV === 'production')
+
+        } catch (error) {
+    
+            return false
+            
+        }
 
     }
 
