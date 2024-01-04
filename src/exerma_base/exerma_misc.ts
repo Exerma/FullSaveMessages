@@ -16,6 +16,7 @@
     import type * as ex              from './exerma_types'
     import log, { cInfoStarted, cRaiseUnexpected } from './exerma_log'
     import {
+        cNewLine,
             cNullString
             } from './exerma_consts'
 
@@ -374,6 +375,71 @@
             
             log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
             return false
+
+        }
+
+    }
+
+
+    /**
+     * Add prefix (and optionnaly suffix) to every line of the provided text string.
+     * It can ignore empty lines or remove them if required
+     * @param {string} source is the string to add prefix / suffix to every line
+     * @param {string} prefix is the string to add as prefix to every line
+     * @param {object} options are the optional parameters
+     * @param {string} options.suffix is an optional suffix to add to the altered lines
+     * @param {string} options.replaceEmpty is used to replace empty lines with the provided
+     *                  string (this is done before testing ignoreEmpty and removeEmpty)
+     * @param {boolean} options.ignoreEmpty is used to ignore the empty lines (if set
+     *                  to true) or to add the prefix / suffix to empty lines too.
+     *                  Default is false to alter empty lines.
+     * @param {boolean} options.removeEmpty is used to remove the empty lines (if true,
+     *                  then ignore changeEmpty=true), or to keep them unchanged
+     *                  empty lines (if false, default)
+     * @param {string} options.separator is the separator to used between line (default
+     *                  is the cNewLine constant)
+     * @param {string} options.ifError is the value to return if an error occurs during
+     *                  the function (default = '')
+     * @returns {string} is the modified string
+     */
+    export function stringPrefixLinesWith (source: string,
+                                           prefix: string,
+                                           options?: {
+                                                suffix?: string
+                                                replaceEmpty?: string
+                                                ignoreEmpty?: boolean
+                                                removeEmpty?: boolean
+                                                separator?: string
+                                                ifError?: string
+                                           }): string {
+
+        const cSourceName = 'exerma_base/exerma_misc.ts/stringPrefixLinesWith'
+
+        log().trace(cSourceName, cInfoStarted)
+
+        try {
+        
+            const lines = source.split(cNewLine)
+            const result = lines.reduce((accumulator, line) => {
+
+                const sep = (accumulator === '' ? '' : (options?.separator ?? cNewLine))
+                const thisLine = (line === '' ? (options?.replaceEmpty ?? '') : line)
+                if ((thisLine !== '') || ((options?.ignoreEmpty ?? true) && (!(options?.removeEmpty ?? false)))) {
+                    return accumulator + sep + prefix + thisLine + (options?.suffix ?? '')
+                } else if (options?.removeEmpty !== true) {
+                    return accumulator + sep + thisLine
+                } else {
+                    return accumulator
+                }
+
+            }, '')
+
+            return result
+
+        } catch (error) {
+            
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+            return options?.ifError ?? ''
 
         }
 
