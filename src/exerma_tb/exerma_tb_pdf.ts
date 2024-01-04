@@ -8,6 +8,7 @@
  * Documentation about jsPDF: https://parall.ax/products/jspdf
  * 
  * Versions:
+ *   2024-01-04: Add: Use plain text version of message in createPdf() if html version is missing
  *   2023-11-18: First version (move createPDF() from project_main.ts)
  * 
  */
@@ -16,7 +17,7 @@
     import { jsPDF }                 from 'jspdf'
     import { saveAs } from 'file-saver'
     import { exploreMessagePartStructure, getMessagePartBody } from './exerma_tb_messages'
-    import { datetimeToFieldReplacement } from '../exerma_base/exerma_misc'
+    import { datetimeToFieldReplacement, stringPrefixLinesWith } from '../exerma_base/exerma_misc'
     import { loadResourceHtml, loadResource }      from './exerma_tb_misc'
     import { createAndAddElement, setElementByIdAttribute, setElementByIdInnerContent } from '../exerma_base/exerma_dom'
     import log, { cRaiseUnexpected, cInfoStarted } from '../exerma_base/exerma_log'
@@ -167,9 +168,16 @@
             content = '<p>Cannot retrieve main message</p>'
         } else {
             content = getMessagePartBody(message, 'text/html')
-            // log().debugInfo(cSourceName, 'Found: ' + content)
             if (content === '') {
-                content = exploreMessagePartStructure(message)
+                content = getMessagePartBody(message, 'text/plain')
+                if (content !== '') {
+                    content = '<pre>' + content + '</pre>'
+                    // content = stringPrefixLinesWith(content,
+                    //                                 '<p class="notopmargin">',
+                    //                                 { suffix: '</p>', replaceEmpty: '&nbsp;' })
+                } else {
+                    content = exploreMessagePartStructure(message)
+                }
             }
         }
 
