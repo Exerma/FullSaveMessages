@@ -11,7 +11,7 @@
     "scripts": {
         "grunt:clean": "grunt clean",
         "grunt:copy": "grunt copy",
-        "grunt:build": "grunt webpackdev",
+        "grunt:build": "grunt webpack",
         "grunt:debug": "grunt debug",
         "grunt:release": "grunt release",
         "lint": "eslint src/ --ignore-pattern /node_module/ --ext .ts --ext .cjs --ext .js ",

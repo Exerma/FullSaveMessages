@@ -1,3 +1,4 @@
-# FullSaveMessages extension for Thunderbird
+# Message exfiltration extension for Thunderbird
 
-Version: 04.09.2023
+Version: 21.02.2024
+

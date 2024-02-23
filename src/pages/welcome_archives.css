@@ -66,6 +66,10 @@
         background-color: #1b1ba42a;
     }
 
+    #directory_picker {
+        display: none;
+    }
+    
     .directory_picker {
         font-weight: bold;
         background-color: rgb(32, 54, 222);

@@ -37,6 +37,8 @@
     import { ProjectStorage } from './project_storage'
     import { isCClass, CClassTest, CClass } from '../exerma_base/exerma_types'
     import { cNullString, cTypeNameString } from '../exerma_base/exerma_consts'
+import { buildFullname } from '../exerma_base/exerma_files'
+
 
     // --------------- Consts
     export const cPopupBody:             string = 'popupBody'
@@ -927,8 +929,22 @@
                 // const exportFile: File = new File([pdfBlob], (filename + '.pdf'), { type: 'application/pdf' })
                 // saveAs(exportFile)
                 const pdfBlob: Blob = pdfDoc.output('blob')
-                const exportFile: File = new File([pdfBlob], (filename + '.pdf'), { type: 'text/plain' })
-                saveAs(exportFile)
+                const pdfUrl = URL.createObjectURL(pdfBlob)
+
+                // Prepare to hijack the destination file with **full path**
+                let absolutePath: string = ''
+                const getAbsolutePath = (downloadItem: messenger.downloads.DownloadItem): void => { absolutePath = downloadItem?.filename }
+                messenger.downloads.onCreated.addListener(getAbsolutePath)
+                // Ask user to save file and retrieve the full path into "absolutePath"
+                const targetFile = await messenger.downloads.download({
+                    url: pdfUrl,
+                    filename: (filename + '.pdf'),
+                    saveAs: true
+                })
+                messenger.downloads.onCreated.removeListener(getAbsolutePath)
+
+                // --------------------- FULL PATH 
+                log().debugInfo(cSourceName, 'Full path of file = ' + absolutePath)
 
                 // Alternative 2: cannot choose the MIME type
                 // const pdfBlob: Blob = pdfDoc.output('blob')
@@ -944,14 +960,20 @@
                 log().debugInfo(cSourceName, 'PDF File saved as ' + (filename + '.pdf'))
 
                 // Save HTML file
-                saveAs(new Blob([htmlDoc.documentElement.outerHTML], { type: 'text/html' } ), (filename + '.html'))
-                log().debugInfo(cSourceName, 'HTML File saved as ' + (filename + '.html'))
-
+                const htmlBlob = new Blob([htmlDoc.documentElement.outerHTML], { type: 'text/html' } )
+                const htmlData = await htmlBlob.arrayBuffer()
+                const htmlFullname = buildFullname(absolutePath, filename, { setExt: 'html' })
+                await browser.localSaveFile.saveFile(htmlFullname, htmlData)
+                log().debugInfo(cSourceName, 'EML File saved as ' + htmlFullname)
+                
                 // Save EML File
                 // const emlFile: File = new File([rawMessage], (filename + '.eml'), { type: 'text/eml' })
                 // saveAs(emlFile, (filename + '.eml'))
-                downloadFile(rawMessage, (filename + '.eml'), 'text/eml')
-                log().debugInfo(cSourceName, 'EML File saved as ' + (filename + '.eml'))
+                const emlBlob = new Blob([rawMessage], { type: 'text/eml' })
+                const emlData = await emlBlob.arrayBuffer()
+                const emlFullname = buildFullname(absolutePath, filename, { setExt: 'eml' })
+                await browser.localSaveFile.saveFile(emlFullname, emlData)
+                log().debugInfo(cSourceName, 'EML File saved as ' + emlFullname)
 
                 // Print message
                 // Show the message in a temporary window
@@ -991,7 +1013,7 @@
         
         // Append download link to the DOM and trigger a click to start the download
         document.body.appendChild(downloadLink)
-        downloadLink.click()
+// RESTORE        downloadLink.click()
         
         // Clean up after the download is complete
         document.body.removeChild(downloadLink)
