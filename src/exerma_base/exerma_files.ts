@@ -16,6 +16,9 @@
     // --------------- Numbers
     /**
      * Retrieve the folder path separator
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @returns {string} is the char used as folder separator in a path
      */
     export function getDirectoryPathSep (): string {
@@ -28,6 +31,9 @@
      * Check if the provided string ends with a path separator char.
      * Note that this functions doesn't check the validity of the string as a
      * real directory but only if it ends with a path separator or not
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {string} fullname is the string to check if a valid path or not
      * @param {object} options are the optional parameters
      * @param {string} options.pathSep is the path separator to use (instead of getDirectoryPathSep())
@@ -48,6 +54,9 @@
 
     /**
      * Retrieve the path part of a full filename
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {string} fullname is the path+filename fullname to extract the path of
      * @param {object} options are the optional parameters
      * @param {string} options.pathSep is the path separator to use (instead of getDirectoryPathSep())
@@ -72,6 +81,9 @@
 
     /**
      * Retrieve the file part of a full filename
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {string} fullname is the path+filename fullname to extract the filename of
      * @param {object} options are the optional parameters
      * @param {string} options.pathSep is the path separator to use (instead of getDirectoryPathSep())
@@ -96,6 +108,9 @@
 
     /**
      * Add a final '/' if the provided path doesn't include it
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {string} path is the path to add a tailing separator if not already set
      * @param {object} options are the optional parameters
      * @param {string} options.pathSep is the path separator to use (instead of getDirectoryPathSep())
@@ -125,6 +140,9 @@
 
     /**
      * Build the "path + filename" from the provided path and filename
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {string} path is the path to set (if it contains a filename, them it is removed)
      * @param {string} filename is the filename to use (if it contains a path, then it is removed)
      * @param {object} options are the optional parameters
@@ -143,6 +161,13 @@
         const setExt = options?.setExt ?? cNullString
 
         // Build full name
+        if (path === cNullString) {
+            return setFileExt(filename, setExt)
+        }
+        if (filename === cNullString) {
+            return cNullString
+        }
+        
         const result = addDirectoryTail(extractPath(path, { pathSep }), { pathSep })
                      + setFileExt(extractFilename(filename, { pathSep }), setExt)
 
@@ -153,6 +178,9 @@
 
     /**
      * Extract the extension of the provided filename
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {string} filename is the filename to extract the extension of
      * @param {object} options are the optional parameters
      * @param {string} options.pathSep is the path separator to use (instead of getDirectoryPathSep())
@@ -182,6 +210,9 @@
      * Extract the body of the provided filename. The body is the part between the path (if
      * provided) and the dot of the extension (if provided).
      * Example: extractFileBody('path/foo.bar') returns 'foo'
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {string} filename is the filename to extract the body of
      * @param {object} options are the optional parameters
      * @param {string} options.pathSep is the path separator to use (instead of getDirectoryPathSep())
@@ -212,6 +243,9 @@
     /**
      * Replace existing extension by the provided one. If the filename has no
      * extension, then the required extension is added
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {string} filename is the filename to replace the extension of
      * @param {string} newExt is the new extension to set to the filename.
      *                  If empty then the final dot will stay with no text after
@@ -230,6 +264,9 @@
 
     /**
      * Set the extension of the file (add it). If the filename has a final dot ('.')
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * then no additional '.' is added
      * @param {string} filename is the filename to replace the extension of
      * @param {string} setExt is the extension to set to the filename.
@@ -243,6 +280,7 @@
 
         // Special case
         if (setExt === cNullString) return filename
+        if (filename === cNullString) return cNullString
 
         const cleanExt = cleanFileExt(setExt)
         const result = ( filename.slice(-1) === '.'
@@ -255,6 +293,9 @@
 
     /**
      * Remove forbidden chars from the provided extension (replace them by '_')
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {string} ext is the extension to remove the forbidden chars of
      * @returns {string} is the cleaned extension text
      */

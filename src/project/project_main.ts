@@ -37,7 +37,7 @@
     import { ProjectStorage } from './project_storage'
     import { isCClass, CClassTest, CClass } from '../exerma_base/exerma_types'
     import { cNullString, cTypeNameString } from '../exerma_base/exerma_consts'
-import { buildFullname } from '../exerma_base/exerma_files'
+    import { buildFullname } from '../exerma_base/exerma_files'
 
 
     // --------------- Consts
@@ -91,6 +91,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
     /**
      * Retrieve the current mailTab.tablId from session storage
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @returns {Promise<ex.uNumber>} is the last header stored with storeCurrentMailTabId()
      */
     export async function unstoreCurrentMailTabId (): Promise<ex.uNumber> {
@@ -108,6 +111,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
     /**
      * Archive selected files
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {Event} event is the 'click' event firing this event handler
      */
     export function onActionButtonClick (event: Event): void {
@@ -122,6 +128,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
     /**
      * User has clicked the "Archive" button from the action popup window
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {Event} event is the 'click' event firing this event handler
      */
     export async function onArchiveButtonClick (event: Event): Promise<void> {
@@ -138,6 +147,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
     /**
      * User has clicked the "Save attachment" button from the action popup window
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {Event} event is the 'click' event firing this event handler
      */
     export function onSaveAttachButtonClick (event: Event): void {
@@ -150,6 +162,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
     /**
      * User has clicked the "Test" button from the action popup window
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {Event} event is the 'click' event firing this event handler
      */
     export async function onTestButtonClick (event: Event): Promise<void> {
@@ -220,6 +235,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
      * Save the selected messages in EML and PDF formats
      * About sending messages:
      *      https://developer.chrome.com/docs/extensions/mv3/messaging/
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @returns {Promise<boolean>}  is true if success, false if an error occurs
      */
     export async function initWelcomePage (): Promise<boolean> {
@@ -261,6 +279,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
     /**
      * Retrive headers of messages with loadMessagesOfTab() and return the list
      * by sending a message
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {CMessageLoadMailHeaders} message is the message with parameters of the
      *             mails to load
      * @returns {Promise<boolean>} is true if success, false if an error occurs
@@ -303,6 +324,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
     /**
      * Retrieve headers of messages belonging to the provided tab (clear previous data)
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {object} options is used to provide additional options
      * @param {ex.uNumber} options.mailsOfTabId is the optional id of the tab to save & archive the 
      *             selected messages of
@@ -379,6 +403,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
     /**
      * Create the map of the oldSubject --> newSubject headers after having
      * applied the provided rules to the current list of headers
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {exTb.AMailHeader} allHeaders is the array containing all the
      *         messageheader to clean the subjects of. They will stay untouched
      *         as only the modification dictionary are returned in the 
@@ -445,6 +472,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
     /**
      * Clean the entry of the provided mail with the provided rules
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {string} oldEntry is the header entry to clean
      * @param {ANameCleaningRules} rules is the list of rules to apply (see cleanSubjectsWithRules()
      *                  and cleanPersonsWithRules) for detailed explanation
@@ -484,6 +514,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
     /**
      * Retrieve the replacment rules for subjects and apply them to the provided mail headers
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {exTb.AMailHeader} headers is the list of message headers to clean the subjects of
      * @returns {Promise<Map<string, string> | undefined>} is the list of <initial mail
      *                  subject; new mail subject> replacement to use     
@@ -519,6 +552,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
     /**
      * Create the map of the oldPerson --> newPerson headers after having
      * applied the provided rules to the current list of headers
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {exTb.AMailHeader} allHeaders is the array containing all the
      *         messageheader to clean the subjects of. They will stay untouched
      *         as only the modification dictionary are returned in the 
@@ -597,6 +633,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
     /**
      * Return the cleaning rules to apply to email names 
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @returns {ANameCleaningRules} is the list of rules to apply
      */
     function getCleanPersonRules (): ANameCleaningRules {
@@ -629,6 +668,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
     /**
      * Retrieve the replacment rules for senders and apply them to the provided mail headers
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {exTb.AMailHeader} headers is the list of message headers to clean the senders of
      * @returns {Promise<Map<string, string> | undefined>} is the list of <initial mail
      *                  sender; new mail sender> replacement to use     
@@ -663,6 +705,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
     /**
      * Build the export filename to use for every provided mail header
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {exTb.AMailHeader} headers is an array with all the messageHeder to calculate the
      *                  filename of
      * @param {ex.MNumberString} subjectReplacements is a Map with the email ID --> subject
@@ -714,6 +759,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
      * Format of date inspired from Excel formating:
      * https://support.microsoft.com/en-us/office/format-a-date-the-way-you-want-8e10019e-d5d8-47a1-ba95-db95123d273e
      * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {object.messages.MailHeader} header is the message header to calculate
      *                  the filename for
      * @param {ex.MNumberString}  subjectReplacements is a map of <mailID;newSubject>
@@ -794,6 +842,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
     /**
      * Exfilter messages of the provided tab
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {object}           params are the required parameters of the function
      * @param {exTb.AMailHeader} params.mailsHeaders is the list of email headers to exfilter
      * @param {ex.uNumber}       params.mailsOfTabId is the Id of the Tab containing the emails to
@@ -801,8 +852,7 @@ import { buildFullname } from '../exerma_base/exerma_files'
      *                  defined as key in the params.mailsSubject parameter.
      * @param {boolean}          params.selectedOnly is true if only the selected emails have to be 
      *                  exfiltered, false if all the emails of this tab have to be exfiltered
-     * @param {string}           params.targetDirectory is the folder where to save the EML and PDF 
-     *                  files
+     * @param {string}           params.targetDirectory is the folder where to save files
      * @param {ex.MNumberString} params.mailsSubjects is the corrected subject to use for each
      *                  email (email ID as key) to exfiltered: <emailID;correctedSubject>.
      *                  EMails with missing IDs are using the real email subject.
@@ -828,18 +878,44 @@ import { buildFullname } from '../exerma_base/exerma_files'
         try {
 
             // TODO: Retrieve template from settings
+
             const filenames: ex.uMNumberString = await buildExfiltrationFilenames(params.mailsHeaders,
                                                                                   params.mailsSubjects,
                                                                                   params.mailsSenders,
                                                                                   cDefaultTemplate)
-            params.mailsHeaders.forEach((header, index) => {
-                log().debugInfo(cSourceName, '[' + index + '] = ' + params.mailsSubjects.get(header.id))
-                void exfilterEMail(header, {
-                                     filename: filenames?.get(header.id),
-                                     subject: params.mailsSubjects.get(header.id),
-                                     sender: params.mailsSenders.get(header.id)
-                                    })
-            })
+            let absolutePath = params.targetDirectory
+            const nbMails = params.mailsHeaders.length
+            let iMail = 0
+            if ((nbMails > 0) && (absolutePath === cNullString)) {
+
+                // Ask user for target path when saving **first** email
+                const header = params.mailsHeaders.at(0) as messenger.messages.MessageHeader
+                log().debugInfo(cSourceName, 'Empty target path: ask user')
+                absolutePath = await exfilterEMail(header, {
+                                                    filename: filenames?.get(header.id),
+                                                    subject: params.mailsSubjects.get(header.id),
+                                                    sender: params.mailsSenders.get(header.id),
+                                                    targetPath: absolutePath
+                                                   })
+                iMail = 1
+            }
+
+            // Save next emails
+            const saveAllPromises = new Array<Promise<string>>()
+            for (; iMail < nbMails; ++iMail) {
+                const header = params.mailsHeaders.at(iMail) as messenger.messages.MessageHeader
+                const saveFilePromise = exfilterEMail(header, {
+                                                filename: filenames?.get(header.id),
+                                                subject: params.mailsSubjects.get(header.id),
+                                                sender: params.mailsSenders.get(header.id),
+                                                targetPath: absolutePath
+                                                })
+                saveAllPromises.push(saveFilePromise)
+            }
+            
+            // Wait until all files have been saved
+            await Promise.all(saveAllPromises)
+
             log().debugInfo(cSourceName, 'Done')
 
         } catch (error) {
@@ -853,6 +929,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
     /**
      * This function exfilter the message in the default "local folder" in EML and PDF formats
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * @param {object} messageHeader is the header of the message to save ()
      * @param {object} params is a list of optional parameters
      * @param {string} params.filename is the name of the file to use as body name for the
@@ -862,36 +941,34 @@ import { buildFullname } from '../exerma_base/exerma_files'
      * '               current subject of the message
      * @param {string} params.sender is the author name (sender) to use for name building 
      * '               instead of the current author of the message
-     * @param {FileSystemDirectoryHandle} params.targetPath is the target directory where 
+     * @param {string} params.targetPath is the target directory where 
      *                 to save the files in.
-     *                 If not provided, then save it in the current default path
-     *                 Note: Not used in current implementation due to security limitation
-     *                       to access folders from Firefox/Thunderbird
-     * @returns {Promise<void>} is a lone Promise
+     *                 If not provided, then ask user for the destination and use the target path
+     *                 as current default path and return fullname of the EML file
+     * @returns {Promise<string>} is a Promise to return the absolute target path & name
      */
     async function exfilterEMail (messageHeader: messenger.messages.MessageHeader,
                                             params?: {
                                                 filename?: string
                                                 subject?: string
                                                 sender?: string
-                                                targetPath?: FileSystemDirectoryHandle
+                                                targetPath?: string
                                             }
-                                        ): Promise<void> {
+                                        ): Promise<string> {
 
         const cSourceName: string = 'project/project_main.ts/exfilterEMail'
 
         log().trace(cSourceName, cInfoStarted)
 
+        // This target path will be fed by asking destination if not provided
+        let absolutePath: string = params?.targetPath ?? cNullString
+        let filename: string = params?.filename ?? cNullString
+
         try {
 
-            let filename: string
 
             // Build default name if not provided
-            if (params?.filename != null) {
-
-                filename = params.filename
-
-            } else {
+            if (filename === cNullString) {
                 
                 // Extract data to use to build the filename body
                 const when: Date = ((messageHeader?.date instanceof Date)
@@ -912,72 +989,59 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
             log().debugInfo(cSourceName, 'filename = ' + filename)
 
-            // Retrive full message
+            // Retreive full message
             const rawMessage: ex.nFile = await messenger.messages.getRaw(messageHeader.id, { data_format: 'File' }) as ex.nFile
             
             if (rawMessage != null)  {
 
                 log().debugInfo(cSourceName, 'rawMessage loaded')
 
-                // Create the Html file and its PDF 
-                const [pdfDoc, htmlDoc] = await createPdf(messageHeader, cResourcePdfTemplate)
-
-                // Save PDF File
-                // Attention: if MIME type is set to 'application/pdf', then the file is always saved on
-                //            desktop (no idea why) 
-                // Alternative 1
-                // const exportFile: File = new File([pdfBlob], (filename + '.pdf'), { type: 'application/pdf' })
-                // saveAs(exportFile)
-                const pdfBlob: Blob = pdfDoc.output('blob')
-                const pdfUrl = URL.createObjectURL(pdfBlob)
-
-                // Prepare to hijack the destination file with **full path**
-                let absolutePath: string = ''
-                const getAbsolutePath = (downloadItem: messenger.downloads.DownloadItem): void => { absolutePath = downloadItem?.filename }
-                messenger.downloads.onCreated.addListener(getAbsolutePath)
-                // Ask user to save file and retrieve the full path into "absolutePath"
-                const targetFile = await messenger.downloads.download({
-                    url: pdfUrl,
-                    filename: (filename + '.pdf'),
-                    saveAs: true
-                })
-                messenger.downloads.onCreated.removeListener(getAbsolutePath)
-
-                // --------------------- FULL PATH 
-                log().debugInfo(cSourceName, 'Full path of file = ' + absolutePath)
-
-                // Alternative 2: cannot choose the MIME type
-                // const pdfBlob: Blob = pdfDoc.output('blob')
-                // pdfDoc.save((filename + '.pdf'))
-
-                // Alternative 3
-                // const pdfData = pdfDoc.output('arraybuffer')
-                // const pdfUnicode = new Uint8Array(pdfData)
-                // const pdfBlob = new Blob([pdfUnicode])
-                // downloadFile(pdfBlob,  (filename + '.pdf'), 'text/plain') // 'application/pdf'
-
-                pdfDoc.close()
-                log().debugInfo(cSourceName, 'PDF File saved as ' + (filename + '.pdf'))
-
-                // Save HTML file
-                const htmlBlob = new Blob([htmlDoc.documentElement.outerHTML], { type: 'text/html' } )
-                const htmlData = await htmlBlob.arrayBuffer()
-                const htmlFullname = buildFullname(absolutePath, filename, { setExt: 'html' })
-                await browser.localSaveFile.saveFile(htmlFullname, htmlData)
-                log().debugInfo(cSourceName, 'EML File saved as ' + htmlFullname)
-                
-                // Save EML File
-                // const emlFile: File = new File([rawMessage], (filename + '.eml'), { type: 'text/eml' })
-                // saveAs(emlFile, (filename + '.eml'))
+                // ----- Save EML File
                 const emlBlob = new Blob([rawMessage], { type: 'text/eml' })
                 const emlData = await emlBlob.arrayBuffer()
-                const emlFullname = buildFullname(absolutePath, filename, { setExt: 'eml' })
-                await browser.localSaveFile.saveFile(emlFullname, emlData)
-                log().debugInfo(cSourceName, 'EML File saved as ' + emlFullname)
 
-                // Print message
-                // Show the message in a temporary window
-                // let tabMessage:messenger.tabs.Tab = messenger.messageDisplay.open({messageId: messageHeader.id});
+                if (absolutePath === cNullString) {
+                    
+                    // If no target path is provided, then ask user for destination and retrive the selected directory for next saves
+                    // Prepare to hijack the destination file to retrieve **full path**
+                    const getAbsolutePath = (downloadItem: messenger.downloads.DownloadItem): void => { absolutePath = downloadItem?.filename }
+                    const emlUrl = URL.createObjectURL(emlBlob)
+                    messenger.downloads.onCreated.addListener(getAbsolutePath)
+                    const targetFile = await messenger.downloads.download({
+                        url: emlUrl,
+                        filename: (filename + '.eml'),
+                        saveAs: true
+                    })
+                    messenger.downloads.onCreated.removeListener(getAbsolutePath)
+
+                } else {
+
+                    // Target path is known, use it silently
+                    const emlFullname = buildFullname(absolutePath, filename, { setExt: 'eml' })
+                    void browser.localSaveFile.saveFile(emlFullname, emlData)
+
+                }
+
+                // Save next files if user has not cancelled
+                if (absolutePath !== cNullString) {
+
+                    // Create the Html file and its PDF 
+                    const [pdfDoc, htmlDoc] = await createPdf(messageHeader, cResourcePdfTemplate)
+
+                    // Save PDF File
+                    const pdfBlob: Blob = pdfDoc.output('blob')
+                    const pdfData = await pdfBlob.arrayBuffer()
+                    const pdfFullname  = buildFullname(absolutePath, filename, { setExt: 'pdf' })
+                    void browser.localSaveFile.saveFile(pdfFullname, pdfData)
+                    pdfDoc.close()
+
+                    // Save HTML file
+                    const htmlBlob = new Blob([htmlDoc.documentElement.outerHTML], { type: 'text/html' } )
+                    const htmlData = await htmlBlob.arrayBuffer()
+                    const htmlFullname = buildFullname(absolutePath, filename, { setExt: 'html' })
+                    void browser.localSaveFile.saveFile(htmlFullname, htmlData)
+                    
+                }
 
             }
 
@@ -986,6 +1050,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
             log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
 
         }
+
+        // Done
+        return buildFullname(absolutePath, filename)
                                 
     }
 
@@ -993,6 +1060,9 @@ import { buildFullname } from '../exerma_base/exerma_files'
 
     /**
      * Standard way to download a Blob as a file
+     * ---
+     * Versions: 23.02.2024
+     * ---
      * Currently kept only for testing various methods compared to showOpenFilePicker()
      * and saveAs()
      * https://blog.gitnux.com/code/javascript-save-file/
@@ -1013,14 +1083,13 @@ import { buildFullname } from '../exerma_base/exerma_files'
         
         // Append download link to the DOM and trigger a click to start the download
         document.body.appendChild(downloadLink)
-// RESTORE        downloadLink.click()
+        downloadLink.click()
         
         // Clean up after the download is complete
         document.body.removeChild(downloadLink)
         URL.revokeObjectURL(url)
 
     }
-
 
     /**
      * Ask the user for the target folder where to exfilter the messages into
@@ -1046,5 +1115,4 @@ import { buildFullname } from '../exerma_base/exerma_files'
         }
 
     }
-
 
