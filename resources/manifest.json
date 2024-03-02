@@ -51,14 +51,8 @@
         "localSaveFile": {
             "schema": "api/LocalSaveFileAPI/schema.json",
             "parent": {
-                "scopes": [
-                    "addon_parent"
-                ],
-                "paths": [
-                    [
-                        "localSaveFile"
-                    ]
-                ],
+                "scopes": [ "addon_parent" ],
+                "paths": [ [ "localSaveFile" ] ],
                 "script": "api/LocalSaveFileAPI/implementation.js"
             }
         }

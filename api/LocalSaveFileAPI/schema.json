@@ -34,7 +34,26 @@
             "additionalProperties": true
           }
         ]
+      },
+      {
+        "name": "savePdf",
+        "type": "function",
+        "description": "Save html data as PDF on local system",
+        "async": true,
+        "parameters": [
+          {
+            "name": "filename",
+            "type": "string",
+            "description": "The full file name (including path) of the pdf file to create"
+          },
+          {
+            "name": "htmldata",
+            "type": "string",
+            "description": "The Html data to convert into a PDF and save on local system"
+          }
+        ]
       }      
+
     ]
   }
 ]

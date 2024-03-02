@@ -57,3 +57,31 @@ html, body {
     border-bottom: 1px solid white;
     row-gap: 3px;
 }
+
+#attachmentsId {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+.attachmentPClass {
+    background-color: #F0F0F0;
+    margin-top: 1px;
+    margin-bottom: 1px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+.attachmentUlClass {
+    background-color: #FBFBFB;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+.attachmentLiClass {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding-top: 1px;
+    padding-bottom: 0px;
+}

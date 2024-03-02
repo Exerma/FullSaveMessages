@@ -444,3 +444,45 @@
         }
 
     }
+
+    /**
+     * Convert an integer number of bytes into a "10.4 Ko", "100.0 Mb" string
+     * source: https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript
+     * @param {number} bytes is the size in byte to convert into a human reading size
+     * @param {number} decimals is the number of decimals to display (default=2)
+     * @param {object} params is used to set additional parameters
+     * @param {boolean} params.noUnits is used to not include the label in the output
+     *                  (if true) or to left align it (if false, default)
+     * @param {number} params.rightAlignSize is used to right align the result and 
+     *                  return a string with the required total length
+     * @returns {string} is the converted 
+     */
+    export function numberToByteSize (bytes: number,
+                                      decimals: number = 2,
+                                      params?: {
+                                        noUnits?: boolean
+                                        rightAlignSize?: number
+                                     }): string {
+
+        
+        if (bytes === 0) return '0 Bytes'
+
+        const k = 1024
+        const dm = decimals < 0 ? 0 : decimals
+        const sizes = ['oc', 'Ko', 'Mo', 'Go', 'To', 'Po', 'Eo', 'Zo', 'Yo']
+
+        const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+        let result = `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
+
+        if (params?.noUnits ?? false) {
+            result = result.slice(0, -2)
+        }
+        if (params?.rightAlignSize !== undefined) {
+            const len = Math.abs(params?.rightAlignSize) + 1
+            result = (String(' ').repeat(len) + result).slice(-len)
+        }
+
+        return result
+
+    }

@@ -101,4 +101,16 @@
 
     }
 
+    /**
+     * Dummy function to retrieve messages to translate in future
+     * @param {string} message is the localized message to translate later
+     * @returns {string} is the untranslated message as this is only for later
+     *                  translations
+     */
+    export function exLangFuture (message: string): string {
+
+        return message
+
+    }
+
     export default lang

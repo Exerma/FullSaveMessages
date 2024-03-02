@@ -18,12 +18,6 @@
     import { loadAllMails, loadSelectedMails }  from '../exerma_tb/exerma_tb_messages'
     import { jsPDF }                 from 'jspdf'
     import { createPdf }             from '../exerma_tb/exerma_tb_pdf'
-    import {
-                type FileSystemDirectoryHandle,
-                showDirectoryPicker,
-                showSaveFilePicker,
-                getOriginPrivateDirectory
-           }                         from '../../dependancies/native-file-system-adapter/native-file-system-adapter'
     import { saveAs }                from 'file-saver'
     import {
         datetimeToFieldReplacement,
@@ -1026,21 +1020,35 @@
                 if (absolutePath !== cNullString) {
 
                     // Create the Html file and its PDF 
-                    const [pdfDoc, htmlDoc] = await createPdf(messageHeader, cResourcePdfTemplate)
+                    const [pdfDoc, htmlDoc] = await createPdf(messageHeader, cResourcePdfTemplate) //, {}, { noPdf: true })
 
                     // Save PDF File
-                    const pdfBlob: Blob = pdfDoc.output('blob')
-                    const pdfData = await pdfBlob.arrayBuffer()
-                    const pdfFullname  = buildFullname(absolutePath, filename, { setExt: 'pdf' })
-                    void browser.localSaveFile.saveFile(pdfFullname, pdfData)
-                    pdfDoc.close()
+                    if (pdfDoc !== undefined) {
+                    
+                        const pdfBlob: Blob = pdfDoc.output('blob')
+                        const pdfData = await pdfBlob.arrayBuffer()
+                        const pdfFullname  = buildFullname(absolutePath, filename, { setExt: 'pdf' })
+                        void browser.localSaveFile.saveFile(pdfFullname, pdfData)
+                        pdfDoc.close()
+                    
+                    } else
+                    if (htmlDoc !== undefined) {
+                    
+                        // 2024-03-02: Use the experiment to create and save the PDF instead
+                        const pdfFullname  = buildFullname(absolutePath, filename, { setExt: 'pdf' })
+                        const pdfData = htmlDoc.documentElement.outerHTML
+                        void browser.localSaveFile.savePdf(pdfFullname, pdfData)
+
+                    }
 
                     // Save HTML file
-                    const htmlBlob = new Blob([htmlDoc.documentElement.outerHTML], { type: 'text/html' } )
-                    const htmlData = await htmlBlob.arrayBuffer()
-                    const htmlFullname = buildFullname(absolutePath, filename, { setExt: 'html' })
-                    void browser.localSaveFile.saveFile(htmlFullname, htmlData)
-                    
+                    if (htmlDoc !== undefined) {
+                        const htmlBlob = new Blob([htmlDoc.documentElement.outerHTML], { type: 'text/html' } )
+                        const htmlData = await htmlBlob.arrayBuffer()
+                        const htmlFullname = buildFullname(absolutePath, filename, { setExt: 'html' })
+                        void browser.localSaveFile.saveFile(htmlFullname, htmlData)
+                    }
+
                 }
 
             }
