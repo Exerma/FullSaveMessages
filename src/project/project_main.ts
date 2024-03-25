@@ -6,6 +6,7 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2024-03-25: Chg: Save files one-by-one (using "await" for each) instead of acting in parallel
  *   2023-11-13: Add: Allow user to edit the sender name for export filename
  *   2023-08-21: Add: First implementation of
  *   2023-08-20: First version
@@ -960,6 +961,8 @@
 
         try {
 
+            // Manage async saving of files
+            const savefilePromises = new Array<Promise<number>>()
 
             // Build default name if not provided
             if (filename === cNullString) {
@@ -1012,7 +1015,7 @@
 
                     // Target path is known, use it silently
                     const emlFullname = buildFullname(absolutePath, filename, { setExt: 'eml' })
-                    void browser.localSaveFile.saveFile(emlFullname, emlData)
+                    savefilePromises.push(browser.localSaveFile.saveFile(emlFullname, emlData))
 
                 }
 
@@ -1028,8 +1031,8 @@
                         const pdfBlob: Blob = pdfDoc.output('blob')
                         const pdfData = await pdfBlob.arrayBuffer()
                         const pdfFullname  = buildFullname(absolutePath, filename, { setExt: 'pdf' })
-                        void browser.localSaveFile.saveFile(pdfFullname, pdfData)
                         pdfDoc.close()
+                        savefilePromises.push(browser.localSaveFile.saveFile(pdfFullname, pdfData))
                     
                     } else
                     if (htmlDoc !== undefined) {
@@ -1037,7 +1040,7 @@
                         // 2024-03-02: Use the experiment to create and save the PDF instead
                         const pdfFullname  = buildFullname(absolutePath, filename, { setExt: 'pdf' })
                         const pdfData = htmlDoc.documentElement.outerHTML
-                        void browser.localSaveFile.savePdf(pdfFullname, pdfData)
+                        savefilePromises.push(browser.localSaveFile.savePdf(pdfFullname, pdfData))
 
                     }
 
@@ -1046,12 +1049,15 @@
                         const htmlBlob = new Blob([htmlDoc.documentElement.outerHTML], { type: 'text/html' } )
                         const htmlData = await htmlBlob.arrayBuffer()
                         const htmlFullname = buildFullname(absolutePath, filename, { setExt: 'html' })
-                        void browser.localSaveFile.saveFile(htmlFullname, htmlData)
+                        savefilePromises.push(browser.localSaveFile.saveFile(htmlFullname, htmlData))
                     }
 
                 }
 
             }
+
+            // Wait until all promises are achieved
+            await Promise.all(savefilePromises)
 
         } catch (error) {
         
