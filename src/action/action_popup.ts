@@ -5,17 +5,17 @@
  * ----------------------------
  *
  * Versions:
+ *   2024-06-09: Add: Show version of the add-in to the user
  *   2023-08-20: Chg: Make this module an export class with static functions
  *   2023-07-17: First version
  *
  */
 
     // ---------- Import
-    import type * as ex from '../exerma_base/exerma_types'
-    import type * as exTb from '../exerma_tb/exerma_tb_types'
     import * as EventNames from '../exerma_base/exerma_consts'
     import * as exMain from '../project/project_main'
-    import log, { cRaiseUnexpected, cInfoCancelled, cInfoStarted } from '../exerma_base/exerma_log'
+    import log, { cRaiseUnexpected, cInfoStarted } from '../exerma_base/exerma_log'
+import { exLangFuture } from '../exerma_base/exerma_lang'
 
 
     /**
@@ -30,15 +30,21 @@
         try {
 
             log().debugInfo(cSourceName, cInfoStarted)
-
-            // Store the current MailTab.id to make it available by the welcome_archive page
-            await exMain.storeCurrentMailTabId()
-
             // Source: https://developer.mozilla.org/en-US/docs/Web/Events#event_listing
             //         https://bobbyhadz.com/blog/typescript-add-click-event-to-button
             document.getElementById(exMain.cPopupArchiveButton)?.addEventListener(EventNames.cEventClick, exMain.onArchiveButtonClick)
             document.getElementById(exMain.cPopupSaveAttachButton)?.addEventListener(EventNames.cEventClick, exMain.onSaveAttachButtonClick)
             document.getElementById(exMain.cPopupTestButton)?.addEventListener(EventNames.cEventClick, exMain.onTestButtonClick)
+
+            // Store the current MailTab.id to make it available by the welcome_archive page
+            await exMain.storeCurrentMailTabId()
+
+            // Show version to user
+            const versionTag = document.getElementById(exMain.cAddinVersionId)
+            if (versionTag instanceof HTMLParagraphElement) {
+                versionTag.innerText = exLangFuture('Version: ') + exMain.cAddinVersion
+            }
+
 
         } catch (error) {
 

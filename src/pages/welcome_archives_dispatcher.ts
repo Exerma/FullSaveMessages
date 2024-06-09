@@ -47,8 +47,8 @@
      *             and is false if the message was not handled
      */
     export function welcomeArchivesDispatcher (request: any,
-                                        sender: messenger.runtime.MessageSender,
-                                        sendResponse: () => void): DispatcherReturnType {
+                                               sender: messenger.runtime.MessageSender,
+                                               sendResponse: () => void): DispatcherReturnType {
 
         const cSourceName = 'pages/welcome_archives.ts/welcomeArchivesDispatcher'
 

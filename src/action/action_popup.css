@@ -2,6 +2,7 @@
  * (c) Patrick Seuret, 2023, action_popup.css
  * 
  * Versions:
+ *   2024-06-09: Add: Show version in light gray small text
  *   2023-07-17: First version
  *****/ 
 
@@ -25,4 +26,9 @@ body {
     background-color: #1b1ba4;
     border-color: black;
     color: white;
+}
+
+#AddinVersion {
+    color: lightgray;
+    font-size: small;
 }

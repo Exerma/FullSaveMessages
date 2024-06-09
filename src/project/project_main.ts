@@ -6,6 +6,7 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2024-06-08: Add: Avoid duplicate of file names in buildExfiltrationFilenames()
  *   2024-03-25: Chg: Save files one-by-one (using "await" for each) instead of acting in parallel
  *   2023-11-13: Add: Allow user to edit the sender name for export filename
  *   2023-08-21: Add: First implementation of
@@ -40,6 +41,8 @@
     export const cPopupArchiveButton:    string = 'cmdArchive'
     export const cPopupSaveAttachButton: string = 'cmdSaveAttachment'
     export const cPopupTestButton:       string = 'cmdTest'
+    export const cAddinVersionId:        string = 'AddinVersion'
+    export const cAddinVersion:          string = '1.2.0'
 
 
     // --------------- Types
@@ -78,28 +81,30 @@
      */
     export async function storeCurrentMailTabId (): Promise<void> {
 
+        const cSourceName = 'project/project_main.ts/storeCurrentMailTabId'
+
         // Save current tabId to manage the emails of
         const currentTab: exTb.nMailTab = await messenger.mailTabs.getCurrent()
-        void messenger.storage.session.set({ name: cStorageCurrentMailTabId, header: currentTab?.id })
+        void await messenger.storage.session.set({ name: cStorageCurrentMailTabId, header: currentTab?.id })
 
     }
 
-    /**
-     * Retrieve the current mailTab.tablId from session storage
-     * ---
-     * Versions: 23.02.2024
-     * ---
-     * @returns {Promise<ex.uNumber>} is the last header stored with storeCurrentMailTabId()
-     */
-    export async function unstoreCurrentMailTabId (): Promise<ex.uNumber> {
+    // /**
+    //  * Retrieve the current mailTab.tablId from session storage
+    //  * ---
+    //  * Versions: 23.02.2024
+    //  * ---
+    //  * @returns {Promise<ex.uNumber>} is the last header stored with storeCurrentMailTabId()
+    //  */
+    // export async function unstoreCurrentMailTabId (): Promise<ex.uNumber> {
 
-        // Save current tabId to manage the emails of
-        const loaded: object | undefined = await messenger.storage.session.get(cStorageCurrentMailTabId)
-        const result: ex.uNumber = (loaded as { name: string, header: number } | undefined)?.header
-        return await Promise.resolve(result)
+    //     // Save current tabId to manage the emails of
+    //     const loaded: object | undefined = await messenger.storage.session.get(cStorageCurrentMailTabId)
+    //     const result: ex.uNumber = (loaded as { name: string, header: number } | undefined)?.header
+    //     return await Promise.resolve(result)
         
 
-    }
+    // }
 
 
 
@@ -231,7 +236,7 @@
      * About sending messages:
      *      https://developer.chrome.com/docs/extensions/mv3/messaging/
      * ---
-     * Versions: 23.02.2024
+     * Versions: 09.06.2024, 23.02.2024
      * ---
      * @returns {Promise<boolean>}  is true if success, false if an error occurs
      */
@@ -247,10 +252,13 @@
         const tabId: number | undefined = activeTab?.id
         await messenger.storage.session.set({ [ProjectStorage.currentTabId]: tabId })
 
+        // Force background.js to awake and init (or it will fail receiving the first message 
+        // from welcome_archives)
+        await messenger.runtime.sendMessage('dummy')
+
         // Show the Welcome panel of archive as popup
         const popUrl = messenger.runtime.getURL(cResourcePopArchives)
 
-        // const popPage: exTb.nWindow  = await messenger.windows.create({
         await messenger.windows.create({
                 type: 'popup', // 'normal'
                 url: popUrl
@@ -362,17 +370,6 @@
             for await (const messageHeader of selection) {
         
                 log().debugInfo(cSourceName, messageHeader.subject)
-
-                // const rawMessage: exBase.nFile = await messenger.messages.getRaw(messageHeader.id) as exBase.nFile
-
-                // if (rawMessage != null) {
-                //     // https://developer.mozilla.org/en-US/docs/Web/API/File_System_API
-                //     // https://github.com/jimmywarting/native-file-system-adapter
-                //     const fileHandle = await showSaveFilePicker({ suggestedName: messageHeader.subject + '.eml' })
-                //     const fileStream = await fileHandle.createWritable()
-                //     await fileStream.write(rawMessage)
-                //     await fileStream.close()
-                // }
 
                 result.push(messageHeader)
 
@@ -701,7 +698,7 @@
     /**
      * Build the export filename to use for every provided mail header
      * ---
-     * Versions: 23.02.2024
+     * Versions: 08.06.2024, 23.02.2024
      * ---
      * @param {exTb.AMailHeader} headers is an array with all the messageHeder to calculate the
      *                  filename of
@@ -725,16 +722,28 @@
         try {
 
             // Build the export filename
+            const existingFiles: ex.MStringString = new Map<string, string>()
             const result: ex.MNumberString = new Map<number, string>()
 
             headers.forEach((header) => {
 
+                // Calculate the standard file name
                 const filename: string = buildExfiltrationFilename(
                                                         header,
                                                         subjectReplacements,
                                                         senderReplacements,
                                                         filenameTemplate)
-                result.set(header.id, filename)
+                // Avoid duplicates in names
+                let count = 0
+                let checkname = filename
+                while (existingFiles.has(checkname.toUpperCase())) {
+                    count = count + 1
+                    checkname = filename + 'Ξ' + ('000' + count).slice(-3)
+                }
+                existingFiles.set(checkname.toUpperCase(), checkname)
+
+                // Save result
+                result.set(header.id, checkname)
 
             })
 

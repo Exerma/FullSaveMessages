@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------------
- *  (c) Patrick Seuret, 2023  
+ *  (c) Patrick Seuret, 2024
  * ---------------------------------------------------------------------------
  *  welcome_archives.ts
  * ---------------------------------------------------------------------------
@@ -8,6 +8,7 @@
  * of subjects to use as export files.
  * 
  * Versions:
+ *   2024-06-08: Add: Add the expand to all subject icon and manage it
  *   2023-11-13: Add: Manage change in display of senders
  *   2023-09-09: First version
  * 
@@ -19,7 +20,6 @@
     import { cEventClick, cEventLoad, cNullString }         from '../exerma_base/exerma_consts'
     import { createAndAddElement }             from '../exerma_base/exerma_dom'
     import log, { cRaiseUnexpected, cInfoStarted } from '../exerma_base/exerma_log'
-    import { showDirectoryPicker }             from '../../dependancies/native-file-system-adapter/native-file-system-adapter'
     import {
             CMessageExfilterMails,
             CMessageLoadMailHeaders
@@ -35,24 +35,28 @@
             cleanPersons,
             askForTargetFolder
             } from '../project/project_main'
+    import { exLangFuture }                    from '../exerma_base/exerma_lang'
     
 
 
     // ----- Popup page for archiving
-    const cHtmlPopArchivesHeader:            string = 'header'
-    const cHtmlPopArchivesStartButtonId:     string = 'continue'
-    const cHtmlPopArchivesCancelButtonId:    string = 'cancel'
+    const cHtmlPopArchivesHeader:                   string = 'header'
+    const cHtmlPopArchivesStartButtonId:            string = 'continue'
+    const cHtmlPopArchivesCancelButtonId:           string = 'cancel'
 
-    const cHtmlPopArchivesHeaderSubjectBloc: string = 'header_subjects'
-    const cHtmlPopArchivesMailSubjects:      string = 'mailsubjects'
-    const cHtmlPopArchivesClassSubjectBloc:  string = 'mailsubject'
+    const cHtmlPopArchivesHeaderSubjectBloc:        string = 'header_subjects'
+    const cHtmlPopArchivesMailSubjects:             string = 'mailsubjects'
+    const cHtmlPopArchivesClassSubjectBloc:         string = 'mailsubject'
 
-    const cHtmlPopArchivesHeaderSenderBloc:  string = 'header_senders'
-    const cHtmlPopArchivesMailSenders:       string = 'mailsenders'
-    const cHtmlPopArchivesClassSenderBloc:   string = 'mailsender'
+    const cHtmlPopArchivesHeaderSenderBloc:         string = 'header_senders'
+    const cHtmlPopArchivesMailSenders:              string = 'mailsenders'
+    const cHtmlPopArchivesClassSenderBloc:          string = 'mailsender'
 
-    const cHtmlPopArchivesClassOriginal:     string = 'original'
-    const cHtmlPopArchivesClassTextField:    string = 'textbox'
+    const cHtmlPopArchivesClassOriginal:            string = 'original'
+    const cHtmlPopArchivesClassTextField:           string = 'textbox'
+    const cHtmlPopArchivesClassTextFieldSubject:    string = 'textboxsubject'
+    const cHtmlPopArchivesClassTextFieldSender:     string = 'textboxsender'
+    const cHtmlPopArchivesClassExpandSubjects:      string = 'expandtoallsubjects'
     
 
     // --------------- Local members
@@ -79,27 +83,10 @@
 
         try {
 
-            // Activate the message catcher to manage requests and answers
-            messenger.runtime.onMessage.addListener(welcomeArchivesDispatcher)
-
             // Init global variables
             gTargetHeaders = []
             gMailsOfTabId = undefined
             gSelectedOnly = false
-
-            // Force download of a dummy file to set the default "current path"
-            const picker = document.getElementById('directory_picker')
-            picker?.addEventListener('click', async function () {
-
-                const tempLink = document.createElement('a')
-                const taBlob = new Blob(['You can delete this file'], { type: 'text/plain' })
-                tempLink.setAttribute('href', URL.createObjectURL(taBlob))
-                tempLink.setAttribute('download', 'dummy.txt')
-                tempLink.click()
-                URL.revokeObjectURL(tempLink.href)
-
-            })
-
 
             // Init page
             await initWelcomeArchive()
@@ -145,6 +132,9 @@
 
             // Add listeners to the static reactive parts of the page (buttons)
             addPageListeners()
+
+            // Activate the message catcher to manage requests and answers
+            messenger.runtime.onMessage.addListener(welcomeArchivesDispatcher)
 
         } catch (error) {
 
@@ -291,7 +281,7 @@
 
             // Show title to the user
             createAndAddElement(document, 'h1', {
-                innerText: headers.length + (headers.length === 1 ? ' message' : ' messages'),
+                innerText: headers.length + (headers.length === 1 ? exLangFuture(' message') : exLangFuture(' messages')),
                 targetId: cHtmlPopArchivesHeader
             })
 
@@ -324,7 +314,7 @@
                 // Show the number of subjects
                 const hSubjects = document.getElementById(cHtmlPopArchivesHeaderSubjectBloc)
                 if (hSubjects != null) {
-                    hSubjects.innerText = uniqueSubjects.size.toString() + ' sujets de messages'
+                    hSubjects.innerText = uniqueSubjects.size.toString() + exLangFuture(' sujets de messages')
                 }
 
                 // Create HTML objects
@@ -364,7 +354,7 @@
                 // Show the number of senders
                 const hSenders = document.getElementById(cHtmlPopArchivesHeaderSenderBloc)
                 if (hSenders != null) {
-                    hSenders.innerText = uniqueSenders.size.toString() + ' expéditeurs'
+                    hSenders.innerText = uniqueSenders.size.toString() + exLangFuture(' expéditeurs')
                 }
             
                 // Create HTML objects
@@ -431,11 +421,26 @@
                     {
                         setAttribute: [
                             { name: 'class', value: cHtmlPopArchivesClassTextField },
+                            { name: 'class', value: cHtmlPopArchivesClassTextFieldSubject },
                             { name: 'type',  value: 'text' },
                             { name: 'value', value: subject }
                         ],
                         target: original
                     })
+
+            // Display original altered name
+            const toall: ex.uHTMLElement = createAndAddElement(
+                    document,
+                    'span',
+                    {
+                        innerHtml: ' [&#8620;]',
+                        setAttribute: [
+                            { name: 'class', value: cHtmlPopArchivesClassExpandSubjects },
+                            { name: 'title', value: exLangFuture('Appliquer à tous les sujets') }
+                        ],
+                        target: entry
+                    })
+            toall?.addEventListener(cEventClick, applyToAllSubjects)
 
             // Done
             return entry
@@ -448,7 +453,54 @@
 
     }
 
+    /**
+     * Apply the subject of the provided textfield to other subjects
+     * @param {MouseEvent} event is the event which fired this handler
+     */
+    function applyToAllSubjects (event: Event): void {
 
+        const cSourceName = 'pages/welcome_archives.ts/applyToAllSubjects'
+
+        log().trace(cSourceName, cInfoStarted)
+
+        try {
+            
+            // Retrieve the TextField associated to this event
+            // The structure is:
+            // <div>
+            //     <label>
+            //         <input><!-- This is the element we are looking for --></input>
+            //     </label>
+            //     <span><!-- this button fires the event --></span>
+            // </div)
+            // It is the first previous TextField before the calling <span>
+            if (event.target instanceof Element) {
+                const source: Element = event.target
+                const label = source.previousElementSibling
+                const input = label?.children.item(1)
+                if (input instanceof HTMLInputElement) {
+                    // Get the subject value and propagate it to all other subject fields
+                    const subject = input.value
+                    log().trace(cSourceName, 'Input object found with value: ' + subject)
+                    const allSubjects = document.getElementsByClassName(cHtmlPopArchivesClassTextFieldSubject)
+                    for (const item of allSubjects) {
+                        if (item instanceof HTMLInputElement) {
+                            item.value = subject
+                        }
+                    }
+                }
+
+            }
+
+            // Done
+
+        } catch (error) {
+            
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+
+        }
+
+    }
 
     /**
      * Create the HTML entry to display a sender name to the user in format:
@@ -502,6 +554,7 @@
                     {
                         setAttribute: [
                             { name: 'class', value: cHtmlPopArchivesClassTextField },
+                            { name: 'class', value: cHtmlPopArchivesClassTextFieldSender },
                             { name: 'type',  value: 'text' },
                             { name: 'value', value: sender }
                         ],
@@ -521,7 +574,8 @@
 
 
     /**
-     * 
+     * Retrieve all labels and input element in the div identified by the provided class name and
+     * build the list of replacements required by the user through the form
      * @param {string} parentBlocClass is the class name to use to retrieve all the elements containing the
      *                  replacement rules of the user
      * @returns {Map<string, string>} is the list of actual *cleaned* mail subject to the alternative
@@ -538,17 +592,17 @@
             const result: ex.MStringString = new Map<string, string>()
 
             const allDivs = document.getElementsByClassName(parentBlocClass)
-            for (let iDiv = 1; iDiv < allDivs.length; ++iDiv) {
+            for (const divItem of allDivs) {
 
-                if (allDivs.item(iDiv) instanceof HTMLElement) {
+                if (divItem instanceof HTMLElement) {
                     
-                    const divItem = allDivs.item(iDiv) as HTMLDivElement
-                    const cleanedTag = divItem.getElementsByClassName(cHtmlPopArchivesClassOriginal).item(0) as HTMLLabelElement
-                    const modifiedTag = divItem.getElementsByClassName(cHtmlPopArchivesClassTextField).item(0) as HTMLInputElement
-
-                    const cleaned = cleanedTag.innerText.trim()
-                    const modified = modifiedTag.value.trim()
-                    result.set(cleaned, modified)
+                    const cleanedTag = divItem.getElementsByClassName(cHtmlPopArchivesClassOriginal).item(0)
+                    const modifiedTag = divItem.getElementsByClassName(cHtmlPopArchivesClassTextField).item(0)
+                    if ((cleanedTag instanceof HTMLLabelElement) && (modifiedTag instanceof HTMLInputElement)) {
+                        const cleaned = cleanedTag.innerText.trim()
+                        const modified = modifiedTag.value.trim()
+                        result.set(cleaned, modified)
+                    }
 
                 }
 

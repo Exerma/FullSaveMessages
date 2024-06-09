@@ -5,6 +5,7 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2024-06-09: Fix: createAndAddElement() now accept multiple occurrence of same attribute
  *   2023-08-20: Chg: Make this module an export class with static functions
  *   2023-07-23: First version
  * 
@@ -97,7 +98,8 @@
      *             newcly created element with innerText
      * @param {{ name: string, value: string } | Map<string, string>} options.setAttribute 
      *             is used to add a single attribute or a list of attributes to the newly
-     *             created element
+     *             created element. Multiple occurrence of the same attribute will add 
+     *             successive values separated by space
      * @param {HTMLElement} options.target is an optional element to add the newly
      *             created as child of it. The position can be defined with the
      *             targetPosition parameter
@@ -148,7 +150,14 @@
             if ((options?.setAttribute !== undefined) && (result !== null)) {
 
                 // Add each pair of the Map as {name,value} pairs
-                options.setAttribute.forEach((pair) => { result.setAttribute(pair.name, pair.value) })
+                options.setAttribute.forEach((pair) => {
+                    if (result.hasAttribute(pair.name)) {
+                        result.setAttribute(pair.name,
+                                            result.getAttribute(pair.name) + ' ' + pair.value)
+                    } else {
+                        result.setAttribute(pair.name, pair.value)
+                    }
+                })
                     
             }
 

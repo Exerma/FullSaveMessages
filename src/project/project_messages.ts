@@ -11,7 +11,7 @@
  *                            +--> initWelcomePage(▿)
  *                                                 |
  *                                 [create window] |
- *  ctor->initPopup()   <--------------------------+ 
+ *  onLoad->start()   <----------------------------+ 
  *  |
  *  |[CMessageLoadMailHeaders]
  *  +----------------------> (dispatcher)
