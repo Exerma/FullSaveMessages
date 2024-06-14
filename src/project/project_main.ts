@@ -246,7 +246,6 @@
 
         log().trace(cSourceName, cInfoStarted)
 
-        
         // Retrieve the active tab id and save it for later use
         const activeTab: exTb.nMailTab = await messenger.mailTabs.getCurrent()
         const tabId: number | undefined = activeTab?.id
@@ -254,7 +253,7 @@
 
         // Force background.js to awake and init (or it will fail receiving the first message 
         // from welcome_archives)
-        await messenger.runtime.sendMessage('dummy')
+        void messenger.runtime.sendMessage('dummy')
 
         // Show the Welcome panel of archive as popup
         const popUrl = messenger.runtime.getURL(cResourcePopArchives)
