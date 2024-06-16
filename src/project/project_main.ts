@@ -6,6 +6,8 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2024-06-15: Add: Add rule to remove opening and closing double quotes in cleanPersonsWithRules()
+ *               Add: Use asyncSavePdf to choose if await every save file or use a global Promise in exfilterEMail()
  *   2024-06-08: Add: Avoid duplicate of file names in buildExfiltrationFilenames()
  *   2024-03-25: Chg: Save files one-by-one (using "await" for each) instead of acting in parallel
  *   2023-11-13: Add: Allow user to edit the sender name for export filename
@@ -625,7 +627,7 @@
     /**
      * Return the cleaning rules to apply to email names 
      * ---
-     * Versions: 23.02.2024
+     * Versions: 15.06.2024, 23.02.2024
      * ---
      * @returns {ANameCleaningRules} is the list of rules to apply
      */
@@ -642,6 +644,10 @@
             result.push({
                             rule: /(.+) <.*>,?/ig,
                             result: '$1'
+                        },
+                        {
+                            rule: /^(\s*"\s*)(.*)(\s*"\s*)$/ig,
+                            result: '$2'
                         })
             return result
                         
@@ -933,7 +939,7 @@
     /**
      * This function exfilter the message in the default "local folder" in EML and PDF formats
      * ---
-     * Versions: 23.02.2024
+     * Versions: 15.06.2024, 23.02.2024
      * ---
      * @param {object} messageHeader is the header of the message to save ()
      * @param {object} params is a list of optional parameters
@@ -960,6 +966,7 @@
                                         ): Promise<string> {
 
         const cSourceName: string = 'project/project_main.ts/exfilterEMail'
+        const asyncSavePdf: boolean = false
 
         log().trace(cSourceName, cInfoStarted)
 
@@ -1023,7 +1030,11 @@
 
                     // Target path is known, use it silently
                     const emlFullname = buildFullname(absolutePath, filename, { setExt: 'eml' })
-                    savefilePromises.push(browser.localSaveFile.saveFile(emlFullname, emlData))
+                    if (asyncSavePdf) {
+                        savefilePromises.push(browser.localSaveFile.saveFile(emlFullname, emlData))
+                    } else {
+                        await browser.localSaveFile.saveFile(emlFullname, emlData)
+                    }
 
                 }
 
@@ -1040,7 +1051,11 @@
                         const pdfData = await pdfBlob.arrayBuffer()
                         const pdfFullname  = buildFullname(absolutePath, filename, { setExt: 'pdf' })
                         pdfDoc.close()
-                        savefilePromises.push(browser.localSaveFile.saveFile(pdfFullname, pdfData))
+                        if (asyncSavePdf) {
+                            savefilePromises.push(browser.localSaveFile.saveFile(pdfFullname, pdfData))
+                        } else {
+                            await browser.localSaveFile.saveFile(pdfFullname, pdfData)
+                        }
                     
                     } else
                     if (htmlDoc !== undefined) {
@@ -1057,7 +1072,11 @@
                         const htmlBlob = new Blob([htmlDoc.documentElement.outerHTML], { type: 'text/html' } )
                         const htmlData = await htmlBlob.arrayBuffer()
                         const htmlFullname = buildFullname(absolutePath, filename, { setExt: 'html' })
-                        savefilePromises.push(browser.localSaveFile.saveFile(htmlFullname, htmlData))
+                        if (asyncSavePdf) {
+                            savefilePromises.push(browser.localSaveFile.saveFile(htmlFullname, htmlData))
+                        } else {
+                            await browser.localSaveFile.saveFile(htmlFullname, htmlData)
+                        }
                     }
 
                 }
