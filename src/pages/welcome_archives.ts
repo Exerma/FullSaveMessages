@@ -224,6 +224,9 @@
                                                         targetDirectory: targetPath
                                                     }))
 
+            // Close this window
+            await closeWelcomArchivesWindow()
+
         } catch (error) {
 
             log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
