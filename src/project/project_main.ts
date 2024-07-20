@@ -86,8 +86,9 @@
         const cSourceName = 'project/project_main.ts/storeCurrentMailTabId'
 
         // Save current tabId to manage the emails of
-        const currentTab: exTb.nMailTab = await messenger.mailTabs.getCurrent()
-        void await messenger.storage.session.set({ name: cStorageCurrentMailTabId, header: currentTab?.id })
+        const allTabs = await messenger.mailTabs.query( { active: true, currentWindow: true } )
+        const currentTab: exTb.uMailTab = allTabs?.at(0)
+        void await messenger.storage.session.set({ name: cStorageCurrentMailTabId, header: currentTab?.tabId })
 
     }
 
@@ -249,8 +250,9 @@
         log().trace(cSourceName, cInfoStarted)
 
         // Retrieve the active tab id and save it for later use
-        const activeTab: exTb.nMailTab = await messenger.mailTabs.getCurrent()
-        const tabId: number | undefined = activeTab?.id
+        const tabs = await messenger.mailTabs.query( { active: true, currentWindow: true } )
+        const activeTab: exTb.uMailTab = tabs?.at(0)
+        const tabId: number | undefined = activeTab?.tabId
         await messenger.storage.session.set({ [ProjectStorage.currentTabId]: tabId })
 
         // Force background.js to awake and init (or it will fail receiving the first message 
