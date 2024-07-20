@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------------
- *  (c) Patrick Seuret, 2023  
+ *  (c) Patrick Seuret, 2023-2024  
  * ---------------------------------------------------------------------------
  *  project_messages.ts
  * ---------------------------------------------------------------------------
@@ -29,6 +29,8 @@
  *  
  * 
  * Versions:
+ *   2024-07-20: Mov: Progress messages are moves to exerme_base/progress/exerma_progress_messages.ts
+ *   2024-06-17: Add: Messages to show progress to the user: CMessageSaveProgressInit, CMessageSaveProgressClose
  *   2023-10-22: Rem: Show main flow of the addon in comment showing messages and calls
  *               Add: Add selectedOnly parameter to CMessageExfilterMails
  *   2023-09-23: Chg: Make CMessage inheriting of exerma_base CClass
@@ -241,7 +243,8 @@
                         mailsHeaders: exTb.AMailHeader
                         mailsSubjects: ex.MNumberString
                         mailsSenders: ex.MNumberString
-                        targetDirectory: string }) {
+                        targetDirectory: string
+                        }) {
                             super({
                                 name: exMessageNameExfilterMails,
                                 sentBy: params.sentBy,

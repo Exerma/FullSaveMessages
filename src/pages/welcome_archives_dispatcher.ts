@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------------
- *  (c) Patrick Seuret, 2023  
+ *  (c) Patrick Seuret, 2023-2024
  * ---------------------------------------------------------------------------
  *  welcome_archives_dispatcher.ts
  * ---------------------------------------------------------------------------
@@ -8,6 +8,7 @@
  * of subjects to use as export files.
  * 
  * Versions:
+ *   2024-06-17: Add: Manage save progress messages: CMessageSaveProgressInit and CMessageSaveProgressClose
  *   2023-09-22: First version
  * 
  */
@@ -18,9 +19,7 @@
     import { createAndAddElement }               from '../exerma_base/exerma_dom'
     import {
             CMessageInitWelcomeArchiveWithTab,
-            CMessageMailHeadersLoaded,
-            exMessageNameInitWelcomeArchiveWithTab,
-            exMessageNameMailHeadersLoaded
+            CMessageMailHeadersLoaded
             }                                    from '../project/project_messages'
     import {
             type DispatcherReturnType,
@@ -79,7 +78,7 @@
                 return true
 
             }
-        
+
             // Message not managed
             return false
 

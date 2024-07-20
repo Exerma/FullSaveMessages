@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------------
- *  (c) Patrick Seuret, 2023  
+ *  (c) Patrick Seuret, 2023-2024
  * ---------------------------------------------------------------------------
  *  exerma_messages.js
  * ---------------------------------------------------------------------------
@@ -98,6 +98,7 @@
  * 
  * 
  * Versions:
+ *   2024-06-17: Add: Improve the CMessageGetState example with a "dummy" specific parameter
  *   2023-08-27: First version
  * 
  */
@@ -168,20 +169,27 @@
         static readonly CClassHeritage: string[] = [...CMessage.CClassHeritage, CMessageGetState.CClassType]
         public readonly classHeritage: string[] = CMessageGetState.CClassHeritage
 
+        // Class members
+        public readonly dummy: string
+
         /**
          * A message used to requires the state of the application
          * @param {object} params is the list of parameters to provide to this class
          * @param {string} params.sentBy is the name of the function requiring the stat
          * @param {string} params.messageId is the UID of the message (to identify it uniquely)
+         * @param {string} params.dummy is a dummy parameter as example
          */
         constructor (params: {
-                        sentBy: string
-                        messageId: string }) {
+                        sentBy: string           // CMessage
+                        messageId: string        // CMessage
+                        dummy: string            // First specific parameters (example)
+                        }) {
                             super({
                                 name: exMessageNameGetState,
                                 sentBy: params.sentBy,
                                 messageId: params.messageId
                             })
+                            this.dummy = params.dummy
                     }
 
     }

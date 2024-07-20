@@ -270,8 +270,11 @@
         //                   Opening the archive window instantly stop this thread
 
         /**
-         * Since here the page will identify the emails to archive, ask
-         * for name replacements and save & archive them
+         * Since here the "welcome_archives" page will identify the emails to archive, ask
+         * for name replacements and save & archive them.
+         * 
+         * Then "welcom_archives" will send a "CMessageLoadMailHeaders" message to the
+         * background main thread ("project_main.ts").
          */
 
         return await Promise.resolve(true)
@@ -304,8 +307,7 @@
                                                     })
             
             log().debugInfo(cSourceName, 'Found ' + mails.length + ' mails')
-            void messenger.runtime.sendMessage(message.answerTo,
-                                               new CMessageMailHeadersLoaded({
+            void messenger.runtime.sendMessage(new CMessageMailHeadersLoaded({
                                                         sentBy: cSourceName,
                                                         messageId: message.messageId,
                                                         mailsOfTabId: message?.mailsOfTabId,
@@ -909,6 +911,14 @@
                 iMail = 1
             }
 
+            // Start showing progress to user
+            // TODO: Open the progress window
+            // await messenger.runtime.sendMessage(new CMessageSaveProgressInit({
+            //                                             sentBy: cSourceName,
+            //                                             messageId: cSourceName,
+            //                                             nbFiles: nbMails * 3
+            //                                         }))
+
             // Save next emails
             const saveAllPromises = new Array<Promise<string>>()
             for (; iMail < nbMails; ++iMail) {
@@ -924,6 +934,13 @@
             
             // Wait until all files have been saved
             await Promise.all(saveAllPromises)
+
+            // Close progress window
+            // TODO: Close the progress window
+            // await messenger.runtime.sendMessage(new CMessageSaveProgressClose({
+            //                                             sentBy: cSourceName,
+            //                                             messageId: cSourceName
+            //                                         }))
 
             log().debugInfo(cSourceName, 'Done')
 

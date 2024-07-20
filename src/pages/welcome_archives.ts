@@ -8,6 +8,7 @@
  * of subjects to use as export files.
  * 
  * Versions:
+ *   2024-06-17: Add: Show save progress to user (saveProgressInit and saveProgressClose)
  *   2024-06-08: Add: Add the expand to all subject icon and manage it
  *   2023-11-13: Add: Manage change in display of senders
  *   2023-09-09: First version
@@ -57,7 +58,6 @@
     const cHtmlPopArchivesClassTextFieldSubject:    string = 'textboxsubject'
     const cHtmlPopArchivesClassTextFieldSender:     string = 'textboxsender'
     const cHtmlPopArchivesClassExpandSubjects:      string = 'expandtoallsubjects'
-    
 
     // --------------- Local members
     /**
@@ -230,10 +230,6 @@
 
         }
 
-        // Close this window
-        const myWindow: messenger.windows.Window = await messenger.windows.getCurrent()
-        void messenger.windows.remove(myWindow?.id ?? 0)
-
     }
 
     /**
@@ -246,7 +242,7 @@
         log().trace(cSourceName, cInfoStarted)
 
         // Close this window
-        const myWindow: messenger.windows.Window = await messenger.windows.getCurrent()
+        const myWindow = await messenger.windows.getCurrent()
         void messenger.windows.remove(myWindow?.id ?? 0)
 
     }
@@ -618,6 +614,30 @@
         }
 
     }
+
+
+    /**
+     * Close the welcome archive window
+     */
+    async function closeWelcomArchivesWindow (): Promise<void> {
+
+        const cSourceName = 'pages/welcome_archives.ts/closeWelcomArchivesWindow'
+
+        log().trace(cSourceName, cInfoStarted)
+
+        try {
+
+            const myWindow: messenger.windows.Window | null = await messenger.windows.getCurrent()
+            void messenger.windows.remove(myWindow?.id ?? 0)
+
+        } catch (error) {
+            
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+
+        }
+
+    }
+
 
     // Start the welcome popup for archives
     // void start()

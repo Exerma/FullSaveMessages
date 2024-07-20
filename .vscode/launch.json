@@ -6,7 +6,7 @@
             "type": "firefox",
             "request": "launch",
             "reAttach": true,
-            "firefoxExecutable": "/Applications/Thunderbird.app/Contents/MacOS/thunderbird-bin",
+            "firefoxExecutable": "/Applications/Thunderbird.app/Contents/MacOS/thunderbird",
             "reloadOnChange": {
                 "watch": "${workspaceFolder}/dist/release/**/*.js"
             },
