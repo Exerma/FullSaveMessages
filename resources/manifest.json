@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Message save and archive exfiltration",
     "description": "Allow grouped exfiltration of your messages in EML and PDF formatsonDescription",
-    "version": "1.0",
+    "version": "1.3.0",
     "author": "Patrick Seuret",
     "homepage_url": "https://github.com/Exerma/FullSaveMessages",
     "browser_specific_settings": {
