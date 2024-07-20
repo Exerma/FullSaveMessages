@@ -8,6 +8,7 @@
  * Documentation about jsPDF: https://parall.ax/products/jspdf
  * 
  * Versions:
+ *   2024-07-20: Add: In createPdf(): Activate useCORS in pdfFile.html() function which fixed load of pictures
  *   2024-01-04: Add: Use plain text version of message in createPdf() if html version is missing
  *   2023-11-18: First version (move createPDF() from project_main.ts)
  * 
@@ -303,8 +304,11 @@
                 await pdfFile.html(myDoc.documentElement, {
                     // margin: [25, 50, 25, 50],
                     html2canvas: {
+                        // imageTimeout: 5000,
+                        async: true,
                         scale: 0.9,
-                        proxy: 'node.js'
+                        proxy: 'node.js',
+                        useCORS: true
                     }
                 })
             }
