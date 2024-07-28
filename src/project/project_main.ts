@@ -22,7 +22,7 @@
     import { loadAllMails, loadSelectedMails }  from '../exerma_tb/exerma_tb_messages'
     import { jsPDF }                 from 'jspdf'
     import { createPdf }             from '../exerma_tb/exerma_tb_pdf'
-    import { saveAs }                from 'file-saver'
+    // import { saveAs }                from 'file-saver'
     import {
         datetimeToFieldReplacement,
                 datetimeToStringTag,
@@ -44,7 +44,7 @@
     export const cPopupSaveAttachButton: string = 'cmdSaveAttachment'
     export const cPopupTestButton:       string = 'cmdTest'
     export const cAddinVersionId:        string = 'AddinVersion'
-    export const cAddinVersion:          string = '1.2.0'
+    export const cAddinVersion:          string = '1.3.1'
 
 
     // --------------- Types
@@ -174,57 +174,10 @@
 
         const cSourceName = 'project/project_main.ts/onTestButtonClick'
 
-        const aTest = new CClassTest()
-
-        log().debugInfo(cSourceName, ': test is ExClass = ' + isCClass(aTest, CClass.CClassType))
-        log().debugInfo(cSourceName, ': test is ExClassTest = ' + isCClass(aTest, CClassTest.CClassType))
-
         try {
 
             console.log(cSourceName + 'User has clicked the test button')
 
-            const myDOM: DOMImplementation = document.implementation
-        
-            console.log(cSourceName + ' DOM implementation found ' + (myDOM == null ? '(null)' : ''))
-        
-            const myHtml: Document = myDOM.createHTMLDocument('Test')
-        
-            console.log(cSourceName + ' HTML document created ' + (myHtml == null ? '(null)' : ''))
-        
-            const myTag: HTMLElement = myHtml.createElement('p')
-            myTag.innerHTML = 'Hello world'
-            myHtml.body.appendChild(myTag)
-        
-            console.log(cSourceName + ' <p> tag added ' + (myTag == null ? '(null)' : ''))
-        
-            const myPdf: jsPDF = new jsPDF()
-        
-            // console.log(cSourceName + ' pdf object created ' + (myPdf == null ? '(null)' : ''))
-        
-            await myPdf.html(myHtml.body)
-        
-            console.log(cSourceName + ' HTML document loaded in PDF')
-            
-            const pdfBlob: Blob = myPdf.output('blob')
-
-            console.log(cSourceName + ' Got PDF body as blob ' + (pdfBlob == null ? '(null)' : ''))
-
-            // const targetPath = await showDirectoryPicker()
-            // const targetFile = await targetPath.getFileHandle('target.pdf', { create: true })
-            // const exportFile = await targetFile.createWritable({ keepExistingData: true })
-            // await exportFile.write(pdfBlob)
-            // await exportFile.close()
-
-            const exportFile: File = new File([pdfBlob],
-                                            'target.pdf',
-                                            { type: 'application/pdf' })
-            saveAs(exportFile)
-
-            myPdf.close()
-            myHtml.close()
-
-            console.log(cSourceName + ' Object freed')
-        
         } catch (error) {
 
             log().raiseError(cSourceName, cRaiseUnexpected, error as Error)

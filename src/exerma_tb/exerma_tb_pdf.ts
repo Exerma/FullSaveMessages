@@ -307,7 +307,8 @@
                         // imageTimeout: 5000,
                         async: true,
                         scale: 0.9,
-                        proxy: 'node.js',
+                        // proxy: 'node.js',
+                        // foreignObjectRendering: true,
                         useCORS: true
                     }
                 })
