@@ -8,6 +8,7 @@
  * of subjects to use as export files.
  * 
  * Versions:
+ *   2024-07-29: Add: Save attachments
  *   2024-06-17: Add: Show save progress to user (saveProgressInit and saveProgressClose)
  *   2024-06-08: Add: Add the expand to all subject icon and manage it
  *   2023-11-13: Add: Manage change in display of senders
@@ -19,7 +20,11 @@
     import type * as ex                        from '../exerma_base/exerma_types'
     import type * as exTb                      from '../exerma_tb/exerma_tb_types'
     import { cEventClick, cEventLoad, cNullString }         from '../exerma_base/exerma_consts'
-    import { createAndAddElement }             from '../exerma_base/exerma_dom'
+    import {
+             createAndAddElement,
+             setElementByIdInnerContent,
+             getCheckboxStateById
+            }                                  from '../exerma_base/exerma_dom'
     import log, { cRaiseUnexpected, cInfoStarted } from '../exerma_base/exerma_log'
     import {
             CMessageExfilterMails,
@@ -30,12 +35,12 @@
     import {
             StorageKind,
             getStorageAsNumber
-            } from '../exerma_tb/exerma_tb_storage'
+            }                                  from '../exerma_tb/exerma_tb_storage'
     import {
             cleanSubjects,
             cleanPersons,
             askForTargetFolder
-            } from '../project/project_main'
+            }                                  from '../project/project_main'
     import { exLangFuture }                    from '../exerma_base/exerma_lang'
     
 
@@ -53,6 +58,10 @@
     const cHtmlPopArchivesMailSenders:              string = 'mailsenders'
     const cHtmlPopArchivesClassSenderBloc:          string = 'mailsender'
 
+    const cHtmlPopArchivesHeaderAttachmentsId:      string = 'header_attachments'
+    const cHtmlPopArchivesAttachmentsCheckboxId:    string = 'attachments_checkbox'
+    const cHtmlPopArchivesAttachmentsCheckboxCaptionId: string = 'attachments_caption'
+   
     const cHtmlPopArchivesClassOriginal:            string = 'original'
     const cHtmlPopArchivesClassTextField:           string = 'textbox'
     const cHtmlPopArchivesClassTextFieldSubject:    string = 'textboxsubject'
@@ -136,6 +145,11 @@
             // Activate the message catcher to manage requests and answers
             messenger.runtime.onMessage.addListener(welcomeArchivesDispatcher)
 
+            // Set constant text
+            await setElementByIdInnerContent(document, cHtmlPopArchivesHeaderAttachmentsId, exLangFuture('Pièces jointes'), false)
+            await setElementByIdInnerContent(document, cHtmlPopArchivesAttachmentsCheckboxCaptionId, exLangFuture('Sauver les pièces jointes'), false)
+            
+
         } catch (error) {
 
             console.log((error as Error).message)
@@ -212,6 +226,10 @@
     
             })
 
+            // Save attachments ?
+            const saveAttachments = await getCheckboxStateById(document,
+                                                               cHtmlPopArchivesAttachmentsCheckboxId,
+                                                               false) ?? false
             // Finalize in the main thread
             void messenger.runtime.sendMessage(new CMessageExfilterMails({
                                                         sentBy: cSourceName,
@@ -221,7 +239,8 @@
                                                         mailsHeaders: gTargetHeaders,
                                                         mailsSubjects,
                                                         mailsSenders,
-                                                        targetDirectory: targetPath
+                                                        targetDirectory: targetPath,
+                                                        saveAttachments
                                                     }))
 
             // Close this window

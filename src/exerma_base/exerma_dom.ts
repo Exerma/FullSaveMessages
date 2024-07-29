@@ -5,6 +5,7 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2024-07-29: Add: getCheckboxStateById() to retrieve the check state of a checkbox
  *   2024-06-09: Fix: createAndAddElement() now accept multiple occurrence of same attribute
  *   2023-08-20: Chg: Make this module an export class with static functions
  *   2023-07-23: First version
@@ -14,7 +15,7 @@
     // ---------- Imports
     import { addSyntheticLeadingComment } from '../../node_modules/typescript/lib/tsserverlibrary'
     import log, { cRaiseUnexpected } from './exerma_log'
-    import type { uHTMLElement, nHTMLElement } from './exerma_types'
+    import type { uHTMLElement, nHTMLElement, uBoolean } from './exerma_types'
     
     
     // Export object
@@ -236,7 +237,11 @@
     }
 
     /**
+     * # Set content of a DOM element
+     * 
      * Look for an Html element by Id and assign its text value (if found)
+     * 
+     * Versions: 29.07.2024
      * @param {Document} doc is the HTML DOM document to alter an element of
      * @param {string} elementId is the Id of the element to alter the content of
      * @param {string} value is the new value to assign to the contant
@@ -252,11 +257,12 @@
         const cSourceName = 'exerma_base/exerma_dom/setElementByIdInnerContent'
 
         try {
-
+            
             const element = doc.getElementById(elementId)
             if (element !== null) {
                 
                 if (isHtml) {
+                
                     // Set the Html content of the element
                     element.innerHTML = value
                     return true
@@ -266,6 +272,7 @@
                     // Set the Text content of the element
                     element.innerText = value
                     return true
+
                 }
 
             }
@@ -277,5 +284,42 @@
         }
         
         return false
+
+    }
+
+
+    /**
+     * Get the state (checked or not) of a checkbox input field
+     * @param {Document} doc is the HTML DOM document to alter an element of
+     * @param {string} checkboxId is the ID of the checkbox to get the state of
+     * @param {uBoolean} ifError is the value to return if the checkbox wasn't
+     *                  found or if it is not a checkbox input field (default = undefined)
+     * @returns {boolean} is true if the checkbox is checked, false if not, or 
+     *                  undefined if the checkbox wasn't found
+     */
+    export async function getCheckboxStateById (doc: Document,
+                                                checkboxId: string,
+                                                ifError: uBoolean = undefined): Promise<boolean | undefined> {
+
+        const cSourceName = 'exerma_base/exerma_dom/getCheckboxStateById'
+
+        try {
+            
+            const element = doc.getElementById(checkboxId)
+            if (   (element !== null)
+                && (element instanceof HTMLInputElement)
+                && (element.type === 'checkbox')) {
+                
+                return element.checked
+                
+            }
+
+        } catch (error) {
+
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+
+        }
+
+        return ifError
 
     }

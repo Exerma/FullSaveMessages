@@ -6,6 +6,7 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2024-07-29: Add: Add saveAttachments parameter in CMessageExfilterMails
  *   2023-09-11: First version
  *
  */
@@ -74,7 +75,8 @@
                                     selectedOnly: message.selectedOnly,
                                     targetDirectory: message.targetDirectory,
                                     mailsSubjects: message.mailsSubjects,
-                                    mailsSenders: message.mailsSenders
+                                    mailsSenders: message.mailsSenders,
+                                    saveAttachments: message.saveAttachments
                                     })
                 sendResponse()
                 return true

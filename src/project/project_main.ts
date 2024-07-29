@@ -6,6 +6,7 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2024-07-29: Add: Save attachments
  *   2024-06-15: Add: Add rule to remove opening and closing double quotes in cleanPersonsWithRules()
  *               Add: Use asyncSavePdf to choose if await every save file or use a global Promise in exfilterEMail()
  *   2024-06-08: Add: Avoid duplicate of file names in buildExfiltrationFilenames()
@@ -16,26 +17,33 @@
  *
  */
     // --------------- Imports
-    import type * as ex              from '../exerma_base/exerma_types'
-    import type * as exTb            from '../exerma_tb/exerma_tb_types'
+    import type * as ex                          from '../exerma_base/exerma_types'
+    import type * as exTb                        from '../exerma_tb/exerma_tb_types'
     import log, { cRaiseUnexpected, cInfoStarted } from '../exerma_base/exerma_log'
-    import { loadAllMails, loadSelectedMails }  from '../exerma_tb/exerma_tb_messages'
-    import { jsPDF }                 from 'jspdf'
-    import { createPdf }             from '../exerma_tb/exerma_tb_pdf'
-    // import { saveAs }                from 'file-saver'
+    import { getMessageDate, loadAllMails, loadSelectedMails }   from '../exerma_tb/exerma_tb_messages'
+    import { createPdf }                         from '../exerma_tb/exerma_tb_pdf'
     import {
         datetimeToFieldReplacement,
                 datetimeToStringTag,
-                fieldReplacement
-            }   from '../exerma_base/exerma_misc'
+                fieldReplacement,
+                stringMakeUnique
+            }                                    from '../exerma_base/exerma_misc'
     import {
                 type CMessageLoadMailHeaders,
                 CMessageMailHeadersLoaded
-            } from './project_messages'
-    import { ProjectStorage } from './project_storage'
-    import { isCClass, CClassTest, CClass } from '../exerma_base/exerma_types'
-    import { cNullString, cTypeNameString } from '../exerma_base/exerma_consts'
-    import { buildFullname } from '../exerma_base/exerma_files'
+            }                                    from './project_messages'
+    import { ProjectStorage }                    from './project_storage'
+    import {
+             cLastInFolder1,
+             cLastInFolder2,
+             cNullString
+            }                                    from '../exerma_base/exerma_consts'
+    import {
+             buildFullname,
+             cleanFilename,
+             extractFilename
+            }                                    from '../exerma_base/exerma_files'
+import { exLangFuture } from '../exerma_base/exerma_lang'
 
 
     // --------------- Consts
@@ -44,7 +52,7 @@
     export const cPopupSaveAttachButton: string = 'cmdSaveAttachment'
     export const cPopupTestButton:       string = 'cmdTest'
     export const cAddinVersionId:        string = 'AddinVersion'
-    export const cAddinVersion:          string = '1.3.1'
+    export const cAddinVersion:          string = '1.4.0'
 
 
     // --------------- Types
@@ -94,9 +102,8 @@
 
     // /**
     //  * Retrieve the current mailTab.tablId from session storage
-    //  * ---
+    //  * 
     //  * Versions: 23.02.2024
-    //  * ---
     //  * @returns {Promise<ex.uNumber>} is the last header stored with storeCurrentMailTabId()
     //  */
     // export async function unstoreCurrentMailTabId (): Promise<ex.uNumber> {
@@ -113,10 +120,9 @@
 
 
     /**
-     * Archive selected files
-     * ---
+     * # Archive selected files
+     * 
      * Versions: 23.02.2024
-     * ---
      * @param {Event} event is the 'click' event firing this event handler
      */
     export function onActionButtonClick (event: Event): void {
@@ -130,10 +136,11 @@
 
 
     /**
+     * # Handle click on "Archive"
+     * 
      * User has clicked the "Archive" button from the action popup window
-     * ---
+     * 
      * Versions: 23.02.2024
-     * ---
      * @param {Event} event is the 'click' event firing this event handler
      */
     export async function onArchiveButtonClick (event: Event): Promise<void> {
@@ -149,10 +156,11 @@
 
 
     /**
+     * # Handle click on "Save attachments"
+     * 
      * User has clicked the "Save attachment" button from the action popup window
-     * ---
+     * 
      * Versions: 23.02.2024
-     * ---
      * @param {Event} event is the 'click' event firing this event handler
      */
     export function onSaveAttachButtonClick (event: Event): void {
@@ -161,13 +169,12 @@
 
     }
 
-
-
     /**
+     * # Handle click on test button
+     * 
      * User has clicked the "Test" button from the action popup window
-     * ---
+     * 
      * Versions: 23.02.2024
-     * ---
      * @param {Event} event is the 'click' event firing this event handler
      */
     export async function onTestButtonClick (event: Event): Promise<void> {
@@ -186,14 +193,13 @@
 
     }
 
-
     /**
-     * Save the selected messages in EML and PDF formats
+     * # Save the selected messages in EML and PDF formats
+     * 
      * About sending messages:
-     *      https://developer.chrome.com/docs/extensions/mv3/messaging/
-     * ---
+     * - https://developer.chrome.com/docs/extensions/mv3/messaging/
+     * 
      * Versions: 09.06.2024, 23.02.2024
-     * ---
      * @returns {Promise<boolean>}  is true if success, false if an error occurs
      */
     export async function initWelcomePage (): Promise<boolean> {
@@ -239,11 +245,11 @@
 
 
     /**
+     * # Load selected message and continue
      * Retrive headers of messages with loadMessagesOfTab() and return the list
      * by sending a message
-     * ---
+     * 
      * Versions: 23.02.2024
-     * ---
      * @param {CMessageLoadMailHeaders} message is the message with parameters of the
      *             mails to load
      * @returns {Promise<boolean>} is true if success, false if an error occurs
@@ -284,10 +290,11 @@
 
 
     /**
+     * # Load messages
+     * 
      * Retrieve headers of messages belonging to the provided tab (clear previous data)
-     * ---
+     * 
      * Versions: 23.02.2024
-     * ---
      * @param {object} options is used to provide additional options
      * @param {ex.uNumber} options.mailsOfTabId is the optional id of the tab to save & archive the 
      *             selected messages of
@@ -463,10 +470,11 @@
 
 
     /**
-     * Retrieve the replacment rules for subjects and apply them to the provided mail headers
-     * ---
+     * # Clean subjects with rules
+     * 
+     * Retrieve the replacement rules for subjects and apply them to the provided mail headers
+     * 
      * Versions: 23.02.2024
-     * ---
      * @param {exTb.AMailHeader} headers is the list of message headers to clean the subjects of
      * @returns {Promise<Map<string, string> | undefined>} is the list of <initial mail
      *                  subject; new mail subject> replacement to use     
@@ -500,11 +508,12 @@
     }
 
     /**
+     * # Clean names of persons with rules
+     * 
      * Create the map of the oldPerson --> newPerson headers after having
      * applied the provided rules to the current list of headers
-     * ---
+     * 
      * Versions: 23.02.2024
-     * ---
      * @param {exTb.AMailHeader} allHeaders is the array containing all the
      *         messageheader to clean the subjects of. They will stay untouched
      *         as only the modification dictionary are returned in the 
@@ -582,10 +591,11 @@
 
 
     /**
+     * # Build default rules for cleaning of names
+     * 
      * Return the cleaning rules to apply to email names 
-     * ---
+     * 
      * Versions: 15.06.2024, 23.02.2024
-     * ---
      * @returns {ANameCleaningRules} is the list of rules to apply
      */
     function getCleanPersonRules (): ANameCleaningRules {
@@ -621,10 +631,11 @@
     
 
     /**
-     * Retrieve the replacment rules for senders and apply them to the provided mail headers
-     * ---
+     * # Cleans names of persons
+     * 
+     * Retrieve the replacement rules for senders and apply them to the provided mail headers
+     * 
      * Versions: 23.02.2024
-     * ---
      * @param {exTb.AMailHeader} headers is the list of message headers to clean the senders of
      * @returns {Promise<Map<string, string> | undefined>} is the list of <initial mail
      *                  sender; new mail sender> replacement to use     
@@ -658,10 +669,9 @@
     // --------------- Building of filenames
 
     /**
-     * Build the export filename to use for every provided mail header
-     * ---
+     * # Build the export filename to use for every provided mail header
+     * 
      * Versions: 08.06.2024, 23.02.2024
-     * ---
      * @param {exTb.AMailHeader} headers is an array with all the messageHeder to calculate the
      *                  filename of
      * @param {ex.MNumberString} subjectReplacements is a Map with the email ID --> subject
@@ -669,7 +679,7 @@
      * @param {ex.MNumberString} senderReplacements is a Map with the email ID --> author display
      *                  name to use for export
      * @param {string} filenameTemplate is the template to apply to create the filenames
-     *                         with field replacements:
+     *                  with field replacements:
      * @returns {ex.uMNumberString} is the <messageId;filename> map of filenames
      */
     async function buildExfiltrationFilenames (headers: exTb.AMailHeader,
@@ -696,16 +706,13 @@
                                                         senderReplacements,
                                                         filenameTemplate)
                 // Avoid duplicates in names
-                let count = 0
-                let checkname = filename
-                while (existingFiles.has(checkname.toUpperCase())) {
-                    count = count + 1
-                    checkname = filename + 'Ξ' + ('000' + count).slice(-3)
-                }
-                existingFiles.set(checkname.toUpperCase(), checkname)
+                const uniqueFilename = stringMakeUnique(filename,
+                                                        existingFiles, {
+                                                        upCased: true
+                                                        })
 
                 // Save result
-                result.set(header.id, checkname)
+                result.set(header.id, uniqueFilename)
 
             })
 
@@ -721,13 +728,14 @@
 
 
     /**
-     * Build the exfiltration filename for the provided header
+     * # Build the exfiltration filename for the provided header
+     * 
      * Format of date inspired from Excel formating:
-     * https://support.microsoft.com/en-us/office/format-a-date-the-way-you-want-8e10019e-d5d8-47a1-ba95-db95123d273e
-     * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
-     * ---
+     * 
+     * - https://support.microsoft.com/en-us/office/format-a-date-the-way-you-want-8e10019e-d5d8-47a1-ba95-db95123d273e
+     * - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
+     * 
      * Versions: 23.02.2024
-     * ---
      * @param {object.messages.MailHeader} header is the message header to calculate
      *                  the filename for
      * @param {ex.MNumberString}  subjectReplacements is a map of <mailID;newSubject>
@@ -759,9 +767,7 @@
 
             // Extract data
             const mailId: number = header.id
-            const mailDate: Date = ( (typeof header.date === 'number')
-                                   ? (header.date as unknown) as Date
-                                   : (new Date(Date.parse(header.date as string))) )
+            const mailDate: Date = getMessageDate(header) ?? new Date(0)
             const mailFrom: string = header.author
             const mailTo: string = header.ccList.at(0) ?? ''
             const mailBcc: string = header.bccList.at(0) ?? ''
@@ -807,10 +813,9 @@
 
 
     /**
-     * Exfilter messages of the provided tab
-     * ---
-     * Versions: 23.02.2024
-     * ---
+     * # Exfilter messages of the provided tab
+     * 
+     * Versions: 29.07.2024, 23.02.2024
      * @param {object}           params are the required parameters of the function
      * @param {exTb.AMailHeader} params.mailsHeaders is the list of email headers to exfilter
      * @param {ex.uNumber}       params.mailsOfTabId is the Id of the Tab containing the emails to
@@ -825,6 +830,8 @@
      * @param {ex.MNumberString} params.mailsSenders is the corrected author (sender) name to use
      *                  email (email ID as key) to exfiltered: <emailID;correctedSubject>.
      *                  for each EMails with missing IDs are using the real email author.
+     * @param {boolean} params.saveAttachments is used to require saving of attachments (if true)
+     *                  or to ignore them (if false)
      */
     export async function exfilterEMails (params: { mailsHeaders: exTb.AMailHeader
                                                     mailsOfTabId: ex.uNumber
@@ -832,6 +839,7 @@
                                                     targetDirectory: string
                                                     mailsSubjects: ex.MNumberString
                                                     mailsSenders: ex.MNumberString
+                                                    saveAttachments: boolean
                                                  }): Promise<void> {
 
         const cSourceName: string = 'project/project_main.ts/exfilterEMails'
@@ -842,6 +850,8 @@
         log().trace(cSourceName, cInfoStarted)
 
         try {
+
+            const saveAttachments = params.saveAttachments
 
             // TODO: Retrieve template from settings
 
@@ -861,7 +871,8 @@
                                                     filename: filenames?.get(header.id),
                                                     subject: params.mailsSubjects.get(header.id),
                                                     sender: params.mailsSenders.get(header.id),
-                                                    targetPath: absolutePath
+                                                    targetPath: absolutePath,
+                                                    saveAttachments
                                                    })
                 iMail = 1
             }
@@ -879,11 +890,12 @@
             for (; iMail < nbMails; ++iMail) {
                 const header = params.mailsHeaders.at(iMail) as messenger.messages.MessageHeader
                 const saveFilePromise = exfilterEMail(header, {
-                                                filename: filenames?.get(header.id),
-                                                subject: params.mailsSubjects.get(header.id),
-                                                sender: params.mailsSenders.get(header.id),
-                                                targetPath: absolutePath
-                                                })
+                                                      filename: filenames?.get(header.id),
+                                                      subject: params.mailsSubjects.get(header.id),
+                                                      sender: params.mailsSenders.get(header.id),
+                                                      targetPath: absolutePath,
+                                                      saveAttachments
+                                                    })
                 saveAllPromises.push(saveFilePromise)
             }
             
@@ -909,10 +921,11 @@
 
 
     /**
+     * # Save message as files
+     * 
      * This function exfilter the message in the default "local folder" in EML and PDF formats
-     * ---
+     * 
      * Versions: 15.06.2024, 23.02.2024
-     * ---
      * @param {object} messageHeader is the header of the message to save ()
      * @param {object} params is a list of optional parameters
      * @param {string} params.filename is the name of the file to use as body name for the
@@ -926,16 +939,23 @@
      *                 to save the files in.
      *                 If not provided, then ask user for the destination and use the target path
      *                 as current default path and return fullname of the EML file
+     * @param {boolean} params.saveAttachments is used to save attachment with the email (if true)
+     *                 If false or not provided, then don't save attachments
+     * @param {string} params.attachmentPrefix is used to define the prefix to set to the attachment
+     *                  before the attachment file name (if provided). If not provided, then use
+     *                  "YYYY-MM-DD HHMM__" before the filename of the attachment.
      * @returns {Promise<string>} is a Promise to return the absolute target path & name
      */
     async function exfilterEMail (messageHeader: messenger.messages.MessageHeader,
-                                            params?: {
-                                                filename?: string
-                                                subject?: string
-                                                sender?: string
-                                                targetPath?: string
-                                            }
-                                        ): Promise<string> {
+                                  params?: {
+                                    filename?: string
+                                    subject?: string
+                                    sender?: string
+                                    targetPath?: string
+                                    saveAttachments?: boolean
+                                    attachmentPrefix?: string
+                                  }
+                            ): Promise<string> {
 
         const cSourceName: string = 'project/project_main.ts/exfilterEMail'
         const asyncSavePdf: boolean = false
@@ -955,9 +975,7 @@
             if (filename === cNullString) {
                 
                 // Extract data to use to build the filename body
-                const when: Date = ((messageHeader?.date instanceof Date)
-                                    ? messageHeader?.date
-                                    : new Date(0))
+                const when: Date = getMessageDate(messageHeader) ?? new Date(0)
                 const who: string = params?.sender?.trim() ?? messageHeader?.author ?? '(hidden)'
                 const what: string = params?.subject?.trim() ?? messageHeader?.subject.trim() ?? '(no object)'
 
@@ -1029,8 +1047,7 @@
                             await browser.localSaveFile.saveFile(pdfFullname, pdfData)
                         }
                     
-                    } else
-                    if (htmlDoc !== undefined) {
+                    } else if (htmlDoc !== undefined) {
                     
                         // 2024-03-02: Use the experiment to create and save the PDF instead
                         const pdfFullname  = buildFullname(absolutePath, filename, { setExt: 'pdf' })
@@ -1049,6 +1066,55 @@
                         } else {
                             await browser.localSaveFile.saveFile(htmlFullname, htmlData)
                         }
+                    }
+
+                    // Save attachments
+                    const saveAttachments = params?.saveAttachments ?? false
+                    if (params?.saveAttachments === true) {
+                        
+                        const allAttach = await messenger.messages.listAttachments(messageHeader.id)
+                        if ((allAttach !== null) && (allAttach.length !== 0)) {
+                            
+                            // Prepare prefix name of files
+                            let attachmentPrefix = params.attachmentPrefix
+                            if (attachmentPrefix === undefined ) {
+                                const mailDate: Date = getMessageDate(messageHeader) ?? new Date(0)
+                                attachmentPrefix = datetimeToStringTag(mailDate, {
+                                                                       datetimeSep: ' ',
+                                                                       noSeconds: true
+                                                                      })
+                                                 + cLastInFolder2
+                                                 + exLangFuture('') // "Pièce"
+                                                 + cLastInFolder2
+                            }
+
+                            log().debugInfo(cSourceName, allAttach.length + ' pièces jointes')
+
+                            // Save files
+                            const existingFiles: ex.MStringString = new Map<string, string>()
+                            for (const attach of allAttach) {
+                                const type = attach.contentType
+                                if (type !== 'text/x-moz-deleted') {
+                                    // Load file content
+                                    const filefile = await messenger.messages.getAttachmentFile(messageHeader.id, attach.partName) as File
+                                    const fileblob = await filefile.arrayBuffer()
+
+                                    // Save it
+                                    const filename = buildFullname(absolutePath,
+                                                                   cleanFilename(attachmentPrefix + extractFilename(attach.name)))
+                                    const uniquename = stringMakeUnique(filename, existingFiles, { upCased: true })
+                                    log().debugInfo(cSourceName, uniquename)
+                                    if (asyncSavePdf) {
+                                        savefilePromises.push(browser.localSaveFile.saveFile(uniquename, fileblob))
+                                    } else {
+                                        await browser.localSaveFile.saveFile(uniquename, fileblob)
+                                    }
+
+                                }
+                            }
+
+                        }
+
                     }
 
                 }
@@ -1072,13 +1138,13 @@
 
 
     /**
-     * Standard way to download a Blob as a file
-     * ---
-     * Versions: 23.02.2024
-     * ---
+     * # Standard way to download a Blob as a file
+     * 
      * Currently kept only for testing various methods compared to showOpenFilePicker()
      * and saveAs()
-     * https://blog.gitnux.com/code/javascript-save-file/
+     * - https://blog.gitnux.com/code/javascript-save-file/
+     * 
+     * Versions: 23.02.2024
      * @param {string | object} content is the data of the file to save on disk
      * @param {string} fileName is the name of the file (path looks to be ignored)
      * @param {string} mimeType is the standard mime-type of the file; looks to be

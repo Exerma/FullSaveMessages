@@ -29,6 +29,7 @@
  *  
  * 
  * Versions:
+ *   2024-07-29: Add: Add saveAttachments parameter to CMessageExfilterMails message
  *   2024-07-20: Mov: Progress messages are moves to exerme_base/progress/exerma_progress_messages.ts
  *   2024-06-17: Add: Messages to show progress to the user: CMessageSaveProgressInit, CMessageSaveProgressClose
  *   2023-10-22: Rem: Show main flow of the addon in comment showing messages and calls
@@ -213,6 +214,7 @@
         public readonly mailsSubjects: ex.MNumberString  // <mailId; subject to use>
         public readonly mailsSenders: ex.MNumberString   // <mailId; sender to use>
         public readonly targetDirectory: string
+        public readonly saveAttachments: boolean
 
         /**
          * Create the message used to return the loaded headers of all (or 
@@ -234,6 +236,7 @@
          *              email sender to use to save each mail: <mailId, sender name>
          * @param {string} params.targetDirectory is the target directory to save
          *              the files in
+         * @param {boolean} params.saveAttachments is used to save attachement (if true)
          */
         constructor (params: {
                         sentBy: string                // CMessage
@@ -244,6 +247,7 @@
                         mailsSubjects: ex.MNumberString
                         mailsSenders: ex.MNumberString
                         targetDirectory: string
+                        saveAttachments: boolean
                         }) {
                             super({
                                 name: exMessageNameExfilterMails,
@@ -256,6 +260,7 @@
                             this.mailsSubjects = params.mailsSubjects
                             this.mailsSenders = params.mailsSenders
                             this.targetDirectory = params.targetDirectory
+                            this.saveAttachments = params.saveAttachments
                     }
 
     }

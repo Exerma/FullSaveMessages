@@ -9,6 +9,11 @@
  *   2023-09-09: First version
  *****/
 
+    /* ---------- Global ---------- */
+    body {
+        font-size: 11pt;
+    }
+
     /* ---------- Unique mail objects ---------- */
 
     .mailsubject {
@@ -39,6 +44,20 @@
 
     /* Share format with mailsubject above */
     
+    /* ---------- Attachments ---------- */
+/*
+    #attachments {
+
+    }
+*/
+
+    .saveattachments {
+        width: 95%;
+        display: flex;
+        flex: 1;
+        justify-content: flex-end;
+        align-items: center;
+    }
 
     /* ---------- Footer buttons ---------- */
 

@@ -6,6 +6,7 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2024-07-29: Add: makeStringUnique()
  *   2023-11-12: Fix: Hours were badly returned in 
  *   2023-10-08: Add: stringifyArray() to add a safe stringification of arrays made of simple types
  *   2023-09-08: First version
@@ -121,11 +122,11 @@
         // Add date part
         if (options?.noDate !== true) {
 
-            result = numberToStringRightAlign(aDate.getFullYear(), 4)
-                + (options?.dateSep ?? defaultDateSep)
-                + numberToStringRightAlign(aDate.getMonth(), 2)
-                + (options?.dateSep ?? defaultDateSep)
-                + numberToStringRightAlign(aDate.getDate(), 2)
+            result = aDate.toLocaleString(window.navigator.language, { year: 'numeric' })
+                   + (options?.dateSep ?? defaultDateSep)
+                   + aDate.toLocaleString(window.navigator.language, { month: '2-digit' })
+                   + (options?.dateSep ?? defaultDateSep)
+                   + aDate.toLocaleString(window.navigator.language, { day: '2-digit' })
             
             sep = (options?.datetimeSep ?? defaultDateTimeSep)
 
@@ -136,12 +137,12 @@
 
             result = result
                 + sep
-                + numberToStringRightAlign(aDate.getHours(), 2)
+                + ('00' + aDate.getHours().toString()).slice(-2)
                 + (options?.timeSep ?? defaultTimeSep)
-                + numberToStringRightAlign(aDate.getMinutes(), 2)
+                + aDate.toLocaleString(window.navigator.language, { minute: '2-digit' })
                 + ( (options?.noSeconds === true)
                     ? ''
-                    : numberToStringRightAlign(aDate.getSeconds(), 2)
+                    : aDate.toLocaleString(window.navigator.language, { second: '2-digit' })
                     + ( (options?.addMilliseconds === true)
                         ? (options?.timeSep ?? defaultTimeSep)
                         + numberToStringRightAlign(aDate.getMilliseconds(), 3)
@@ -484,5 +485,86 @@
         }
 
         return result
+
+    }
+
+    /**
+     * # Make a string unique in a dictionary
+     * 
+     * Check if a string exists in a dictionary and, if yes, then create a new string by adding
+     * a number as suffix with an increasing counter until the result is unique in the dictionary.
+     * 
+     * In addition, the newly created string is automatically added to the dictionary to allow
+     * the system to be fed by the new values.
+     * 
+     * Versions: 29.07.2024
+     * @param {string} root is the root text to make unique (by adding "-000" style extension)
+     *                       if already in the "notInMap" dictionary
+     * @param {Map<string,string>} alterNotInMap is the map to search for the root text. If it
+     *                       contains the root text, then the function will create a new one
+     *                       by adding the separator and a number. The final, unique, name is
+     *                       automatically added to alterNotInMap (excepted if dontAutoAdd=true)
+     * @param {object} object is the list of optional paramters
+     * @param {string} object.separator is the separator to add to the name if it already exist
+     *                       in list (default = '-')
+     * @param {number} object.counterLen is the minimum number of digits to add after the separator
+     *                       when building the unique name (default = 3).
+     * @param {boolean} object.upCased is used to search the Map in an insensitive way by comparing all
+     *                       strings in upcase (default = false).
+     * @param {boolean} object.dontAutoAdd is used to not add automtically the new unique name (naked
+     *                       root or extended in "root-000" format)(if true) to alterNotInMap or to
+     *                       add it automatically (if false, default)
+     * @param {number} object.maxCount is the maximum number to loop until a unique string is found (if 
+     *                       this number is reached, the function will return an empty string)
+     * @returns {string} is the unique name (either the native root or the one make)
+     */
+    export function stringMakeUnique (root: string,
+                                      alterNotInMap: ex.MStringString,
+                                      {
+                                        separator = '-',
+                                        counterLen = 3,
+                                        upCased = false,
+                                        dontAutoAdd = false,
+                                        maxCount = 999
+                                        }: {
+                                        separator?: string
+                                        counterLen?: number
+                                        upCased?: boolean
+                                        dontAutoAdd?: boolean
+                                        maxCount?: number
+                                      }): string {
+
+        const cSourceName = 'exerma_base/exerma_misc.ts/makeStringUnique'
+
+        try {
+
+            // Check params
+            if (alterNotInMap === undefined) {
+                const alterNotInMap = new Map<string, string>()
+            }
+             const digits = Math.max(counterLen, 0)
+
+            // Build unique name
+            let count = 0
+            let checkname = root
+            while (   (alterNotInMap.has(upCased ? checkname.toUpperCase() : checkname))
+                   && (count < counterLen)) {
+
+                count = count + 1
+                const maxLen = Math.max(Math.ceil(Math.log10(count)), counterLen)
+                checkname = root + separator + ('0'.repeat(counterLen) + count).slice(-maxLen)
+
+            }
+            alterNotInMap.set(upCased ? checkname.toUpperCase() : checkname, checkname)
+
+            return checkname
+
+        } catch (error) {
+            
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+
+        }
+
+        return cNullString
 
     }

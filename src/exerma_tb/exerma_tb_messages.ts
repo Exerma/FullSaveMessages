@@ -15,7 +15,7 @@
     import type * as ex from '../exerma_base/exerma_types'
     import type * as tb from '../exerma_tb/exerma_tb_types'
     import { cInfoStarted, cRaiseUnexpected, log } from '../exerma_base/exerma_log'
-import { cNewLine } from '../exerma_base/exerma_consts'
+    import { cNewLine } from '../exerma_base/exerma_consts'
     
 
     // ============================================================================
@@ -185,6 +185,31 @@ import { cNewLine } from '../exerma_base/exerma_consts'
 
     }
 
+    /**
+     * # Extract date of message header
+     * @param {object.messages.MessageHeader} header is the header to extract the date of
+     * @returns {Date|undefined} is the date of the message or undefined if the header
+     *                       is invalid or if an error occurs     
+     */
+    export function getMessageDate (header: messenger.messages.MessageHeader): ex.uDate {
+
+        const cSourceName = 'exerma_tb/exerma_tb_messages.ts/getMessageDate'
+
+         try {
+            
+            const result: Date = ( (typeof header.date === 'number')
+                                 ? (header.date as unknown) as Date
+                                 : (new Date(Date.parse(header.date as string))) )
+            return result
+
+        } catch (error) {
+            
+            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
+        }
+
+        return undefined
+
+    }
 
     /**
      * Explore the MessagePart structure to show her content

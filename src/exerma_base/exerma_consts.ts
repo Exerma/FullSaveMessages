@@ -16,6 +16,11 @@
     /** Empty string */
     export const cNullString: string = ''
     export const cNewLine: string = '\n'
+    export const cLastInFolder: string = '一Ξ一'
+    export const cLastInFolder1: string = 'Ξ' // Special Japonese char
+    export const cLastInFolder2: string = '一' // Special Japonese char
+    export const cLastInFolder3: string = '末' // Means "End" in Japonese
+
 
 
     // Export object
