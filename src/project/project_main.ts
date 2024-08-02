@@ -52,7 +52,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
     export const cPopupSaveAttachButton: string = 'cmdSaveAttachment'
     export const cPopupTestButton:       string = 'cmdTest'
     export const cAddinVersionId:        string = 'AddinVersion'
-    export const cAddinVersion:          string = '1.4.0'
+    export const cAddinVersion:          string = '1.4.1'
 
 
     // --------------- Types
