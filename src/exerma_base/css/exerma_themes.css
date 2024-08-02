@@ -1,0 +1,74 @@
+/**
+ * ---------------------------------------------------------------------------
+ *  (c) Patrick Seuret, 2023
+ * ---------------------------------------------------------------------------
+ *  exerma_themes.css
+ * ---------------------------------------------------------------------------
+ *
+ * Manage dark and light themes
+ *
+ * Include it with: 
+ *    @import url(../exerma_base/exerma_themes.css);
+ * ou
+ *    <link rel="stylesheet" type="text/css" href="../exerma_base/exerma_themes.css" />
+ *
+ * Reference:
+ *   https://thunderbird.topicbox.com/groups/addons/T74ee55ff41481e52/trying-to-find-references-for-webextension-apis
+ *
+ * Note: In thunderbirs, it is necessary to copy this CSS in the distribution. In FullSaveMessages
+ *       I added this line to the gruntfile.cjson file (in "copy --> mains --> files" section) 
+ *       (remove space between the two stars and the "/" char):
+ *          { expand: true, cwd:          "./src/exerma_base/css", src: ["** /*.css"],        dest: outDirExtracted + "/css/"},
+ *      to copy the file in a css folder, then added a second line to import it in css:
+ *
+ *          /* ---------- Get default theme-dependant colors ---------- * /
+ *           @import url(../exerma_base/css/exerma_themes.css); /* in dev environment * /
+ *           @import url(./css/exerma_themes.css);              /* in distribution environment * /
+ *       
+ *           html {
+ *               color-scheme: light dark;
+ *               background-color: var(--background-color-box);
+ *               color: var(--text-color);
+ *           }
+ *
+ * Versions:
+ *   2024-08-02: First version
+ *****/
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-color: white;
+        --border-color: color-mix(in srgb, var(--background-color-box) 93%, white);
+        --background-color: color-mix(in srgb, var(--background-color-box) 90%, white);
+        --hover-color: color-mix(in srgb, var(--background-color-box) 90%, black);
+        --button-background: #202020;
+        --button-text: white;
+        --button-border: #34349c;
+        --button-emphased-background: #34349c;
+        --button-emphased-text: white;
+        --button-emphased-border: #34349c;
+        --button-background-active: #1b1ba4;
+        --button-text-active: white;
+        --button-border-active: #ceceff;
+        --button-shadow: color-mix(in srgb, var(--background-color-box) 80%, black);
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --text-color: black;
+        --border-color: color-mix(in srgb, var(--background-color-box) 93%, black);
+        --background-color: color-mix(in srgb, var(--background-color-box) 90%, black);
+        --hover-color: color-mix(in srgb, var(--background-color-box) 90%, white);
+        --button-background: white;
+        --button-text: #909090;
+        --button-border: #ceceff;
+        --button-emphased-background: #1b1ba42a;
+        --button-emphased-text: #1b1ba4;
+        --button-emphased-border: #1b1ba4;
+        --button-background-active: #1b1ba4;
+        --button-text-active: white;
+        --button-border-active: #1b1ba4;
+        --button-shadow: color-mix(in srgb, var(--background-color-box) 90%, black);
+    }
+}

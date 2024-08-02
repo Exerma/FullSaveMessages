@@ -6,6 +6,16 @@
  *   2023-07-17: First version
  *****/ 
 
+    /* ---------- Get default theme-dependant colors ---------- */
+    @import url(../exerma_base/css/exerma_themes.css); /* dev */
+    @import url(./css/exerma_themes.css);              /* dist */
+
+    html {
+        color-scheme: light dark;
+        background-color: var(--background-color-box);
+        color: var(--text-color);
+    }
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-weight: normal;
@@ -14,18 +24,18 @@ body {
 }
 
 .button {
-    background-color: white;
-    border: 1px solid #ceceff;
+    background-color: var(--button-background);
+    border: 2px solid var(--button-border);
     border-radius: 10px;
     padding: 10px;
     margin: 5px;
-    color: #909090;
+    color: var(--button-text);
 }
 
 .button:hover {
-    background-color: #1b1ba4;
-    border-color: black;
-    color: white;
+    background-color: var(--button-background-active);
+    border-color: var(--button-border-active);
+    color: var(--button-text-active);
 }
 
 #AddinVersion {

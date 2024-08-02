@@ -6,8 +6,19 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2024-08-02: Add: Manage dark and light themes (with 
  *   2023-09-09: First version
  *****/
+
+    /* ---------- Get default theme-dependant colors ---------- */
+    @import url(../exerma_base/css/exerma_themes.css); /* dev */
+    @import url(./css/exerma_themes.css);              /* dist */
+
+    html {
+        color-scheme: light dark;
+        background-color: var(--background-color-box);
+        color: var(--text-color);
+    }
 
     /* ---------- Global ---------- */
     body {
@@ -45,11 +56,10 @@
     /* Share format with mailsubject above */
     
     /* ---------- Attachments ---------- */
-/*
-    #attachments {
 
+    #header_attachments {
+        margin-left: 60%;
     }
-*/
 
     .saveattachments {
         width: 95%;
@@ -82,38 +92,24 @@
     }
 
     #continue {
-        background-color: #1b1ba42a;
+        background-color: var(--button-emphased-background);
+        border-color: var(--button-emphased-border);
+        color: var(--button-emphased-text);
     }
-
-/*
-    .directory_picker {
-        font-weight: bold;
-        background-color: rgb(32, 54, 222);
-        border: 1px solid rgb(21, 35, 145);
-        border-radius: 10px;
-        padding: 10px 20px;
-        margin: 5px;
-        color: #eeeeee;
-    }
-    .directory_picker:hover {
-        background-color: rgb(21, 35, 145) !important;
-        border-color: black;
-        color: white;
-    }
-*/
 
     .foot_button {
         font-weight: bold;
-        background-color: white;
-        border: 1px solid #ceceff;
+        background-color: var(--button-background);
+        border: 2px solid var(--button-border);
         border-radius: 10px;
         padding: 10px 20px;
         margin: 5px;
-        color: #616161;
+        color: var(--button-text);
+        box-shadow: 2px 4px 2px var(--button-shadow);
     }
 
     .foot_button:hover {
-        background-color: #1b1ba4 !important;
-        border-color: black;
-        color: white;
+        background-color: var(--button-background-active) !important;
+        border-color: var(--button-border-active) !important;
+        color: var(--button-text-active) !important;
     }
