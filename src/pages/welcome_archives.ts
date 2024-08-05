@@ -27,7 +27,7 @@
             }                                  from '../exerma_base/exerma_dom'
     import log, { cRaiseUnexpected, cInfoStarted } from '../exerma_base/exerma_log'
     import {
-            CMessageExfilterMails,
+            CMessageExfiltrateEmails,
             CMessageLoadMailHeaders
             }                                  from '../project/project_messages'
     import { welcomeArchivesDispatcher }       from './welcome_archives_dispatcher'
@@ -231,7 +231,7 @@
                                                                cHtmlPopArchivesAttachmentsCheckboxId,
                                                                false) ?? false
             // Finalize in the main thread
-            void messenger.runtime.sendMessage(new CMessageExfilterMails({
+            void messenger.runtime.sendMessage(new CMessageExfiltrateEmails({
                                                         sentBy: cSourceName,
                                                         messageId: cSourceName,
                                                         mailsOfTabId: gMailsOfTabId,

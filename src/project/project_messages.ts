@@ -29,6 +29,7 @@
  *  
  * 
  * Versions:
+ *   2024-08-05: Upd: Rename CMessageExfilterMails() into CMessageExfiltrateEmails()
  *   2024-07-29: Add: Add saveAttachments parameter to CMessageExfilterMails message
  *   2024-07-20: Mov: Progress messages are moves to exerme_base/progress/exerma_progress_messages.ts
  *   2024-06-17: Add: Messages to show progress to the user: CMessageSaveProgressInit, CMessageSaveProgressClose
@@ -200,12 +201,12 @@
      * Implements the message used to return the list of loaded eMail headers of 
      * the provided MailTab ID (only currently selected message or all messages)
      */
-    export class CMessageExfilterMails extends CMessage {
+    export class CMessageExfiltrateEmails extends CMessage {
 
         // Extends CClass
-        static readonly CClassType: string = 'CMessageExfilterMails'
-        static readonly CClassHeritage: string[] = [...CMessage.CClassHeritage, CMessageExfilterMails.CClassType]
-        public readonly classHeritage: string[] = CMessageExfilterMails.CClassHeritage
+        static readonly CClassType: string = 'CMessageExfiltrateEmails'
+        static readonly CClassHeritage: string[] = [...CMessage.CClassHeritage, CMessageExfiltrateEmails.CClassType]
+        public readonly classHeritage: string[] = CMessageExfiltrateEmails.CClassHeritage
 
         // Class members
         public readonly mailsOfTabId: ex.uNumber
@@ -250,7 +251,7 @@
                         saveAttachments: boolean
                         }) {
                             super({
-                                name: exMessageNameExfilterMails,
+                                name: exMessageNameExfiltrateEmails,
                                 sentBy: params.sentBy,
                                 messageId: params.messageId
                             })
@@ -264,6 +265,6 @@
                     }
 
     }
-    export const exMessageNameExfilterMails: exMessageName = 'exfilterMails'
+    export const exMessageNameExfiltrateEmails: exMessageName = 'exfiltrateEmails'
 
 

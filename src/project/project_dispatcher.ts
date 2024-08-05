@@ -6,6 +6,7 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2024-08-05: Upd: Rename exfilterEMails() into exfiltrateEmails()
  *   2024-07-29: Add: Add saveAttachments parameter in CMessageExfilterMails
  *   2023-09-11: First version
  *
@@ -14,8 +15,8 @@
     import log, { cInfoStarted, cRaiseUnexpected } from '../exerma_base/exerma_log'
     import type * as exTb from '../exerma_tb/exerma_tb_types'
     import { type DispatcherReturnType, type CMessage, isCMessage } from '../exerma_base/exerma_messages'
-    import { CMessageExfilterMails, CMessageLoadMailHeaders, CMessageInitWelcomeArchiveWithTab } from './project_messages'
-    import { loadMailsOfTabAndSendResult, exfilterEMails } from './project_main'
+    import { CMessageExfiltrateEmails, CMessageLoadMailHeaders, CMessageInitWelcomeArchiveWithTab } from './project_messages'
+    import { loadMailsOfTabAndSendResult, exfiltrateEmails } from './project_main'
     import { isCClass } from '../exerma_base/exerma_types'
 
     // --------------- Functions
@@ -64,12 +65,12 @@
             }
 
 
-            if (isCClass(request, CMessageExfilterMails.CClassType)) {
+            if (isCClass(request, CMessageExfiltrateEmails.CClassType)) {
                     
-                const message: CMessageExfilterMails = (request as CMessageExfilterMails)
+                const message: CMessageExfiltrateEmails = (request as CMessageExfiltrateEmails)
                 // The welcome archives has finished to calculate the filenames
                 log().debugInfo(cSourceName, 'Message received: ' + request.name)
-                void exfilterEMails({
+                void exfiltrateEmails({
                                     mailsHeaders: message.mailsHeaders,
                                     mailsOfTabId: message.mailsOfTabId,
                                     selectedOnly: message.selectedOnly,

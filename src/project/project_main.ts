@@ -6,9 +6,10 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2024-08-05: Add: Catch errors when retrieving attachments in ExfiltrateEmail()
  *   2024-07-29: Add: Save attachments
  *   2024-06-15: Add: Add rule to remove opening and closing double quotes in cleanPersonsWithRules()
- *               Add: Use asyncSavePdf to choose if await every save file or use a global Promise in exfilterEMail()
+ *               Add: Use asyncSavePdf to choose if await every save file or use a global Promise in exfiltrateEmail()
  *   2024-06-08: Add: Avoid duplicate of file names in buildExfiltrationFilenames()
  *   2024-03-25: Chg: Save files one-by-one (using "await" for each) instead of acting in parallel
  *   2023-11-13: Add: Allow user to edit the sender name for export filename
@@ -52,7 +53,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
     export const cPopupSaveAttachButton: string = 'cmdSaveAttachment'
     export const cPopupTestButton:       string = 'cmdTest'
     export const cAddinVersionId:        string = 'AddinVersion'
-    export const cAddinVersion:          string = '1.4.1'
+    export const cAddinVersion:          string = '1.4.2'
 
 
     // --------------- Types
@@ -833,7 +834,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
      * @param {boolean} params.saveAttachments is used to require saving of attachments (if true)
      *                  or to ignore them (if false)
      */
-    export async function exfilterEMails (params: { mailsHeaders: exTb.AMailHeader
+    export async function exfiltrateEmails (params: { mailsHeaders: exTb.AMailHeader
                                                     mailsOfTabId: ex.uNumber
                                                     selectedOnly: boolean
                                                     targetDirectory: string
@@ -842,7 +843,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
                                                     saveAttachments: boolean
                                                  }): Promise<void> {
 
-        const cSourceName: string = 'project/project_main.ts/exfilterEMails'
+        const cSourceName: string = 'project/project_main.ts/exfiltrateEmails'
 
         // eslint-disable-next-line no-template-curly-in-string
         const cDefaultTemplate: string = '${yyyy-mm-dd} ${HHMM}__${from}__${subject}'
@@ -867,7 +868,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
                 // Ask user for target path when saving **first** email
                 const header = params.mailsHeaders.at(0) as messenger.messages.MessageHeader
                 log().debugInfo(cSourceName, 'Empty target path: ask user')
-                absolutePath = await exfilterEMail(header, {
+                absolutePath = await exfiltrateEmail(header, {
                                                     filename: filenames?.get(header.id),
                                                     subject: params.mailsSubjects.get(header.id),
                                                     sender: params.mailsSenders.get(header.id),
@@ -889,7 +890,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
             const saveAllPromises = new Array<Promise<string>>()
             for (; iMail < nbMails; ++iMail) {
                 const header = params.mailsHeaders.at(iMail) as messenger.messages.MessageHeader
-                const saveFilePromise = exfilterEMail(header, {
+                const saveFilePromise = exfiltrateEmail(header, {
                                                       filename: filenames?.get(header.id),
                                                       subject: params.mailsSubjects.get(header.id),
                                                       sender: params.mailsSenders.get(header.id),
@@ -946,7 +947,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
      *                  "YYYY-MM-DD HHMM__" before the filename of the attachment.
      * @returns {Promise<string>} is a Promise to return the absolute target path & name
      */
-    async function exfilterEMail (messageHeader: messenger.messages.MessageHeader,
+    async function exfiltrateEmail (messageHeader: messenger.messages.MessageHeader,
                                   params?: {
                                     filename?: string
                                     subject?: string
@@ -957,7 +958,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
                                   }
                             ): Promise<string> {
 
-        const cSourceName: string = 'project/project_main.ts/exfilterEMail'
+        const cSourceName: string = 'project/project_main.ts/exfiltrateEmail'
         const asyncSavePdf: boolean = false
 
         log().trace(cSourceName, cInfoStarted)
@@ -1096,18 +1097,22 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
                                 const type = attach.contentType
                                 if (type !== 'text/x-moz-deleted') {
                                     // Load file content
-                                    const filefile = await messenger.messages.getAttachmentFile(messageHeader.id, attach.partName) as File
-                                    const fileblob = await filefile.arrayBuffer()
-
-                                    // Save it
-                                    const filename = buildFullname(absolutePath,
-                                                                   cleanFilename(attachmentPrefix + extractFilename(attach.name)))
-                                    const uniquename = stringMakeUnique(filename, existingFiles, { upCased: true })
-                                    log().debugInfo(cSourceName, uniquename)
-                                    if (asyncSavePdf) {
-                                        savefilePromises.push(browser.localSaveFile.saveFile(uniquename, fileblob))
-                                    } else {
-                                        await browser.localSaveFile.saveFile(uniquename, fileblob)
+                                    try {
+                                        const filefile = await messenger.messages.getAttachmentFile(messageHeader.id, attach.partName) as File
+                                        const fileblob = await filefile.arrayBuffer()
+    
+                                        // Save it
+                                        const filename = buildFullname(absolutePath,
+                                                                       cleanFilename(attachmentPrefix + extractFilename(attach.name)))
+                                        const uniquename = stringMakeUnique(filename, existingFiles, { upCased: true })
+                                        log().debugInfo(cSourceName, uniquename)
+                                        if (asyncSavePdf) {
+                                            savefilePromises.push(browser.localSaveFile.saveFile(uniquename, fileblob))
+                                        } else {
+                                            await browser.localSaveFile.saveFile(uniquename, fileblob)
+                                        }
+                                    } catch (error) {
+                                        log().raiseBenine(cSourceName, 'Error while retrieving attachment', error as Error)
                                     }
 
                                 }
