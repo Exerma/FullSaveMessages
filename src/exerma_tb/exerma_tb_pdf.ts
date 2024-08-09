@@ -17,8 +17,8 @@
     // --------------- Imports
     import { jsPDF }                             from 'jspdf'
     import {
-             exploreMessagePartStructure,
-             getMessagePartBody
+             tbExploreMessagePartStructure,
+             tbGetMessagePartBody
             }                                    from './exerma_tb_messages'
     import { datetimeToFieldReplacement, numberToByteSize }        from '../exerma_base/exerma_misc'
     import { loadResourceHtml, loadResource }    from './exerma_tb_misc'
@@ -205,16 +205,16 @@
                 log().debugInfo(cSourceName, 'Cannot retrieve main message')
                 content = '<p>Cannot retrieve main message</p>'
             } else {
-                content = getMessagePartBody(message, 'text/html')
+                content = tbGetMessagePartBody(message, 'text/html')
                 if (content === '') {
-                    content = getMessagePartBody(message, 'text/plain')
+                    content = tbGetMessagePartBody(message, 'text/plain')
                     if (content !== '') {
                         content = '<pre>' + content + '</pre>'
                         // content = stringPrefixLinesWith(content,
                         //                                 '<p class="notopmargin">',
                         //                                 { suffix: '</p>', replaceEmpty: '&nbsp;' })
                     } else {
-                        content = exploreMessagePartStructure(message)
+                        content = tbExploreMessagePartStructure(message)
                     }
                 }
             }

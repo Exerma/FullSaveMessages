@@ -240,6 +240,9 @@
                                                         mailsSubjects,
                                                         mailsSenders,
                                                         targetDirectory: targetPath,
+                                                        saveEml: true,
+                                                        savePdf: true,
+                                                        saveHtml: true,
                                                         saveAttachments
                                                     }))
 

@@ -18,16 +18,16 @@
     import { isCClass }                          from '../exerma_base/exerma_types'
     import { createAndAddElement }               from '../exerma_base/exerma_dom'
     import {
-            CMessageInitWelcomeArchiveWithTab,
-            CMessageMailHeadersLoaded
+                CMessageInitWelcomeArchiveWithTab,
+                CMessageMailHeadersLoaded
             }                                    from '../project/project_messages'
     import {
-            type DispatcherReturnType,
-            isCMessage
+                type DispatcherReturnType,
+                isCMessage
             }                                    from '../exerma_base/exerma_messages'
     import {
-            initWelcomeArchive,
-            presentUniqueNamesToUser
+                initWelcomeArchive,
+                presentUniqueNamesToUser
             }                                    from './welcome_archives'
  
 

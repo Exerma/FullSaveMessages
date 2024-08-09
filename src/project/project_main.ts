@@ -6,6 +6,8 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2024-08-09: Add: Implement onSaveAttachButtonClick()
+ *   2024-08-09: Chg: Allow caller of exfitrateEmails() and exfitrateEmail() to choose to save EML, PDF and HTML files or not
  *   2024-08-05: Add: Catch errors when retrieving attachments in ExfiltrateEmail()
  *   2024-07-29: Add: Save attachments
  *   2024-06-15: Add: Add rule to remove opening and closing double quotes in cleanPersonsWithRules()
@@ -21,30 +23,36 @@
     import type * as ex                          from '../exerma_base/exerma_types'
     import type * as exTb                        from '../exerma_tb/exerma_tb_types'
     import log, { cRaiseUnexpected, cInfoStarted } from '../exerma_base/exerma_log'
-    import { getMessageDate, loadAllMails, loadSelectedMails }   from '../exerma_tb/exerma_tb_messages'
+    import {
+                tbGetMessageDate,
+                tbLoadMessagesOfTab,
+                tbGetCurrentTabId
+            }                                    from '../exerma_tb/exerma_tb_messages'
+    import { saveBlob }                          from '../exerma_tb/exerma_tb_misc'
     import { createPdf }                         from '../exerma_tb/exerma_tb_pdf'
     import {
-        datetimeToFieldReplacement,
+                datetimeToFieldReplacement,
                 datetimeToStringTag,
                 fieldReplacement,
                 stringMakeUnique
             }                                    from '../exerma_base/exerma_misc'
     import {
                 type CMessageLoadMailHeaders,
-                CMessageMailHeadersLoaded
+                CMessageMailHeadersLoaded,
+                CMessageExfiltrateEmails
             }                                    from './project_messages'
     import { ProjectStorage }                    from './project_storage'
     import {
-             cLastInFolder1,
-             cLastInFolder2,
-             cNullString
+                cLastInFolder1,
+                cLastInFolder2,
+                cNullString
             }                                    from '../exerma_base/exerma_consts'
     import {
-             buildFullname,
-             cleanFilename,
-             extractFilename
+                buildFullname,
+                cleanFilename,
+                extractFilename
             }                                    from '../exerma_base/exerma_files'
-import { exLangFuture } from '../exerma_base/exerma_lang'
+    import { exLangFuture }                      from '../exerma_base/exerma_lang'
 
 
     // --------------- Consts
@@ -53,7 +61,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
     export const cPopupSaveAttachButton: string = 'cmdSaveAttachment'
     export const cPopupTestButton:       string = 'cmdTest'
     export const cAddinVersionId:        string = 'AddinVersion'
-    export const cAddinVersion:          string = '1.4.2'
+    export const cAddinVersion:          string = '1.5.0'
 
 
     // --------------- Types
@@ -95,9 +103,8 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
         const cSourceName = 'project/project_main.ts/storeCurrentMailTabId'
 
         // Save current tabId to manage the emails of
-        const allTabs = await messenger.mailTabs.query( { active: true, currentWindow: true } )
-        const currentTab: exTb.uMailTab = allTabs?.at(0)
-        void await messenger.storage.session.set({ name: cStorageCurrentMailTabId, header: currentTab?.tabId })
+        const currentTabId = await tbGetCurrentTabId()
+        void await messenger.storage.session.set({ name: cStorageCurrentMailTabId, header: currentTabId })
 
     }
 
@@ -164,9 +171,33 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
      * Versions: 23.02.2024
      * @param {Event} event is the 'click' event firing this event handler
      */
-    export function onSaveAttachButtonClick (event: Event): void {
+    export async function onSaveAttachButtonClick (event: Event): Promise<void> {
+
+        const cSourceName = 'project/project_main.ts/onSaveAttachButtonClick'
 
         console.log('User has clicked the save attachment button')
+
+        // Get messages to save the attachments of
+        const currentTabId = await tbGetCurrentTabId()
+        const headers = await tbLoadMessagesOfTab({ mailsOfTabId: currentTabId, selectedOnly: true })
+
+        // Direct exfiltration of attachments
+        void messenger.runtime.sendMessage(new CMessageExfiltrateEmails({
+                                                    sentBy: cSourceName,
+                                                    messageId: cSourceName,
+                                                    mailsOfTabId: currentTabId,
+                                                    selectedOnly: true,
+                                                    mailsHeaders: headers,
+                                                    mailsSubjects: new Map<number, string>(),
+                                                    mailsSenders: new Map<number, string>(),
+                                                    targetDirectory: cNullString,
+                                                    saveEml: false,
+                                                    savePdf: false,
+                                                    saveHtml: false,
+                                                    saveAttachments: true
+                                                }))
+        
+        window.close()
 
     }
 
@@ -210,9 +241,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
         log().trace(cSourceName, cInfoStarted)
 
         // Retrieve the active tab id and save it for later use
-        const tabs = await messenger.mailTabs.query( { active: true, currentWindow: true } )
-        const activeTab: exTb.uMailTab = tabs?.at(0)
-        const tabId: number | undefined = activeTab?.tabId
+        const tabId = await tbGetCurrentTabId()
         await messenger.storage.session.set({ [ProjectStorage.currentTabId]: tabId })
 
         // Force background.js to awake and init (or it will fail receiving the first message 
@@ -263,7 +292,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
 
         try {
 
-            const mails: exTb.AMailHeader = await loadMessagesOfTab({
+            const mails: exTb.AMailHeader = await tbLoadMessagesOfTab({
                                                         mailsOfTabId: message?.mailsOfTabId,
                                                         selectedOnly: message?.selectedOnly
                                                     })
@@ -289,70 +318,6 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
     }
 
 
-
-    /**
-     * # Load messages
-     * 
-     * Retrieve headers of messages belonging to the provided tab (clear previous data)
-     * 
-     * Versions: 23.02.2024
-     * @param {object} options is used to provide additional options
-     * @param {ex.uNumber} options.mailsOfTabId is the optional id of the tab to save & archive the 
-     *             selected messages of
-     * @param {boolean} options.selectedOnly is used to load only the selected messages of the
-     *             tabs (if true) of all messages of the tab (if false, default)
-     * @returns {Promise<boolean>} is true if success, false if an error occurs
-     */
-    export async function loadMessagesOfTab (options?: {
-                                                mailsOfTabId?: ex.uNumber
-                                                selectedOnly?: boolean
-                                            }): Promise<exTb.AMailHeader> {
-
-        const cSourceName: string = 'project/project_main.ts/loadFromTab'
-
-        log().trace(cSourceName, cInfoStarted)
-
-        // // Ask for destination directory
-        // log().debugInfo(cSourceName, 'Ask directory to user')
-        // let targetFolder: FileSystemDirectoryHandle
-        // try {
-
-        //     targetFolder = await showDirectoryPicker()
-
-        // } catch (error) { return await Promise.resolve(false) }
-
-        // log().debugInfo(cSourceName, 'Directory is ' + targetFolder.name)
-
-        const success: boolean = true
-        const result: exTb.AMailHeader = []
-
-        try {
-
-            // Load messages by chunks (about 100 per chunk)
-            log().debugInfo(cSourceName, 'selectedOnly=' + (options?.selectedOnly ?? 'undefined') + '  mailsOfTabIt=' + (options?.mailsOfTabId ?? 'undefined'))
-            const selection = ( (options?.selectedOnly === true)
-                                ? loadSelectedMails(options?.mailsOfTabId)
-                                : loadAllMails(options?.mailsOfTabId))
-            for await (const messageHeader of selection) {
-        
-                log().debugInfo(cSourceName, messageHeader.subject)
-
-                result.push(messageHeader)
-
-            }
-
-            // Happy end
-            return result
-
-        } catch (error) {
-            
-            // An error occurs
-            log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
-            return []
-
-        }
-
-    }
 
 
 
@@ -768,7 +733,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
 
             // Extract data
             const mailId: number = header.id
-            const mailDate: Date = getMessageDate(header) ?? new Date(0)
+            const mailDate: Date = tbGetMessageDate(header) ?? new Date(0)
             const mailFrom: string = header.author
             const mailTo: string = header.ccList.at(0) ?? ''
             const mailBcc: string = header.bccList.at(0) ?? ''
@@ -816,7 +781,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
     /**
      * # Exfilter messages of the provided tab
      * 
-     * Versions: 29.07.2024, 23.02.2024
+     * Versions: 09.08.2024, 29.07.2024, 23.02.2024
      * @param {object}           params are the required parameters of the function
      * @param {exTb.AMailHeader} params.mailsHeaders is the list of email headers to exfilter
      * @param {ex.uNumber}       params.mailsOfTabId is the Id of the Tab containing the emails to
@@ -831,16 +796,21 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
      * @param {ex.MNumberString} params.mailsSenders is the corrected author (sender) name to use
      *                  email (email ID as key) to exfiltered: <emailID;correctedSubject>.
      *                  for each EMails with missing IDs are using the real email author.
-     * @param {boolean} params.saveAttachments is used to require saving of attachments (if true)
-     *                  or to ignore them (if false)
+     * @param {boolean} params.saveEml is used to save the EML file (if true) or don't save it (if false)
+     * @param {boolean} params.savePdf is used to save the PDF file (if true) or don't save it (if false)
+     * @param {boolean} params.saveHtml is used to save the HTML file (if true) or don't save it (if false)
+     * @param {boolean} params.saveAttachments is used to save attachment with the email (if true)
      */
     export async function exfiltrateEmails (params: { mailsHeaders: exTb.AMailHeader
-                                                    mailsOfTabId: ex.uNumber
-                                                    selectedOnly: boolean
-                                                    targetDirectory: string
-                                                    mailsSubjects: ex.MNumberString
-                                                    mailsSenders: ex.MNumberString
-                                                    saveAttachments: boolean
+                                                      mailsOfTabId: ex.uNumber
+                                                      selectedOnly: boolean
+                                                      targetDirectory: string
+                                                      mailsSubjects: ex.MNumberString
+                                                      mailsSenders: ex.MNumberString
+                                                      saveEml: boolean
+                                                      savePdf: boolean
+                                                      saveHtml: boolean
+                                                      saveAttachments: boolean
                                                  }): Promise<void> {
 
         const cSourceName: string = 'project/project_main.ts/exfiltrateEmails'
@@ -862,46 +832,38 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
                                                                                   cDefaultTemplate)
             let absolutePath = params.targetDirectory
             const nbMails = params.mailsHeaders.length
-            let iMail = 0
-            if ((nbMails > 0) && (absolutePath === cNullString)) {
+            if (nbMails > 0) {
 
-                // Ask user for target path when saving **first** email
-                const header = params.mailsHeaders.at(0) as messenger.messages.MessageHeader
-                log().debugInfo(cSourceName, 'Empty target path: ask user')
-                absolutePath = await exfiltrateEmail(header, {
-                                                    filename: filenames?.get(header.id),
-                                                    subject: params.mailsSubjects.get(header.id),
-                                                    sender: params.mailsSenders.get(header.id),
-                                                    targetPath: absolutePath,
-                                                    saveAttachments
-                                                   })
-                iMail = 1
+                // Start showing progress to user
+                // TODO: Open the progress window
+                // await messenger.runtime.sendMessage(new CMessageSaveProgressInit({
+                //                                             sentBy: cSourceName,
+                //                                             messageId: cSourceName,
+                //                                             nbFiles: nbMails * 3
+                //                                         }))
+
+                // Save next emails
+                let cancelled = false
+                const saveAllPromises = new Array<Promise<string>>()
+                for (let iMail = 0; (iMail < nbMails) && (!cancelled); ++iMail) {
+
+                    const header = params.mailsHeaders.at(iMail) as messenger.messages.MessageHeader
+                    const exfiltrateResult = await exfiltrateEmail(header, {
+                                                            filename: filenames?.get(header.id),
+                                                            subject: params.mailsSubjects.get(header.id),
+                                                            sender: params.mailsSenders.get(header.id),
+                                                            targetPath: absolutePath,
+                                                            saveEml: params.saveEml,
+                                                            savePdf: params.savePdf,
+                                                            saveHtml: params.saveHtml,
+                                                            saveAttachments: params.saveAttachments
+                                                        })
+                    absolutePath = exfiltrateResult[0]
+                    cancelled = exfiltrateResult[1]
+                    
+                }
+
             }
-
-            // Start showing progress to user
-            // TODO: Open the progress window
-            // await messenger.runtime.sendMessage(new CMessageSaveProgressInit({
-            //                                             sentBy: cSourceName,
-            //                                             messageId: cSourceName,
-            //                                             nbFiles: nbMails * 3
-            //                                         }))
-
-            // Save next emails
-            const saveAllPromises = new Array<Promise<string>>()
-            for (; iMail < nbMails; ++iMail) {
-                const header = params.mailsHeaders.at(iMail) as messenger.messages.MessageHeader
-                const saveFilePromise = exfiltrateEmail(header, {
-                                                      filename: filenames?.get(header.id),
-                                                      subject: params.mailsSubjects.get(header.id),
-                                                      sender: params.mailsSenders.get(header.id),
-                                                      targetPath: absolutePath,
-                                                      saveAttachments
-                                                    })
-                saveAllPromises.push(saveFilePromise)
-            }
-            
-            // Wait until all files have been saved
-            await Promise.all(saveAllPromises)
 
             // Close progress window
             // TODO: Close the progress window
@@ -940,23 +902,34 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
      *                 to save the files in.
      *                 If not provided, then ask user for the destination and use the target path
      *                 as current default path and return fullname of the EML file
+     * @param {boolean} params.saveEml is used to save the EML file (if true) or don't save it (if false)
+     * @param {boolean} params.savePdf is used to save the PDF file (if true) or don't save it (if false)
+     * @param {boolean} params.saveHtml is used to save the HTML file (if true) or don't save it (if false)
      * @param {boolean} params.saveAttachments is used to save attachment with the email (if true)
      *                 If false or not provided, then don't save attachments
      * @param {string} params.attachmentPrefix is used to define the prefix to set to the attachment
      *                  before the attachment file name (if provided). If not provided, then use
      *                  "YYYY-MM-DD HHMM__" before the filename of the attachment.
-     * @returns {Promise<string>} is a Promise to return the absolute target path & name
+     * @returns {Promise<[string, boolean]>} is a Promise to return absolute target path & name (as first
+     *                  value) and if the user has cancelled (as second value):
+     *                       Syntax:
+     *                           const saveResult = await saveBlob(...)
+     *                           const absolutePath = saveResult[0]
+     *                           const cancelled = saveResult[1]
      */
     async function exfiltrateEmail (messageHeader: messenger.messages.MessageHeader,
-                                  params?: {
-                                    filename?: string
-                                    subject?: string
-                                    sender?: string
-                                    targetPath?: string
-                                    saveAttachments?: boolean
-                                    attachmentPrefix?: string
-                                  }
-                            ): Promise<string> {
+                                    params: {
+                                        filename?: string
+                                        subject?: string
+                                        sender?: string
+                                        targetPath?: string
+                                        saveEml: boolean
+                                        savePdf: boolean
+                                        saveHtml: boolean
+                                        saveAttachments: boolean
+                                        attachmentPrefix?: string
+                                   }
+                            ): Promise<[string, boolean]> {
 
         const cSourceName: string = 'project/project_main.ts/exfiltrateEmail'
         const asyncSavePdf: boolean = false
@@ -966,6 +939,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
         // This target path will be fed by asking destination if not provided
         let absolutePath: string = params?.targetPath ?? cNullString
         let filename: string = params?.filename ?? cNullString
+        let cancelled = false
 
         try {
 
@@ -976,14 +950,14 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
             if (filename === cNullString) {
                 
                 // Extract data to use to build the filename body
-                const when: Date = getMessageDate(messageHeader) ?? new Date(0)
+                const when: Date = tbGetMessageDate(messageHeader) ?? new Date(0)
                 const who: string = params?.sender?.trim() ?? messageHeader?.author ?? '(hidden)'
                 const what: string = params?.subject?.trim() ?? messageHeader?.subject.trim() ?? '(no object)'
 
                 filename = datetimeToStringTag(when) + '__' + what
         
                 
-                                // +
+                        // +
                         // '__' + who +
                         // '__' + what
 
@@ -1000,134 +974,112 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
                 log().debugInfo(cSourceName, 'rawMessage loaded')
 
                 // ----- Save EML File
-                const emlBlob = new Blob([rawMessage], { type: 'text/eml' })
-                const emlData = await emlBlob.arrayBuffer()
-
-                if (absolutePath === cNullString) {
-                    
-                    // If no target path is provided, then ask user for destination and retrive the selected directory for next saves
-                    // Prepare to hijack the destination file to retrieve **full path**
-                    const getAbsolutePath = (downloadItem: messenger.downloads.DownloadItem): void => { absolutePath = downloadItem?.filename }
-                    const emlUrl = URL.createObjectURL(emlBlob)
-                    messenger.downloads.onCreated.addListener(getAbsolutePath)
-                    const targetFile = await messenger.downloads.download({
-                        url: emlUrl,
-                        filename: (filename + '.eml'),
-                        saveAs: true
-                    })
-                    messenger.downloads.onCreated.removeListener(getAbsolutePath)
-
-                } else {
-
-                    // Target path is known, use it silently
-                    const emlFullname = buildFullname(absolutePath, filename, { setExt: 'eml' })
-                    if (asyncSavePdf) {
-                        savefilePromises.push(browser.localSaveFile.saveFile(emlFullname, emlData))
-                    } else {
-                        await browser.localSaveFile.saveFile(emlFullname, emlData)
-                    }
-
+                if (params.saveEml) {
+                    const emlBlob = new Blob([rawMessage], { type: 'text/eml' })
+                    const emlData = await emlBlob.arrayBuffer()
+                    const saveResult = await saveBlob(emlData, filename, absolutePath, { setExt: 'eml' })
+                    absolutePath = saveResult[0]
+                    cancelled = saveResult[1]
                 }
 
-                // Save next files if user has not cancelled
-                if (absolutePath !== cNullString) {
+                // ----- Save PDF and HTML file
+                if ((!cancelled) && ((params.savePdf) || (params.saveHtml))) {
 
                     // Create the Html file and its PDF 
                     const [pdfDoc, htmlDoc] = await createPdf(messageHeader, cResourcePdfTemplate) //, {}, { noPdf: true })
 
                     // Save PDF File
-                    if (pdfDoc !== undefined) {
+                    if ((!cancelled) && (params.savePdf) && (pdfDoc !== undefined)) {
                     
                         const pdfBlob: Blob = pdfDoc.output('blob')
                         const pdfData = await pdfBlob.arrayBuffer()
-                        const pdfFullname  = buildFullname(absolutePath, filename, { setExt: 'pdf' })
                         pdfDoc.close()
-                        if (asyncSavePdf) {
-                            savefilePromises.push(browser.localSaveFile.saveFile(pdfFullname, pdfData))
-                        } else {
-                            await browser.localSaveFile.saveFile(pdfFullname, pdfData)
-                        }
+                        const saveResult = await saveBlob(pdfData, filename, absolutePath, { setExt: 'pdf' })
+                        absolutePath = saveResult[0]
+                        cancelled = saveResult[1]
                     
-                    } else if (htmlDoc !== undefined) {
-                    
-                        // 2024-03-02: Use the experiment to create and save the PDF instead
-                        const pdfFullname  = buildFullname(absolutePath, filename, { setExt: 'pdf' })
-                        const pdfData = htmlDoc.documentElement.outerHTML
-                        savefilePromises.push(browser.localSaveFile.savePdf(pdfFullname, pdfData))
-
                     }
 
                     // Save HTML file
-                    if (htmlDoc !== undefined) {
+                    if ((!cancelled) && (params.saveHtml) && (htmlDoc !== undefined)) {
+                        
                         const htmlBlob = new Blob([htmlDoc.documentElement.outerHTML], { type: 'text/html' } )
                         const htmlData = await htmlBlob.arrayBuffer()
-                        const htmlFullname = buildFullname(absolutePath, filename, { setExt: 'html' })
-                        if (asyncSavePdf) {
-                            savefilePromises.push(browser.localSaveFile.saveFile(htmlFullname, htmlData))
-                        } else {
-                            await browser.localSaveFile.saveFile(htmlFullname, htmlData)
-                        }
-                    }
-
-                    // Save attachments
-                    const saveAttachments = params?.saveAttachments ?? false
-                    if (params?.saveAttachments === true) {
+                        const saveResult = await saveBlob(htmlData, filename, absolutePath, { setExt: 'html' })
+                        absolutePath = saveResult[0]
+                        cancelled = saveResult[1]
                         
-                        const allAttach = await messenger.messages.listAttachments(messageHeader.id)
-                        if ((allAttach !== null) && (allAttach.length !== 0)) {
-                            
-                            // Prepare prefix name of files
-                            let attachmentPrefix = params.attachmentPrefix
-                            if (attachmentPrefix === undefined ) {
-                                const mailDate: Date = getMessageDate(messageHeader) ?? new Date(0)
-                                attachmentPrefix = datetimeToStringTag(mailDate, {
-                                                                       datetimeSep: ' ',
-                                                                       noSeconds: true
-                                                                      })
-                                                 + cLastInFolder2
-                                                 + exLangFuture('') // "Pièce"
-                                                 + cLastInFolder2
-                            }
+                    }
+                
+                }
 
-                            log().debugInfo(cSourceName, allAttach.length + ' pièces jointes')
+                // Save attachments
+                if ((!cancelled) && (params.saveAttachments)) {
+                    
+                    log().trace(cSourceName, 'Save attachments')
 
-                            // Save files
-                            const existingFiles: ex.MStringString = new Map<string, string>()
-                            for (const attach of allAttach) {
-                                const type = attach.contentType
-                                if (type !== 'text/x-moz-deleted') {
-                                    // Load file content
-                                    try {
-                                        const filefile = await messenger.messages.getAttachmentFile(messageHeader.id, attach.partName) as File
-                                        const fileblob = await filefile.arrayBuffer()
-    
-                                        // Save it
-                                        const filename = buildFullname(absolutePath,
-                                                                       cleanFilename(attachmentPrefix + extractFilename(attach.name)))
-                                        const uniquename = stringMakeUnique(filename, existingFiles, { upCased: true })
-                                        log().debugInfo(cSourceName, uniquename)
-                                        if (asyncSavePdf) {
-                                            savefilePromises.push(browser.localSaveFile.saveFile(uniquename, fileblob))
-                                        } else {
-                                            await browser.localSaveFile.saveFile(uniquename, fileblob)
-                                        }
-                                    } catch (error) {
-                                        log().raiseBenine(cSourceName, 'Error while retrieving attachment', error as Error)
-                                    }
+                    const allAttach = await messenger.messages.listAttachments(messageHeader.id)
+                    if ((allAttach !== null) && (allAttach.length !== 0)) {
+                        
+                        log().trace(cSourceName, 'Save attachments: ' + allAttach.length + ' pieces')
+
+                        // Prepare prefix name of files
+                        let attachmentPrefix = params.attachmentPrefix
+                        if (attachmentPrefix === undefined ) {
+                            const mailDate: Date = tbGetMessageDate(messageHeader) ?? new Date(0)
+                            attachmentPrefix = datetimeToStringTag(mailDate, {
+                                                                    datetimeSep: ' ',
+                                                                    noSeconds: true
+                                                                    })
+                                                + cLastInFolder2
+                                                + exLangFuture('') // "Pièce"
+                                                + cLastInFolder2
+                        }
+
+                        log().debugInfo(cSourceName, allAttach.length + ' pièces jointes')
+
+                        // Save files
+                        const existingFiles: ex.MStringString = new Map<string, string>()
+                        for (const attach of allAttach) {
+
+                            const type = attach.contentType
+                            if (type !== 'text/x-moz-deleted') {
+
+                                // Load file content
+                                try {
+                                    
+                                    const filefile = await messenger.messages.getAttachmentFile(messageHeader.id, attach.partName) as File
+                                    const fileBlob = await filefile.arrayBuffer()
+
+                                    // Save it
+                                    const filename = buildFullname(absolutePath,
+                                                                    cleanFilename(attachmentPrefix + extractFilename(attach.name)))
+                                    const uniquename = stringMakeUnique(filename, existingFiles, { upCased: true })
+                                    log().debugInfo(cSourceName, uniquename)
+                                    const saveResult = await saveBlob(fileBlob, uniquename, absolutePath)
+                                    absolutePath = saveResult[0]
+                                    cancelled = saveResult[1]
+
+                                    log().debugInfo(cSourceName, 'absolutePath = ' + absolutePath)
+
+                                    if (cancelled) break
+
+                                } catch (error) {
+
+                                    log().raiseBenine(cSourceName, 'Error while retrieving attachment', error as Error)
 
                                 }
+
                             }
 
                         }
 
+                
                     }
 
                 }
 
             }
-
-            // Wait until all promises are achieved
-            await Promise.all(savefilePromises)
 
         } catch (error) {
         
@@ -1136,7 +1088,7 @@ import { exLangFuture } from '../exerma_base/exerma_lang'
         }
 
         // Done
-        return buildFullname(absolutePath, filename)
+        return [absolutePath, cancelled]
                                 
     }
 

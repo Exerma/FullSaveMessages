@@ -6,18 +6,34 @@
  * ---------------------------------------------------------------------------
  *
  * Versions:
+ *   2024-08-09: Add: Propagate saveEml, savePdf and saveHtml parameters from  CMessageExfiltrateEmails to exfiltrateEmails()
  *   2024-08-05: Upd: Rename exfilterEMails() into exfiltrateEmails()
  *   2024-07-29: Add: Add saveAttachments parameter in CMessageExfilterMails
  *   2023-09-11: First version
  *
  */
     // --------------- Imports
-    import log, { cInfoStarted, cRaiseUnexpected } from '../exerma_base/exerma_log'
-    import type * as exTb from '../exerma_tb/exerma_tb_types'
-    import { type DispatcherReturnType, type CMessage, isCMessage } from '../exerma_base/exerma_messages'
-    import { CMessageExfiltrateEmails, CMessageLoadMailHeaders, CMessageInitWelcomeArchiveWithTab } from './project_messages'
-    import { loadMailsOfTabAndSendResult, exfiltrateEmails } from './project_main'
-    import { isCClass } from '../exerma_base/exerma_types'
+    import log,
+            {
+                cInfoStarted,
+                cRaiseUnexpected
+            }                                       from '../exerma_base/exerma_log'
+    import  {
+                type DispatcherReturnType,
+                type CMessage,
+                isCMessage
+            }                                       from '../exerma_base/exerma_messages'
+    import  {
+                CMessageExfiltrateEmails,
+                CMessageLoadMailHeaders
+            }                                       from './project_messages'
+    import  {
+                loadMailsOfTabAndSendResult,
+                exfiltrateEmails
+            }                                       from './project_main'
+    import  { isCClass }                            from '../exerma_base/exerma_types'
+
+
 
     // --------------- Functions
     /**
@@ -68,16 +84,20 @@
             if (isCClass(request, CMessageExfiltrateEmails.CClassType)) {
                     
                 const message: CMessageExfiltrateEmails = (request as CMessageExfiltrateEmails)
+                
                 // The welcome archives has finished to calculate the filenames
                 log().debugInfo(cSourceName, 'Message received: ' + request.name)
                 void exfiltrateEmails({
-                                    mailsHeaders: message.mailsHeaders,
-                                    mailsOfTabId: message.mailsOfTabId,
-                                    selectedOnly: message.selectedOnly,
-                                    targetDirectory: message.targetDirectory,
-                                    mailsSubjects: message.mailsSubjects,
-                                    mailsSenders: message.mailsSenders,
-                                    saveAttachments: message.saveAttachments
+                                        mailsHeaders: message.mailsHeaders,
+                                        mailsOfTabId: message.mailsOfTabId,
+                                        selectedOnly: message.selectedOnly,
+                                        targetDirectory: message.targetDirectory,
+                                        mailsSubjects: message.mailsSubjects,
+                                        mailsSenders: message.mailsSenders,
+                                        saveEml: message.saveEml,
+                                        savePdf: message.savePdf,
+                                        saveHtml: message.saveHtml,
+                                        saveAttachments: message.saveAttachments
                                     })
                 sendResponse()
                 return true

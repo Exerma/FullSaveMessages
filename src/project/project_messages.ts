@@ -215,6 +215,9 @@
         public readonly mailsSubjects: ex.MNumberString  // <mailId; subject to use>
         public readonly mailsSenders: ex.MNumberString   // <mailId; sender to use>
         public readonly targetDirectory: string
+        public readonly saveEml: boolean
+        public readonly savePdf: boolean
+        public readonly saveHtml: boolean
         public readonly saveAttachments: boolean
 
         /**
@@ -235,7 +238,10 @@
          *              email subject to use to save each mail: <mailId, mail subject>
          * @param {ex.MNumberString} params.mailsSenders is a Map containing the
          *              email sender to use to save each mail: <mailId, sender name>
-         * @param {string} params.targetDirectory is the target directory to save
+         * @param {boolean} params.saveEml is used to save the EML file (if true) or don't save it (if false)
+         * @param {boolean} params.savePdf is used to save the PDF file (if true) or don't save it (if false)
+         * @param {boolean} params.saveHtml is used to save the HTML file (if true) or don't save it (if false)
+         * @param {string}  params.targetDirectory is the target directory to save
          *              the files in
          * @param {boolean} params.saveAttachments is used to save attachement (if true)
          */
@@ -248,6 +254,9 @@
                         mailsSubjects: ex.MNumberString
                         mailsSenders: ex.MNumberString
                         targetDirectory: string
+                        saveEml: boolean
+                        savePdf: boolean
+                        saveHtml: boolean
                         saveAttachments: boolean
                         }) {
                             super({
@@ -261,6 +270,9 @@
                             this.mailsSubjects = params.mailsSubjects
                             this.mailsSenders = params.mailsSenders
                             this.targetDirectory = params.targetDirectory
+                            this.saveEml = params.saveEml
+                            this.savePdf = params.savePdf
+                            this.saveHtml = params.saveHtml
                             this.saveAttachments = params.saveAttachments
                     }
 
