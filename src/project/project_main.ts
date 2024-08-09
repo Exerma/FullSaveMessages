@@ -155,6 +155,11 @@
 
         console.log('User has clicked the archive button')
 
+        // Force background.js to awake and init (or it will fail receiving the first message 
+        // from welcome_archives)
+        void messenger.runtime.sendMessage('dummy')
+
+        // Start welcome_archive page
         await initWelcomePage()
 
         // window.close()
@@ -176,6 +181,10 @@
         const cSourceName = 'project/project_main.ts/onSaveAttachButtonClick'
 
         console.log('User has clicked the save attachment button')
+
+        // Force background.js to awake and init (or it will fail receiving the first message 
+        // from welcome_archives)
+        void messenger.runtime.sendMessage('dummy')
 
         // Get messages to save the attachments of
         const currentTabId = await tbGetCurrentTabId()
