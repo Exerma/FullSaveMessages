@@ -12,10 +12,11 @@
  */
 
     // ---------- Import
-    import * as EventNames from '../exerma_base/exerma_consts'
+    // import * as ex from ''
+    import * as EventNames from 'exerma_consts'
     import * as exMain from '../project/project_main'
-    import log, { cRaiseUnexpected, cInfoStarted } from '../exerma_base/exerma_log'
-    import { exLangFuture } from '../exerma_base/exerma_lang'
+    // import log, { cRaiseUnexpected, cInfoStarted } from 'exerma_log'
+    // import { exLangFuture } from '../../node_modules/exerma_ts_base/lib/exerma_lang'
 
 
     /**

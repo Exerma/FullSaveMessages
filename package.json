@@ -9,20 +9,28 @@
         "my-cli-tool": "./dist/esbuild/cli.js"
     },
     "scripts": {
+        "----- Grunt -----": "",
         "grunt:clean": "grunt clean",
         "grunt:copy": "grunt copy",
         "grunt:build": "grunt webpack",
         "grunt:debug": "grunt debug",
         "grunt:release": "grunt release",
+        "----- Lint & Doc -----": "",
         "lint": "eslint src/ --ignore-pattern /node_module/ --ext .ts --ext .cjs --ext .js ",
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-        "docs": "typedoc --entryPoints src/root.ts"
+        "docs": "typedoc",
+        "----- Exerma -----": "",
+        "exerma:local": "npm install ~/Data/Sources/TypeScript/Exerma_TS_Base/Exerma_TS_Base ~/Data/Sources/TypeScript/Exerma_TS_Thunderbird/Exerma_TS_Thunderbird",
+        "exerma:npm": "npm install exerma_ts_base exerma_ts_thunderbird"
     },
-    "author": "Patrick Seuret <https://github.com/exerma>",
+    "author": {
+        "name": "Patrick Seuret",
+        "email": "patrick@seuret.ch",
+        "url": "https://github.com/exerma"
+    },
     "license": "MIT",
     "type": "module",
     "devDependencies": {
-        "@types/jest": "^29.5.4",
         "@types/node": "^20.5.9",
         "@typescript-eslint/eslint-plugin": "^6.5.0",
         "@typescript-eslint/parser": "^6.5.0",
@@ -39,9 +47,6 @@
         "grunt-contrib-copy": "^1.0.0",
         "grunt-eslint": "^24.3.0",
         "grunt-webpack": "^6.0.0",
-        "jest": "^29.7.0",
-        "jest-environment-jsdom": "^29.7.0",
-        "ts-jest": "^29.1.1",
         "ts-loader": "^9.4.4",
         "ts-node": "^10.9.1",
         "typescript": "^5.2.2",
@@ -49,6 +54,8 @@
         "webpack-cli": "^5.1.4"
     },
     "dependencies": {
+        "exerma_ts_base": "file:../../../TypeScript/Exerma_TS_Base/Exerma_TS_Base",
+        "exerma_ts_thunderbird": "file:../../../TypeScript/Exerma_TS_Thunderbird/Exerma_TS_Thunderbird",
         "jspdf": "^2.5.1"
     }
 }

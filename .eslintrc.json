@@ -2,6 +2,7 @@
     "env": {
         "browser": true,
         "es2022": true,
+        "es2023": true,
         "jest": true,
         "node": true
     },
@@ -9,7 +10,7 @@
         "standard-with-typescript",
 		"plugin:jsdoc/recommended"
     ],
-    "ignorePatterns": ["/node_module/","*.js","*.cjs"],
+    "ignorePatterns": ["/node_modules/","*.js","*.cjs"],
     "overrides": [
         {
             "env": {
