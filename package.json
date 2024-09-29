@@ -54,6 +54,7 @@
         "webpack-cli": "^5.1.4"
     },
     "dependencies": {
+        "@exerma/exerma_ts_base": "file:../../../TypeScript/Exerma_TS_Base/Exerma_TS_Base",
         "exerma_ts_base": "file:../../../TypeScript/Exerma_TS_Base/Exerma_TS_Base",
         "exerma_ts_thunderbird": "file:../../../TypeScript/Exerma_TS_Thunderbird/Exerma_TS_Thunderbird",
         "jspdf": "^2.5.1"
