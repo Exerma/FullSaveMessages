@@ -8,6 +8,7 @@
  * Documentation about jsPDF: https://parall.ax/products/jspdf
  * 
  * Versions:
+ *   2024-09-29: Fix: Date shown in message header was today's date instead of the message date
  *   2024-07-20: Add: In createPdf(): Activate useCORS in pdfFile.html() function which fixed load of pictures
  *   2024-01-04: Add: Use plain text version of message in createPdf() if html version is missing
  *   2023-11-18: First version (move createPDF() from project_main.ts)
@@ -169,12 +170,18 @@
             } else
             if (typeof header.date === 'number') {
                 mailDate = new Date(header.date)
+            } else
+            if (header.date instanceof Date) {
+                mailDate = (header.date)
+            } else {
+                log().raiseBenine(cSourceName, 'Date format is: ' + (typeof header.date))
             }
+            const dateParts = datetimeToFieldReplacement(mailDate)
             void feedHeaderField(myDoc,
                                  htmlTargets?.senderLabelId ?? cHtmlPdfTemplateDateLabelId,
                                  exLangFuture('Date:'),
                                  htmlTargets?.senderContentId ?? cHtmlPdfTemplateDateContentId,
-                                 datetimeToFieldReplacement(mailDate).get('full'))
+                                 dateParts.get('fulldate') + ' ' + dateParts.get('mediumtime'))
     
             // 4) Set To
             void feedHeaderField(myDoc,

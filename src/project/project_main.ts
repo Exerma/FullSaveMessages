@@ -61,7 +61,7 @@
     export const cPopupSaveAttachButton: string = 'cmdSaveAttachment'
     export const cPopupTestButton:       string = 'cmdTest'
     export const cAddinVersionId:        string = 'AddinVersion'
-    export const cAddinVersion:          string = '1.5.0'
+    export const cAddinVersion:          string = '1.5.1'
 
 
     // --------------- Types
