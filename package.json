@@ -16,7 +16,7 @@
         "grunt:release": "grunt release",
         "lint": "eslint src/ --ignore-pattern /node_module/ --ext .ts --ext .cjs --ext .js ",
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-        "docs": "typedoc --entryPoints src/root.ts"
+        "docs": "typedoc --entryPoints src/project/project_main.ts"
     },
     "author": "Patrick Seuret <https://github.com/exerma>",
     "license": "MIT",

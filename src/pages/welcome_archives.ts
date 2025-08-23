@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------------
- *  (c) Patrick Seuret, 2024
+ *  (c) Patrick Seuret, 2025
  * ---------------------------------------------------------------------------
  *  welcome_archives.ts
  * ---------------------------------------------------------------------------
@@ -8,6 +8,7 @@
  * of subjects to use as export files.
  * 
  * Versions:
+ *   2025-08-23: Add: Auto-check "save attachments" in initWelcomeArchive()
  *   2024-07-29: Add: Save attachments
  *   2024-06-17: Add: Show save progress to user (saveProgressInit and saveProgressClose)
  *   2024-06-08: Add: Add the expand to all subject icon and manage it
@@ -148,7 +149,12 @@
             // Set constant text
             await setElementByIdInnerContent(document, cHtmlPopArchivesHeaderAttachmentsId, exLangFuture('Pièces jointes'), false)
             await setElementByIdInnerContent(document, cHtmlPopArchivesAttachmentsCheckboxCaptionId, exLangFuture('Sauver les pièces jointes'), false)
-            
+
+            // Set the initial state of the checkbox
+            const checkbox: ex.nHTMLInputElement = document.getElementById(cHtmlPopArchivesAttachmentsCheckboxId) as HTMLInputElement
+            if (checkbox != null) {
+                checkbox.checked = true
+            }
 
         } catch (error) {
 
