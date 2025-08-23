@@ -40,6 +40,9 @@ declare namespace browser.manifest {
   */
     applications?: DeprecatedApplications
     browser_specific_settings?: BrowserSpecificSettings
+  /**
+   * Name must be at least 2, and should be at most 75 characters
+  */
     name: string
     short_name?: string
     description?: string
@@ -69,17 +72,17 @@ declare namespace browser.manifest {
  | 'spanning'
  | 'split'
     background?: {
-      page: ExtensionURL
-    persistent?: boolean
-
-  } | {
-      scripts: ExtensionURL[]
+      service_worker?: ExtensionURL
+    page?: ExtensionURL
+    scripts?: ExtensionURL[]
+  /**
+   * Only supported for page/scripts; not for service_worker yet, see bug 1775574
+  */
     type?: 'module'
  | 'classic'
     persistent?: boolean
-
-  } | {
-      service_worker: ExtensionURL
+    preferred_environment?: 'service_worker'
+ | 'document'[]
 
   }
   /**
@@ -156,13 +159,27 @@ declare namespace browser.manifest {
 
   }
 
+  type OptionalOnlyPermission = ;
   type OptionalPermissionNoPrompt = 'idle';
   type OptionalPermission = OptionalPermissionNoPrompt | 'clipboardRead'
  | 'clipboardWrite'
  | 'geolocation'
  | 'notifications';
-  type OptionalPermissionOrOrigin = OptionalPermission | MatchPattern;
+  type OptionalPermissionOrOrigin = OptionalPermission | OptionalOnlyPermission | MatchPattern;
   type PermissionPrivileged = 'mozillaAddons';
+  type CommonDataCollectionPermission = 'authenticationInfo'
+ | 'bookmarksInfo'
+ | 'browsingActivity'
+ | 'financialAndPaymentInfo'
+ | 'healthInfo'
+ | 'locationInfo'
+ | 'personalCommunications'
+ | 'personallyIdentifyingInfo'
+ | 'searchTerms'
+ | 'websiteActivity'
+ | 'websiteContent';
+  type DataCollectionPermission = CommonDataCollectionPermission | 'none';
+  type OptionalDataCollectionPermission = CommonDataCollectionPermission | 'technicalAndInteraction';
   type PermissionNoPrompt = OptionalPermissionNoPrompt | PermissionPrivileged | 'alarms'
  | 'storage'
  | 'unlimitedStorage';
@@ -179,6 +196,12 @@ declare namespace browser.manifest {
     strict_min_version?: string
     strict_max_version?: string
     admin_install_only?: boolean
+    data_collection_permissions?: {
+      required?: DataCollectionPermission[]
+    optional?: OptionalDataCollectionPermission[]
+    has_previous_consent?: boolean
+
+  }
 
   }
 
@@ -429,12 +452,36 @@ declare namespace browser.manifest {
   }
 
   /**
- * Definition of a shortcut, for example <var>Alt+F5</var>. The string must match the shortcut format as defined by the <a href='url-commands-shortcuts'>MDN page of the commands API</a>.
+ * Definition of a shortcut, for example <var>Alt+F5</var>. The string must match the shortcut format as defined by the $(url:commands-shortcuts)[MDN page of the commands API].
   */
   /**
- * Definition of a shortcut, for example <var>Alt+F5</var>. The string must match the shortcut format as defined by the <a href='url-commands-shortcuts'>MDN page of the commands API</a>.
+ * Definition of a shortcut, for example <var>Alt+F5</var>. The string must match the shortcut format as defined by the $(url:commands-shortcuts)[MDN page of the commands API].
   */
   type KeyName = string;
+  export interface CommandsShortcut {
+    suggested_key?: {
+    /**
+   * Default key combination.
+  */
+    default?: KeyName
+  /**
+   * Key combination on Mac.
+  */
+    mac?: KeyName
+  /**
+   * Key combination on Linux.
+  */
+    linux?: KeyName
+  /**
+   * Key combination on Windows.
+  */
+    windows?: KeyName
+
+  }
+    description?: string
+
+  }
+
 }
 
   /**
@@ -446,13 +493,13 @@ declare namespace browser.messageDisplayAction {
   */
   type ColorArray = number[];
   /**
- * Pixel data for an image. Must be an <a href='url-image-data'>ImageData</a> object (for example, from a <a href='url-canvas-element'>canvas</a> element).
+ * Pixel data for an image. Must be an $(url:image-data)[ImageData] object (for example, from a $(url:canvas-element)[canvas] element).
   */
   export interface ImageDataType {
   }
 
   /**
- * A *dictionary object* to specify multiple <a href='url-image-data'>ImageData</a> objects in different sizes, so the icon does not have to be scaled for a device with a different pixel density. Each entry is a *name-value* pair with *value* being an <a href='url-image-data'>ImageData</a> object, and *name* its size. Example: <literalinclude>includes/ImageDataDictionary.json<lang>JavaScript</lang></literalinclude>See the <a href='url-mdn-icon-size'>MDN documentation about choosing icon sizes</a> for more information on this.
+ * A *dictionary object* to specify multiple $(url:image-data)[ImageData] objects in different sizes, so the icon does not have to be scaled for a device with a different pixel density. Each entry is a *name-value* pair with *value* being an $(url:image-data)[ImageData] object, and *name* its size.
   */
   export interface ImageDataDictionary {
   }
@@ -679,11 +726,96 @@ options?: {
 
   }): Promise<boolean | null>;
     const onClicked: EventHandler<  /**
- * Fired when a messageDisplayAction button is clicked. This event will not fire if the messageDisplayAction has a popup. This is a user input event handler. For asynchronous listeners some <a href='url-user-input-restrictions'>restrictions</a> apply.
+ * Fired when a messageDisplayAction button is clicked. This event will not fire if the messageDisplayAction has a popup. This is a user input event handler. For asynchronous listeners some $(url:user-input-restrictions)[restrictions] apply.
   */
   ((tab:  tabs.Tab, info?: OnClickData) => void)>;
 }
 
+  /**
+ * The messengerUtilities API provides helpful methods for working with messages and emails.
+  */
+declare namespace browser.messengerUtilities {
+  /**
+ * Representation of a parsed mailbox string (see RFC 5322, section 3.4).
+  */
+  export interface ParsedMailbox {
+  /**
+   * The <var>display-name</var> associated with the provided address or group, if available.
+  */
+    name?: string
+  /**
+   * The <var>addr-spec</var> associated with the provided address, if available.
+  */
+    email?: string
+  /**
+   * The members of the group, if available.
+  */
+    group?: messengerUtilities.ParsedMailbox[]
+
+  }
+
+  /**
+ * MIME headers, which by default are treated as containing one or more mailbox strings.
+  */
+  /**
+ * MIME headers, which by default are treated as containing one or more mailbox strings.
+  */
+  type MailboxHeaders = string;
+  /**
+ * Converts the provided body to readable plain text, without tags and leading/trailing whitespace.
+  */
+  function convertToPlainText(/**
+ * The to-be-converted body.
+  */
+
+body: string, options?: {
+    /**
+   * The converted plain text will be wrapped to lines not longer than 72 characters and use format flowed, as defined by RFC 2646.
+  */
+    flowed?: boolean
+
+  }): Promise<string | null>;
+  /**
+ * Returns the provided file size in a human readable format (e.g. <var>12 bytes</var> or <var>11,4 GB</var>).
+  */
+  function formatFileSize(/**
+ * The size in bytes.
+  */
+
+sizeInBytes: number): Promise<string | null>;
+  /**
+ * Parse a mailbox string containing one or more email addresses (see RFC 5322, section 3.4).
+  */
+  function parseMailboxString(/**
+ * The string to be parsed (e.g. <var>User <user@example.com>, other-user@example.com</var>)
+  */
+
+mailboxString: string, /**
+ * Keep grouped hierachies. Groups may be specified in a mailbox string as follows: <var>GroupName : user1 <user1@example.com>, user2@example,com ;</var>.
+  */
+
+preserveGroups?: boolean): Promise<messengerUtilities.ParsedMailbox[] | null>;
+  /**
+ * Decode the provided header into a readable format according to RFC 2047.
+  */
+  function decodeMimeHeader(headerName: string, headerValue: string | string[], /**
+ * Headers containing multiple mailbox strings need special handling. For example the header <var>=?UTF-8?Q?H=C3=B6rst=2C_Kenny?= <K.Hoerst@invalid>, new@thunderbird.bug</var> will be wrongly decoded to <var>Hörst, Kenny <K.Hoerst@invalid>, new@thunderbird.bug</var>, corrupting the structure of the first mailbox string. This option overrides the default behavior of treating the headers defined in $(ref:messengerUtilities.MailboxHeaders) as mailbox headers.
+  */
+
+isMailBoxHeader?: boolean): Promise<string[] | null>;
+  /**
+ * Encode the provided header according to RFC 2047.
+  */
+  function encodeMimeHeader(headerName: string, headerValue: string | string[], /**
+ * Headers containing multiple mailbox strings need special handling. This option overrides the default behavior of treating the headers defined in $(ref:messengerUtilities.MailboxHeaders) as mailbox headers.
+  */
+
+isMailBoxHeader?: boolean): Promise<string[] | null>;
+}
+
+  /**
+ * A message can be displayed in either Thunderbird's main mail tab (a.k.a 3-pane tab), a tab of its own, or in a window of its own. All are referenced by <var>tabId</var> in this API. Display windows are considered to have exactly one tab, which has limited functionality compared to tabs from the main window.
+  */
 declare namespace browser.messageDisplay {
   /**
  * Gets the currently displayed message in the specified tab (even if the tab itself is currently not visible), or the currently active tab. It returns <var>null</var> if no messages are displayed, or if multiple messages are displayed.
@@ -738,9 +870,36 @@ openProperties: {
   ((tab:  tabs.Tab, messages: messages.MessageHeader[], displayedMessages:  messages.MessageList) => void)>;
 }
 
-declare namespace browser.spaces {
-  export interface SpaceButtonProperties_MV2 {
   /**
+ * The spaces API allows to manage built-in and custom spaces, and to add buttons for custom spaces to Thunderbird's spaces toolbar.
+  */
+declare namespace browser.spaces {
+  /**
+ * Properties for the new tab being opened by clicking on the associated button in the spaces toolbar.
+  */
+  export interface SpaceTabProperties {
+  /**
+   * The default URL. May point to a WebExtension page or a web page.
+  */
+    url?: string
+  /**
+   * The $(url:cookieStore)[CookieStore] id used by the tab. Either a custom id created using the $(url:contextualIdentity)[contextualIdentities API], or a built-in one: <var>firefox-default</var>, <var>firefox-container-1</var>, <var>firefox-container-2</var>, <var>firefox-container-3</var>, <var>firefox-container-4</var>, <var>firefox-container-5</var>.
+  */
+    cookieStoreId?: string
+  /**
+   * Thunderbird is a mail client, not a browser. It is possible to load a web page, but opening follow-up pages through hyperlinks should be handled by the user's default browser. This property specifies to what extent this behavior should be enforced. The default <var>balanced</var> link handler will open links to the same host directly in Thunderbird, everything else will be opened in the user's default browser. A <var>relaxed</var> link handler will open all links inside of Thunderbird, a <var>strict</var> link handler will open all links in the user's default browser, except links to the same page.
+  */
+    linkHandler?: 'strict'
+ | 'balanced'
+ | 'relaxed'
+
+  }
+
+  /**
+ * Properties of a button in the spaces toolbar.
+  */
+  type SpaceButtonProperties = {
+    /**
    * Sets the background color of the badge. Can be specified as an array of four integers in the range [0,255] that make up the RGBA color of the badge. For example, opaque red is <var>[255, 0, 0, 255]</var>. Can also be a string with an HTML color name (<var>red</var>) or a HEX color value (<var>#FF0000</var> or <var>#F00</var>). Reset when set to an empty string.
   */
     badgeBackgroundColor?: string |  spaces.ColorArray
@@ -761,10 +920,8 @@ declare namespace browser.spaces {
   */
     title?: string
 
-  }
-
-  export interface SpaceButtonProperties_MV3 {
-  /**
+  } | {
+    /**
    * Sets the background color of the badge. Can be specified as an array of four integers in the range [0,255] that make up the RGBA color of the badge. For example, opaque red is <var>[255, 0, 0, 255]</var>. Can also be a string with an HTML color name (<var>red</var>) or a HEX color value (<var>#FF0000</var> or <var>#F00</var>). Reset when set to <var>null</var>.
   */
     badgeBackgroundColor?: string |  spaces.ColorArray
@@ -785,8 +942,7 @@ declare namespace browser.spaces {
   */
     title?: string
 
-  }
-
+  };
   /**
  * An array of four integers in the range [0,255] that make up the RGBA color. For example, opaque red is <var>[255, 0, 0, 255]</var>.
   */
@@ -823,14 +979,14 @@ declare namespace browser.spaces {
   */
 
 name: string, /**
- * The default space url, loaded into a tab when the button in the spaces toolbar is clicked. Supported are <var>https://</var> and <var>http://</var> links, as well as links to WebExtension pages.
+ * The properties for the new tab being opened, when the associated button in the spaces toolbar is clicked. Either a *string* specifying the default URL, or a $(ref:spaces.SpaceTabProperties) object. The URL may point to a WebExtension page or a web page.
   */
 
-defaultUrl: string, /**
- * Properties of the button for the new space.
+tabProperties: string |  spaces.SpaceTabProperties, /**
+ * Properties of the button in the spaces toolbar for the new space.
   */
 
-buttonProperties?:  spaces.SpaceButtonProperties_MV3 |  spaces.SpaceButtonProperties_MV2): Promise< spaces.Space | null>;
+buttonProperties?:  spaces.SpaceButtonProperties): Promise< spaces.Space | null>;
   /**
  * Retrieves details about the specified space.
   */
@@ -885,14 +1041,14 @@ spaceId: number): Promise<any>;
   */
 
 spaceId: number, /**
- * The default space url, loaded into a tab when the button in the spaces toolbar is clicked. Supported are <var>https://</var> and <var>http://</var> links, as well as links to WebExtension pages.
+ * The properties for the new tab being opened, when the associated button in the spaces toolbar is clicked. Either a *string* specifying the default URL, or a $(ref:spaces.SpaceTabProperties) object. The URL may point to a WebExtension page or a web page.
   */
 
-defaultUrl?: string, /**
- * Only specified button properties will be updated.
+tabProperties: string |  spaces.SpaceTabProperties |  spaces.SpaceButtonProperties, /**
+ * Properties of the button in the spaces toolbar for the specified space Only specified button properties will be updated.
   */
 
-buttonProperties?:  spaces.SpaceButtonProperties_MV3 |  spaces.SpaceButtonProperties_MV2): Promise<any>;
+buttonProperties?:  spaces.SpaceButtonProperties): Promise<any>;
   /**
  * Opens or switches to the specified space. Throws an exception if the requested space does not exist or was not created by this extension.
   */
@@ -999,6 +1155,9 @@ windowId?: number): Promise<any>;
 updateInfo: ThemeUpdateInfo) => void)>;
 }
 
+  /**
+ * The sessions API allows to add tab related session data to Thunderbird's tabs, which will be restored on app restart.
+  */
 declare namespace browser.sessions {
   /**
  * Store a key/value pair associated with a given tab.
@@ -1013,7 +1172,7 @@ tabId: number, /**
 
 key: string, value: string): Promise<any>;
   /**
- * Retrieve a previously stored value for a given tab, given its key. Returns <var>undefined</var> if the key does not exist.
+ * Retrieve a previously stored value for a given tab, given its key. Returns <var>undefined</var> if the requested <var>key</var> does not exist for the given <var>tabId</var>.
   */
   function getTabValue(/**
  * ID of the tab whose data you are trying to retrieve. Error is thrown if ID is invalid.
@@ -1085,7 +1244,7 @@ declare namespace browser.action {
   }
 
   /**
- * A *dictionary object* to specify multiple <a href='url-image-data'>ImageData</a> objects in different sizes, so the icon does not have to be scaled for a device with a different pixel density. Each entry is a *name-value* pair with *value* being an <a href='url-image-data'>ImageData</a> object, and *name* its size. Example: <literalinclude>includes/ImageDataDictionary.json<lang>JavaScript</lang></literalinclude>See the <a href='url-mdn-icon-size'>MDN documentation about choosing icon sizes</a> for more information on this.
+ * A *dictionary object* to specify multiple $(url:image-data)[ImageData] objects in different sizes, so the icon does not have to be scaled for a device with a different pixel density. Each entry is a *name-value* pair with *value* being an $(url:image-data)[ImageData] object, and *name* its size.
   */
   export interface ImageDataDictionary {
   }
@@ -1418,11 +1577,24 @@ options?: {
  * Fired when a browser action icon is clicked.  This event will not fire if the browser action has a popup.
   */
   ((tab:  tabs.Tab, info?: OnClickData) => void)>;
+    const onUserSettingsChanged: EventHandler<  /**
+ * Fired when user-specified settings relating to an extension's action change.
+  */
+  ((change: {
+    /**
+   * Whether the extension's action icon is visible on browser windows' top-level toolbar (i.e., whether the extension has been 'pinned' by the user).
+  */
+    isOnToolbar?: boolean
+
+  }) => void)>;
 }
 
 declare namespace browser.browserAction {
 }
 
+  /**
+ * The mailTabs API allows to interact with Thunderbird's main mail tab (a.k.a 3-pane tab).
+  */
 declare namespace browser.mailTabs {
   /**
  * A supported folder mode in the folder pane.
@@ -1549,7 +1721,7 @@ declare namespace browser.mailTabs {
  | 'groupedByThread'
  | 'groupedBySortType'
   /**
-   * Sets the arrangement of the folder pane, message list pane, and message display pane. Note that setting this applies it to all mail tabs.
+   * Sets the arrangement of the folder pane, message list pane, and message display pane. Setting a layout will be applied to all mail tabs.
   */
     layout?: 'standard'
  | 'wide'
@@ -1571,11 +1743,11 @@ declare namespace browser.mailTabs {
   */
     messagePaneVisible?: boolean
   /**
-   * Sets the folder displayed in the mail tab. Requires the <permission>accountsRead</permission> permission. The previous message selection in the given folder will be restored, if any. This property is ignored, if <var>selectedMessages</var> is specified.
+   * Sets the folder displayed in the mail tab. Requires the <permission>accountsRead</permission> permission. The previous message selection in the given folder will be restored, if any.
   */
     displayedFolderId?:  folders.MailFolderId
   /**
-   * Sets the folder displayed in the mail tab. Requires the <permission>accountsRead</permission> permission. The previous message selection in the given folder will be restored, if any. This property is ignored, if <var>selectedMessages</var> is specified.
+   * Sets the folder displayed in the mail tab. Requires the <permission>accountsRead</permission> permission. The previous message selection in the given folder will be restored, if any.
   */
     displayedFolder?:  folders.MailFolderId |  folders.MailFolder
 
@@ -1640,7 +1812,7 @@ tabId: number): Promise< mailTabs.MailTab | null>;
   */
   function getCurrent(): Promise< mailTabs.MailTab | null>;
   /**
- * Creates a new mail tab. Standard tab properties can be adjusted via $(ref:tabs.update) after the mail tab has been created. **Note:** A new mail window can be created via $(ref:windows.create).
+ * Creates a new mail tab. Standard tab properties can be adjusted via $(ref:tabs.update) after the mail tab has been created. A new mail window can be created via $(ref:windows.create).
   */
   function create(createProperties?:  mailTabs.MailTabProperties): Promise< mailTabs.MailTab | null>;
   /**
@@ -1661,7 +1833,7 @@ tabId: number, updateProperties:  mailTabs.MailTabProperties): Promise< mailTabs
 
 tabId?: number): Promise< messages.MessageList | null>;
   /**
- * Lists the selected folders in the folder pane.
+ * Lists the selected folders in the folder pane. Does not include folders which are context-clicked, but not selected. The context-clicked folders are always returned by the $(ref:menus.onClicked) event of the menus API.
   */
   function getSelectedFolders(/**
  * Defaults to the active tab of the current window.
@@ -1669,7 +1841,7 @@ tabId?: number): Promise< messages.MessageList | null>;
 
 tabId?: number): Promise<folders.MailFolder[] | null>;
   /**
- * Lists the selected messages in the current folder.
+ * Lists the selected messages in the current folder. Includes messages in collapsed threads. Does not include messages which are context-clicked, but not selected. The context-clicked messages are always returned by the $(ref:menus.onClicked) event of the menus API.
   */
   function getSelectedMessages(/**
  * Defaults to the active tab of the current window.
@@ -1677,7 +1849,7 @@ tabId?: number): Promise<folders.MailFolder[] | null>;
 
 tabId?: number): Promise< messages.MessageList | null>;
   /**
- * Selects none, one or multiple messages.
+ * Selects none, one or multiple messages. Opens collapsed threads to show the selection, if required.
   */
   function setSelectedMessages(/**
  * Defaults to the active tab of the current window.
@@ -1781,13 +1953,13 @@ declare namespace browser.composeAction {
   */
   type ColorArray = number[];
   /**
- * Pixel data for an image. Must be an <a href='url-image-data'>ImageData</a> object (for example, from a <a href='url-canvas-element'>canvas</a> element).
+ * Pixel data for an image. Must be an $(url:image-data)[ImageData] object (for example, from a $(url:canvas-element)[canvas] element).
   */
   export interface ImageDataType {
   }
 
   /**
- * A *dictionary object* to specify multiple <a href='url-image-data'>ImageData</a> objects in different sizes, so the icon does not have to be scaled for a device with a different pixel density. Each entry is a *name-value* pair with *value* being an <a href='url-image-data'>ImageData</a> object, and *name* its size. Example: <literalinclude>includes/ImageDataDictionary.json<lang>JavaScript</lang></literalinclude>See the <a href='url-mdn-icon-size'>MDN documentation about choosing icon sizes</a> for more information on this.
+ * A *dictionary object* to specify multiple $(url:image-data)[ImageData] objects in different sizes, so the icon does not have to be scaled for a device with a different pixel density. Each entry is a *name-value* pair with *value* being an $(url:image-data)[ImageData] object, and *name* its size.
   */
   export interface ImageDataDictionary {
   }
@@ -2014,11 +2186,14 @@ options?: {
 
   }): Promise<boolean | null>;
     const onClicked: EventHandler<  /**
- * Fired when a composeAction button is clicked. This event will not fire if the composeAction has a popup. This is a user input event handler. For asynchronous listeners some <a href='url-user-input-restrictions'>restrictions</a> apply.
+ * Fired when a composeAction button is clicked. This event will not fire if the composeAction has a popup. This is a user input event handler. For asynchronous listeners some $(url:user-input-restrictions)[restrictions] apply.
   */
   ((tab:  tabs.Tab, info?: OnClickData) => void)>;
 }
 
+  /**
+ * The identities API allows to manage the user's identities (each account can have multiple identities).
+  */
 declare namespace browser.identities {
   export interface EncryptionCapabilities {
   /**
@@ -2084,7 +2259,7 @@ declare namespace browser.identities {
   /**
    * The capabilities of this identity for the S/MIME encryption technology.
   */
-    SMIME:  identities.EncryptionCapabilities
+    S/MIME:  identities.EncryptionCapabilities
 
   }
 
@@ -2128,6 +2303,9 @@ declare namespace browser.identities {
   ((identityId: string, changedValues: MailIdentity) => void)>;
 }
 
+  /**
+ * The messages API allows to access and manage the user's messages.
+  */
 declare namespace browser.messages {
   /**
  * A unique id representing a $(ref:messages.MessageHeader) and the associated message. This id doesn’t refer to the Message-ID email header. It is an internal tracking number that does not remain after a restart. Nor does it follow an email that has been moved to a different folder.
@@ -2149,18 +2327,25 @@ declare namespace browser.messages {
   }
 
   /**
+ * Content may either be a single email address, or a mailbox string (see RFC 5322, section 3.4). Use $(ref:messengerUtilities.parseMailboxString) to extract the name and/or the email from the mailbox string.
+  */
+  /**
+ * Content may either be a single email address, or a mailbox string (see RFC 5322, section 3.4). Use $(ref:messengerUtilities.parseMailboxString) to extract the name and/or the email from the mailbox string.
+  */
+  type MailBoxHeaderString = string;
+  /**
  * Basic information about a message.
   */
   export interface MessageHeader {
-    author: string
+    author:  messages.MailBoxHeaderString
   /**
    * The Bcc recipients. Not populated for news/nntp messages.
   */
-    bccList: string[]
+    bccList: messages.MailBoxHeaderString[]
   /**
    * The Cc recipients. Not populated for news/nntp messages.
   */
-    ccList: string[]
+    ccList: messages.MailBoxHeaderString[]
     date:  extensionTypes.Date
   /**
    * Whether this message is a real message or an external message (opened from a file or from an attachment).
@@ -2202,7 +2387,7 @@ declare namespace browser.messages {
   /**
    * The To recipients. Not populated for news/nntp messages.
   */
-    recipients: string[]
+    recipients: messages.MailBoxHeaderString[]
   /**
    * The total size of the message in bytes.
   */
@@ -2219,7 +2404,7 @@ declare namespace browser.messages {
   }
 
   /**
- * See $(doc:examples/messageLists) for more information.
+ * See $(doc:guides/messageLists) for more information.
   */
   export interface MessageList {
   /**
@@ -2235,7 +2420,7 @@ declare namespace browser.messages {
   */
   export interface MessagePart {
   /**
-   * The content of the part.
+   * The quoted-printable or base64 decoded content of the part. Only present for parts with a content type of <var>text/*</var> and only if requested, see the <var>decodeContent</var> option of $(ref:messages.getFull). Use $(ref:messages.getAttachmentFile) to retrieve the content of parts which have a content type other than <var>text/*</var>.
   */
     body?: string
     contentType?: string
@@ -2247,7 +2432,7 @@ declare namespace browser.messages {
  | 'success'
  | 'fail'
   /**
-   * A *dictionary object* of part headers as *key-value* pairs, with the header name as *key*, and an array of headers as *value*.
+   * A *dictionary object* of RFC 2047 decoded part headers as *key-value* pairs, with the header name as *key*, and an array of headers as *value*. Only present if requested, see the <var>decodeHeaders</var> option of $(ref:messages.getFull).
   */
     headers?: /* "unknown" undefined */ object
   /**
@@ -2262,6 +2447,14 @@ declare namespace browser.messages {
    * Any sub-parts of this part.
   */
     parts?: messages.MessagePart[]
+  /**
+   * The raw content of the part. Only present if requested, see the <var>decodeContent</var> option of $(ref:messages.getFull).
+  */
+    rawBody?: string
+  /**
+   * A *dictionary object* of raw part headers as *key-value* pairs, with the header name as *key*, and an array of headers as *value*. Only present if requested, see the <var>decodeHeaders</var> option of $(ref:messages.getFull).
+  */
+    rawHeaders?: /* "unknown" undefined */ object
   /**
    * The size of this part. The size of parts with content type *message/rfc822* is not the actual message size (on disc), but the total size of its decoded body parts, excluding headers.
   */
@@ -2297,13 +2490,21 @@ declare namespace browser.messages {
   }
 
   /**
- * Represents an attachment in a message. This includes all MIME parts with a *content-disposition* header set to <var>attachment</var>, but also related parts like inline images.
+ * Represents an attachment in a message.
   */
   export interface MessageAttachment {
+  /**
+   * The content disposition of the attachment, for example <var>attachment</var> for normal attachments, or <var>inline</var> for inline attachments.
+  */
+    contentDisposition: string
   /**
    * The content type of the attachment. A value of <var>text/x-moz-deleted</var> indicates that the original attachment was permanently deleted and replaced by a placeholder text attachment with some meta information about the original attachment.
   */
     contentType: string
+  /**
+   * A *dictionary object* of RFC 2047 decoded attachment headers as *key-value* pairs, with the header name as *key*, and an array of headers as *value*.
+  */
+    headers: /* "unknown" undefined */ object
   /**
    * The name, as displayed to the user, of this attachment. This is usually but not always the filename of the attached file.
   */
@@ -2349,9 +2550,9 @@ declare namespace browser.messages {
   /**
  * Gets all messages in a folder.
   */
-  function list(folder:  folders.MailFolderId |  folders.MailFolder): Promise< messages.MessageList | null>;
+  function list(folder:  folders.MailFolder |  folders.MailFolderId): Promise< messages.MessageList | null>;
   /**
- * Returns the next chunk of messages in a list. See $(doc:examples/messageLists) for more information.
+ * Returns the next chunk of messages in a list. See $(doc:guides/messageLists) for more information.
   */
   function continueList(messageListId: string): Promise< messages.MessageList | null>;
   /**
@@ -2367,15 +2568,27 @@ declare namespace browser.messages {
   */
   function getFull(messageId:  messages.MessageId, options?: {
     /**
-   * Whether the message should be decrypted. If the message could not be decrypted, its parts are omitted. Defaults to true.
+   * Whether the message should be decrypted. If the message could not be decrypted, its parts are omitted. Defaults to <var>true</var>.
   */
     decrypt?: boolean
+  /**
+   * Whether to decode RFC 2047 encoded headers of message parts. Defaults to <var>true</var>.
+  */
+    decodeHeaders?: boolean
+  /**
+   * Whether to decode quoted-printable or base64 encoded content of message parts. Defaults to <var>true</var>.
+  */
+    decodeContent?: boolean
 
   }): Promise< messages.MessagePart | null>;
   /**
- * Returns the unmodified source of a message. Throws if the message could not be read, for example due to network issues.
+ * Returns the raw content of a message. Throws if the message could not be read, for example due to network issues.
   */
-  function getRaw(messageId:  messages.MessageId, options?: {
+  function getRaw(/**
+ * Either a $(ref:messages.MessageId) of an existing message, or a $(ref:messages.MessagePart) with raw header and raw content data representing a full RFC 822 message (the provided data will be used as-is without applying any further encoding). See the <var>decodeHeaders</var> and <var>decodeContent</var> options of $(ref:messages.getFull) for further details on how to retrieve a $(ref:messages.MessagePart) with raw values. You can use $(ref:messengerUtilities.decodeMimeHeader) and $(ref:messengerUtilities.encodeMimeHeader) to manipulate a raw MessagePart.
+  */
+
+message:  messages.MessageId |  messages.MessagePart, options?: {
     /**
    * Whether the message should be decrypted. Throws, if the message could not be decrypted.
   */
@@ -2390,13 +2603,11 @@ declare namespace browser.messages {
   */
   function listAttachments(messageId:  messages.MessageId): Promise<messages.MessageAttachment[] | null>;
   /**
- * Lists all inline text parts of a message. These parts are not returned by $(ref:messages.listAttachments) and usually make up the readable content of the message, mostly with content type <var>text/plain</var> or <var>text/html</var>. If a message only includes a part with content type <var>text/html</var>, the method $(ref:messengerUtilities.convertToPlainText) can be used to retreive a plain text version. 
-
-**Note:** A message usually contains only one inline text part per subtype, but technically messages can contain multiple inline text parts per subtype.
+ * Lists all inline text parts of a message. These parts are not returned by $(ref:messages.listAttachments) and usually make up the readable content of the message, mostly with content type <var>text/plain</var> or <var>text/html</var>. If a message only includes a part with content type <var>text/html</var>, the method $(ref:messengerUtilities.convertToPlainText) can be used to retreive a plain text version.
   */
   function listInlineTextParts(messageId:  messages.MessageId): Promise<messages.InlineTextPart[] | null>;
   /**
- * Gets the content of a $(ref:messages.MessageAttachment) as a <a href='url-dom-file'>File</a> object.
+ * Gets the content of a $(ref:messages.MessageAttachment) as a $(url:dom-file)[File] object.
   */
   function getAttachmentFile(messageId:  messages.MessageId, partName: string): Promise</* "unknown" undefined */ object | null>;
   /**
@@ -2468,7 +2679,7 @@ tabId: number): Promise<any>;
   */
     includeSubFolders?: boolean
   /**
-   * Query the server directly instead of the local message database. Online queries currently only support querying the `headerMessageId` property. Currently only supported for NNTP accounts.
+   * Query the server directly instead of the local message database. Online queries currently only support querying the <var>headerMessageId</var> property. Currently only supported for NNTP accounts.
   */
     online?: boolean
   /**
@@ -2544,7 +2755,13 @@ messageIds: messages.MessageId[], /**
  * The folder to move the messages to.
   */
 
-destination:  folders.MailFolderId |  folders.MailFolder): Promise<any>;
+destination:  folders.MailFolder |  folders.MailFolderId, options?: {
+    /**
+   * Whether this move operation should be treated as a user action, for example allowing undo.
+  */
+    isUserAction?: boolean
+
+  }): Promise<any>;
   /**
  * Moves messages to a specified folder. If the messages cannot be removed from the source folder, they will be copied instead of moved. Moving external messages will throw an *ExtensionError*.
   */
@@ -2556,7 +2773,13 @@ messageIds: messages.MessageId[], /**
  * The folder to move the messages to.
   */
 
-folderId:  folders.MailFolderId): Promise<any>;
+folderId:  folders.MailFolderId, options?: {
+    /**
+   * Whether this move operation should be treated as a user action, for example allowing undo.
+  */
+    isUserAction?: boolean
+
+  }): Promise<any>;
   /**
  * Copies messages to a specified folder.
   */
@@ -2568,7 +2791,13 @@ messageIds: messages.MessageId[], /**
  * The folder to copy the messages to.
   */
 
-destination:  folders.MailFolderId |  folders.MailFolder): Promise<any>;
+destination:  folders.MailFolder |  folders.MailFolderId, options?: {
+    /**
+   * Whether this copy operation should be treated as a user action, for example allowing undo.
+  */
+    isUserAction?: boolean
+
+  }): Promise<any>;
   /**
  * Copies messages to a specified folder.
   */
@@ -2580,17 +2809,23 @@ messageIds: messages.MessageId[], /**
  * The folder to copy the messages to.
   */
 
-folderId:  folders.MailFolderId): Promise<any>;
+folderId:  folders.MailFolderId, options?: {
+    /**
+   * Whether this copy operation should be treated as a user action, for example allowing undo.
+  */
+    isUserAction?: boolean
+
+  }): Promise<any>;
   /**
- * Imports a message into a local Thunderbird folder. To import a message into an IMAP folder, add it to a local folder first and then move it to the IMAP folder.
+ * Imports a message into a folder. Supports local folders, POP and IMAP folders. Throws, if the destination folder already contains a message with the Message-ID of the message being imported.
   */
   function __import(file: /* "unknown" undefined */ object, /**
  * The folder to import the messages into.
   */
 
-destination:  folders.MailFolderId |  folders.MailFolder, properties?:  messages.MessageProperties): Promise< messages.MessageHeader | null>;
+destination:  folders.MailFolder |  folders.MailFolderId, properties?:  messages.MessageProperties): Promise< messages.MessageHeader | null>;
   /**
- * Imports a message into a local Thunderbird folder. To import a message into an IMAP folder, add it to a local folder first and then move it to the IMAP folder.
+ * Imports a message into a folder. Supports local folders, POP and IMAP folders. Throws, if the destination folder already contains a message with the Message-ID of the message being imported.
   */
   function __import(file: /* "unknown" undefined */ object, /**
  * The folder to import the messages into.
@@ -2621,7 +2856,7 @@ key: string, /**
   */
 
 tag: string, /**
- * Tag color in hex format (i.e.: <var>#000080</var> for navy blue). Value will be stored as upper case.
+ * Tag color in hex format (i.e.: <var>#000080</var> for navy blue).
   */
 
 color: string): Promise<any>;
@@ -2638,7 +2873,7 @@ key: string, updateProperties: {
   */
     tag?: string
   /**
-   * Tag color in hex format (i.e.: #000080 for navy blue). Value will be stored as upper case.
+   * Tag color in hex format (i.e.: <var>#000080</var> for navy blue).
   */
     color?: string
 
@@ -2654,7 +2889,7 @@ key: string): Promise<any>;
     const onUpdated: EventHandler<  /**
  * Fired when one or more properties of a message have been updated.
   */
-  ((message:  messages.MessageHeader, changedProperties:  messages.MessageProperties) => void)>;
+  ((message:  messages.MessageHeader, changedProperties:  messages.MessageProperties, oldProperties:  messages.MessageProperties) => void)>;
     const onMoved: EventHandler<  /**
  * Fired when messages have been moved.
   */
@@ -2668,11 +2903,14 @@ key: string): Promise<any>;
   */
   ((messages:  messages.MessageList) => void)>;
     const onNewMailReceived: EventHandler<  /**
- * Fired when a new message is received, and has been through junk classification and message filters.
+ * Fired when a new message is received, and has been handled by message filters and junk classification. Filters running after junk classification may move the message again.
   */
   ((folder:  folders.MailFolder, messages:  messages.MessageList) => void)>;
 }
 
+  /**
+ * The messages.tags API allows to manage the user's message tags.
+  */
 declare namespace browser.messages.tags {
   export interface MessageTag {
   /**
@@ -2684,13 +2922,29 @@ declare namespace browser.messages.tags {
   */
     tag: string
   /**
-   * Tag color.
+   * Tag color in upper case hex format (i.e.: <var>#000080</var> for navy blue).
   */
     color: string
   /**
-   * Custom sort string (usually empty).
+   * A custom sort string.
   */
     ordinal: string
+
+  }
+
+  export interface MessageTagProperties {
+  /**
+   * Human-readable tag name.
+  */
+    tag?: string
+  /**
+   * Tag color in upper case hex format (i.e.: <var>#000080</var> for navy blue).
+  */
+    color?: string
+  /**
+   * A custom sort string.
+  */
+    ordinal?: string
 
   }
 
@@ -2715,10 +2969,10 @@ declare namespace browser.messages.tags {
   */
   function list(): Promise<messages.tags.MessageTag[] | null>;
   /**
- * Creates a new message tag. Tagging a message will store the tag's key in the user's message. Throws if the specified tag key is used already.
+ * Creates a new message tag and returns the associated key. Tagging a message will store the tag's key in the user's message. Throws if the specified tag key is used already.
   */
   function create(/**
- * Unique tag identifier (will be converted to lower case). Must not include <var>()<>{/%*"</var> or spaces.
+ * Unique tag identifier (will be converted to lower case). Must not include <var>()<>{/%*"</var> or spaces. Will be auto-generated if not provided.
   */
 
 key: string, /**
@@ -2726,7 +2980,16 @@ key: string, /**
   */
 
 tag: string, /**
- * Tag color in hex format (i.e.: #000080 for navy blue). Value will be stored as upper case.
+ * Tag color in hex format (i.e.: <var>#000080</var> for navy blue).
+  */
+
+color: string): Promise<any>;
+  function create(/**
+ * Human-readable tag name.
+  */
+
+tag: string, /**
+ * Tag color in hex format (i.e.: <var>#000080</var> for navy blue).
   */
 
 color: string): Promise<any>;
@@ -2737,25 +3000,46 @@ color: string): Promise<any>;
  * Unique tag identifier (will be converted to lower case). Must not include <var>()<>{/%*"</var> or spaces.
   */
 
-key: string, updateProperties: {
-    /**
-   * Human-readable tag name.
+key: string, updateProperties:  messages.tags.MessageTagProperties): Promise<any>;
+    const onCreated: EventHandler<  /**
+ * Fired when a new message tag has been created.
   */
-    tag?: string
-  /**
-   * Tag color in hex format (i.e.: #000080 for navy blue). Value will be stored as upper case.
+  ((tag:  messages.tags.MessageTag) => void)>;
+    const onUpdated: EventHandler<  /**
+ * Fired when one or more properties of a message tag have been updated.
   */
-    color?: string
+  ((/**
+ * Unique tag identifier of the updated message tag.
+  */
 
-  }): Promise<any>;
+key: string, /**
+ * The changed message tag properties.
+  */
+
+changedProperties:  messages.tags.MessageTagProperties, /**
+ * The old values of the changed message tag properties.
+  */
+
+oldProperties:  messages.tags.MessageTagProperties) => void)>;
+    const onDeleted: EventHandler<  /**
+ * Fired when a message tag has been deleted.
+  */
+  ((/**
+ * Unique tag identifier of the deleted message tag.
+  */
+
+key: string) => void)>;
 }
 
+  /**
+ * The folders API allows to access and manage the user's message folders.
+  */
 declare namespace browser.folders {
   /**
  * An object describing a folder.
   */
-  export interface MailFolder {
-  /**
+  type MailFolder = {
+    /**
    * The id of the account this folder belongs to.
   */
     accountId?:  accounts.MailAccountId
@@ -2796,16 +3080,61 @@ declare namespace browser.folders {
   */
     specialUse?: folders.MailFolderSpecialUse[]
   /**
-   * Subfolders of this folder. The property may be <var>null</var>, if inclusion of folders had not been requested. The folders will be returned in the same order as used in Thunderbird's folder pane.
+   * Subfolders of this folder. This property is optional and only present if the inclusion of subfolders had been requested. The folders will be returned in the same order as used in Thunderbird's folder pane.
   */
-    subFolders?: folders.MailFolder[] | void /* could not determine correct type */
+    subFolders?: folders.MailFolder[]
   /**
    * Deprecated. Was used to represent the type of this folder.
   */
     type?:  folders.MailFolderSpecialUse
 
-  }
+  } | {
+    /**
+   * The id of the account this folder belongs to. This property is optional and not available for unified mailbox folders or virtual tag folders.
+  */
+    accountId?:  accounts.MailAccountId
+  /**
+   * An identifier for the folder.
+  */
+    id:  folders.MailFolderId
+  /**
+   * Whether this folder is a favorite folder.
+  */
+    isFavorite: boolean
+  /**
+   * Whether this folder is a root folder.
+  */
+    isRoot: boolean
+  /**
+   * Whether this folder is a virtual tag folder.
+  */
+    isTag: boolean
+  /**
+   * Whether this folder is a unified mailbox folder.
+  */
+    isUnified: boolean
+  /**
+   * Whether this folder is a virtual search folder.
+  */
+    isVirtual: boolean
+  /**
+   * The human-friendly name of this folder.
+  */
+    name: string
+  /**
+   * Path to this folder in the account. Although paths look predictable, never guess a folder's path, as there are a number of reasons why it may not be what you think it is. Use $(ref:folders.getParentFolders) or $(ref:folders.getSubFolders) to obtain hierarchy information.
+  */
+    path: string
+  /**
+   * The special use of this folder. A folder can have multiple special uses.
+  */
+    specialUse: folders.MailFolderSpecialUse[]
+  /**
+   * Subfolders of this folder. This property is optional and only present if the inclusion of subfolders had been requested. The folders will be returned in the same order as used in Thunderbird's folder pane.
+  */
+    subFolders?: folders.MailFolder[]
 
+  };
   /**
  * A unique id representing a $(ref:folders.MailFolder) throughout a session. Renaming or moving a folder will invalidate its id.
   */
@@ -2822,9 +3151,13 @@ declare namespace browser.folders {
   */
     favorite?: boolean
   /**
-   * Date the folder was last used (precision: seconds).
+   * Date the folder was last used. It is updated every time the folder was accessed, when the user moved or copied messages into the folder and when the folder received new messages. (precision: seconds).
   */
     lastUsed?:  extensionTypes.Date
+  /**
+   * Date the folder was last used as a destination. It is updated every time the user moved or copied messages into the folder. (precision: seconds).
+  */
+    lastUsedAsDestination?:  extensionTypes.Date
   /**
    * Quota information, if available.
   */
@@ -2883,7 +3216,7 @@ declare namespace browser.folders {
   */
   export interface MailFolderQuota {
   /**
-   * The type of the quota as defined by RFC2087. A <var>STORAGE</var> quota is constraining the available storage in bytes, a <var>MESSAGE</var> quota is constraining the number of storable messages.
+   * The type of the quota as defined by RFC 2087. A <var>STORAGE</var> quota is constraining the available storage in bytes, a <var>MESSAGE</var> quota is constraining the number of storable messages.
   */
     type: 'STORAGE'
  | 'MESSAGE'
@@ -2903,7 +3236,27 @@ declare namespace browser.folders {
   }
 
   /**
- * An object defining a range.
+ * An object defining a range for a date value to be used in queries.
+  */
+  type QueryDateRange = {
+    /**
+   * Whether the date must be considered to be recent by Thunderbird (within the last month) or not, to match the query.
+  */
+    recent: boolean
+
+  } | {
+    /**
+   * The minimum date required to match the query.
+  */
+    after?:  extensionTypes.Date
+  /**
+   * The maximum date required to match the query.
+  */
+    before?:  extensionTypes.Date
+
+  };
+  /**
+ * An object defining a range for an integer value to be used in queries.
   */
   export interface QueryRange {
   /**
@@ -2986,17 +3339,25 @@ declare namespace browser.folders {
   */
     isRoot?: boolean
   /**
-   * Whether the folder is a virtual tag folder, or not. Note: Virtual tag folders are always skipped, unless this property is set to <var>true</var>
+   * Whether the folder is a virtual tag folder, or not. Virtual tag folders are always skipped, unless this property is set to <var>true</var>
   */
     isTag?: boolean
   /**
-   * Whether the folder is a unified mailbox folder, or not. Note: Unified mailbox folders are always skipped, unless this property is set to <var>true</var>
+   * Whether the folder is a unified mailbox folder, or not. Unified mailbox folders are always skipped, unless this property is set to <var>true</var>
   */
     isUnified?: boolean
   /**
    * Whether the folder is a virtual search folder, or not.
   */
     isVirtual?: boolean
+  /**
+   * Date the folder was last used (folder was accessed, user moved or copied messages into the folder or folder received new messages).
+  */
+    lastUsed?: QueryDateRange
+  /**
+   * Date the folder was last used as a destination (user moved or copied messages into the folder).
+  */
+    lastUsedAsDestination?: QueryDateRange
   /**
    * Limits the number of returned folders. If used together with <var>recent</var>, supports being set to $(ref:folders.DEFAULT_MOST_RECENT_LIMIT)
   */
@@ -3010,9 +3371,16 @@ declare namespace browser.folders {
   */
     path?: RegularExpression | string
   /**
-   * Whether the folder (excluding subfolders) has been used within the last month, or not. The returned folders will be sorted by their recentness.
+   * Whether the folder (excluding subfolders) has been used within the last month, or not. The returned folders will be sorted by <var>lastUsed</var>.
   */
     recent?: boolean
+  /**
+   * The sort order of the returned folders. If not specified, folders will be sorted by <var>path</var>. Sorting by <var>name</var> is case-insensitive.
+  */
+    sort?: 'lastUsed'
+ | 'lastUsedAsDestination'
+ | 'name'
+ | 'path'
   /**
    * Match only folders with the specified special use (folders have to match all specified uses).
   */
@@ -3046,11 +3414,11 @@ includeSubFolders?: boolean): Promise< folders.MailFolder | null>;
   /**
  * Creates a new subfolder in the specified folder, or at the root of the specified account.
   */
-  function create(destination:  folders.MailFolderId |  folders.MailFolder |  accounts.MailAccount, childName: string): Promise< folders.MailFolder | null>;
+  function create(destination:  folders.MailFolder |  accounts.MailAccount |  folders.MailFolderId, childName: string): Promise< folders.MailFolder | null>;
   /**
  * Renames a folder.
   */
-  function rename(folder:  folders.MailFolderId |  folders.MailFolder, newName: string): Promise< folders.MailFolder | null>;
+  function rename(folder:  folders.MailFolder |  folders.MailFolderId, newName: string): Promise< folders.MailFolder | null>;
   /**
  * Renames a folder.
   */
@@ -3058,7 +3426,7 @@ includeSubFolders?: boolean): Promise< folders.MailFolder | null>;
   /**
  * Moves the given source folder into the given destination folder. Throws if the destination already contains a folder with the name of the source folder.
   */
-  function move(source:  folders.MailFolderId |  folders.MailFolder, destination:  folders.MailFolderId |  folders.MailFolder |  accounts.MailAccount): Promise< folders.MailFolder | null>;
+  function move(source:  folders.MailFolder |  folders.MailFolderId, destination:  folders.MailFolder |  accounts.MailAccount |  folders.MailFolderId): Promise< folders.MailFolder | null>;
   /**
  * Moves the given source folder into the given destination folder. Throws if the destination already contains a folder with the name of the source folder.
   */
@@ -3066,7 +3434,7 @@ includeSubFolders?: boolean): Promise< folders.MailFolder | null>;
   /**
  * Copies the given source folder into the given destination folder. Throws if the destination already contains a folder with the name of the source folder.
   */
-  function copy(source:  folders.MailFolderId |  folders.MailFolder, destination:  folders.MailFolderId |  folders.MailFolder |  accounts.MailAccount): Promise< folders.MailFolder | null>;
+  function copy(source:  folders.MailFolder |  folders.MailFolderId, destination:  folders.MailFolder |  accounts.MailAccount |  folders.MailFolderId): Promise< folders.MailFolder | null>;
   /**
  * Copies the given source folder into the given destination folder. Throws if the destination already contains a folder with the name of the source folder.
   */
@@ -3074,7 +3442,7 @@ includeSubFolders?: boolean): Promise< folders.MailFolder | null>;
   /**
  * Updates properties of a folder.
   */
-  function update(folder:  folders.MailFolderId |  folders.MailFolder, /**
+  function update(folder:  folders.MailFolder |  folders.MailFolderId, /**
  * The properties to update.
   */
 
@@ -3102,7 +3470,7 @@ updateProperties: {
   /**
  * Get additional information about a folder.
   */
-  function getFolderInfo(folder:  folders.MailFolderId |  folders.MailFolder): Promise< folders.MailFolderInfo | null>;
+  function getFolderInfo(folder:  folders.MailFolder |  folders.MailFolderId): Promise< folders.MailFolderInfo | null>;
   /**
  * Get additional information about a folder.
   */
@@ -3110,7 +3478,7 @@ updateProperties: {
   /**
  * Get capability information about a folder.
   */
-  function getFolderCapabilities(folder:  folders.MailFolderId |  folders.MailFolder): Promise< folders.MailFolderCapabilities | null>;
+  function getFolderCapabilities(folder:  folders.MailFolder |  folders.MailFolderId): Promise< folders.MailFolderCapabilities | null>;
   /**
  * Get capability information about a folder.
   */
@@ -3118,7 +3486,7 @@ updateProperties: {
   /**
  * Get all parent folders as a flat ordered array. The first array entry is the direct parent.
   */
-  function getParentFolders(folder:  folders.MailFolderId |  folders.MailFolder, /**
+  function getParentFolders(folder:  folders.MailFolder |  folders.MailFolderId, /**
  * Specifies whether each returned parent $(ref:folders.MailFolder) should populate its <var>subFolders</var> property and include all its (nested!) subfolders. Defaults to <var>false</var>.
   */
 
@@ -3142,13 +3510,13 @@ includeSubFolders?: boolean): Promise<folders.MailFolder[] | null>;
   /**
  * Get the subfolders of the specified folder or account.
   */
-  function getSubFolders(folder:  folders.MailFolderId |  folders.MailFolder |  accounts.MailAccount, /**
+  function getSubFolders(folder:  folders.MailFolder |  accounts.MailAccount |  folders.MailFolderId, /**
  * Specifies whether each returned direct child $(ref:folders.MailFolder) should populate its <var>subFolders</var> property and include all its (nested!) subfolders. Defaults to <var>true</var>.
   */
 
 includeSubFolders?: boolean): Promise<folders.MailFolder[] | null>;
   /**
- * Get one of the special unified mailbox folders, which are virtual search folders and return the content from all mail accounts.
+ * Get one of the special unified mailbox folders, which are virtual search folders and return the content from all mail accounts. Throws if the requested folder does not exist.
   */
   function getUnifiedFolder(/**
  * The requested unified mailbox folder type.
@@ -3166,7 +3534,7 @@ type: 'inbox'
 
 includeSubFolders?: boolean): Promise< folders.MailFolder | null>;
   /**
- * Get one of the special unified mailbox tag folders, which are virtual search folders and group messages from all mail accounts based on their tags.
+ * Get one of the special virtual tag folders, which are virtual search folders and group messages from all mail accounts based on their tags. Throws if the requested folder does not exist.
   */
   function getTagFolder(/**
  * The tag key of the requested folder. See $(ref:messages.tags.list()) for the available tags. Throws when specifying an invalid tag key.
@@ -3176,7 +3544,7 @@ key: string): Promise< folders.MailFolder | null>;
   /**
  * Marks all messages in a folder as read.
   */
-  function markAsRead(folder:  folders.MailFolderId |  folders.MailFolder): Promise<void | null>;
+  function markAsRead(folder:  folders.MailFolder |  folders.MailFolderId): Promise<void | null>;
   /**
  * Marks all messages in a folder as read.
   */
@@ -3210,11 +3578,14 @@ key: string): Promise< folders.MailFolder | null>;
   */
   ((folder:  folders.MailFolder, folderInfo:  folders.MailFolderInfo) => void)>;
   /**
- * The number of most recent folders used in Thunderbird's UI. Controled by the <var>mail.folder_widget.max_recent</var> preference.
+ * The number of most recent folders used in Thunderbird's UI. Controlled by the <var>mail.folder_widget.max_recent</var> preference.
   */
 const DEFAULT_MOST_RECENT_LIMIT = -1;
 }
 
+  /**
+ * The addressBooks API allows to access and manage the user's address books.
+  */
 declare namespace browser.addressBooks {
   /**
  * Indicates the type of a Node.
@@ -3311,23 +3682,34 @@ complete?: boolean): Promise<AddressBookNode | null>;
   ((id: string) => void)>;
 }
 
+  /**
+ * The address book provider API allows to add address books, which are not stored or cached by Thunderbird itself, but are handled completely by the extension. Address books created by the this API will forward all access requests to the WebExtension.
+  */
 declare namespace browser.addressBooks.provider {
     const onSearchRequest: EventHandler<  /**
- * Registering this listener will create and list a read-only address book in Thunderbird's address book window, similar to LDAP address books. When selecting this address book, users will first see no contacts, but they can search for them, which will fire this event. Contacts returned by the listener callback will be displayed as contact cards in the address book. Several listeners can be registered, to create multiple address books.
-
-The event also fires for each registered listener (for each created read-only address book), when users type something into the mail composer's *To:* field, or into similar fields like the calendar meeting attendees field. Contacts returned by the listener callback will be added to the autocomplete results in the dropdown of that field.
-
-Example: <literalinclude>includes/addressBooks/onSearchRequest.js<lang>JavaScript</lang></literalinclude>
+ * Registering this listener will create a read-only address book, similar to an LDAP address book. When selecting this address book, users will first see no contacts, but they can search for contacts, which will fire this event. Contacts returned by the listener callback will be displayed as contact cards in the address book. Several listeners can be registered, to create multiple address books.
   */
   ((node: AddressBookNode, /**
  * The search text that the user entered. Not available when invoked from the advanced address book search dialog.
   */
 
 searchString?: string, /**
- * The boolean query expression corresponding to the search. **Note:** This parameter may change in future releases of Thunderbird.
+ * The boolean query expression corresponding to the search.
   */
 
-query?: string) => void)>;
+query?: string) => object)>;
+    const onSearchRequest: EventHandler<  /**
+ * Registering this listener will create a read-only address book, similar to an LDAP address book. When selecting this address book, users will first see no contacts, but they can search for contacts, which will fire this event. Contacts returned by the listener callback will be displayed as contact cards in the address book. Several listeners can be registered, to create multiple address books.
+  */
+  ((node: AddressBookNode, /**
+ * The search text that the user entered. Not available when invoked from the advanced address book search dialog.
+  */
+
+searchString?: string, /**
+ * The boolean query expression corresponding to the search.
+  */
+
+query?: string) => object)>;
 }
 
 declare namespace browser.addressBooks.contacts {
@@ -3336,6 +3718,9 @@ declare namespace browser.addressBooks.contacts {
 declare namespace browser.addressBooks.mailingLists {
 }
 
+  /**
+ * The contacts API allows to access and manage the user's contacts.
+  */
 declare namespace browser.contacts {
   /**
  * Object defining a query for $(ref:contacts.quickSearch).
@@ -3398,7 +3783,7 @@ declare namespace browser.contacts {
   }
 
   /**
- * A set of individual properties for a particular contact, and its vCard string. Further information can be found in $(doc:examples/vcard).
+ * A set of individual properties for a particular contact, and its vCard string. Further information can be found in $(doc:guides/vcard).
   */
   export interface ContactProperties {
   }
@@ -3450,16 +3835,16 @@ queryInfo: string | QueryInfo): Promise<ContactNode[] | null>;
  * Adds a new contact to the address book with the id <var>parentId</var>.
   */
   function create(parentId: string, /**
- * Assigns the contact an id. If an existing contact has this id, an exception is thrown. **Note:** Deprecated, the card's id should be specified in the vCard string instead.
+ * Assigns the contact an id. If an existing contact has this id, an exception is thrown.
   */
 
 id: string, /**
- * The properties object for the new contact. If it includes a <var>vCard</var> member, all specified <a href='url-legacy-properties'>legacy properties</a> are ignored and the new contact will be based on the provided vCard string. If a UID is specified in the vCard string, which is already used by another contact, an exception is thrown. **Note:** Using individual properties is deprecated, use the <var>vCard</var> member instead.
+ * The properties object for the new contact. If it includes a <var>vCard</var> member, all specified $(url:legacy-properties)[legacy properties] are ignored and the new contact will be based on the provided vCard string. If a UID is specified in the vCard string, which is already used by another contact, an exception is thrown.
   */
 
 properties: ContactProperties): Promise<string | null>;
   function create(parentId: string, /**
- * The properties object for the new contact. If it includes a <var>vCard</var> member, all specified <a href='url-legacy-properties'>legacy properties</a> are ignored and the new contact will be based on the provided vCard string. If a UID is specified in the vCard string, which is already used by another contact, an exception is thrown. **Note:** Using individual properties is deprecated, use the <var>vCard</var> member instead.
+ * The properties object for the new contact. If it includes a <var>vCard</var> member, all specified $(url:legacy-properties)[legacy properties] are ignored and the new contact will be based on the provided vCard string. If a UID is specified in the vCard string, which is already used by another contact, an exception is thrown.
   */
 
 properties: ContactProperties): Promise<string | null>;
@@ -3475,7 +3860,7 @@ vCard: string): Promise<string | null>;
  * Updates a contact.
   */
   function update(id: string, /**
- * An object with properties to update the specified contact. Individual properties are removed, if they are set to <var>null</var>. If the provided object includes a <var>vCard</var> member, all specified <a href='url-legacy-properties'>legacy properties</a> are ignored and the details of the contact will be replaced by the provided vCard. Changes to the UID will be ignored. **Note:** Using individual properties is deprecated, use the <var>vCard</var> member instead. 
+ * An object with properties to update the specified contact. Individual properties are removed, if they are set to <var>null</var>. If the provided object includes a <var>vCard</var> member, all specified $(url:legacy-properties)[legacy properties] are ignored and the details of the contact will be replaced by the provided vCard. Changes to the UID will be ignored.
   */
 
 properties: ContactProperties): Promise<any>;
@@ -3505,6 +3890,9 @@ vCard: string): Promise<any>;
   ((parentId: string, id: string) => void)>;
 }
 
+  /**
+ * The mailingLists API allows to access and manage the user's mailing lists.
+  */
 declare namespace browser.mailingLists {
   /**
  * A node representing a mailing list.
@@ -3610,7 +3998,7 @@ declare namespace browser.commands {
   */
     name?: string
   /**
-   * The Extension Command description
+   * The description of the Extension Command
   */
     description?: string
   /**
@@ -3620,6 +4008,22 @@ declare namespace browser.commands {
 
   }
 
+  /**
+ * Returns all the registered extension commands for this extension and their shortcut (if active).
+  */
+  function getAll(): Promise<Command[] | null>;
+  /**
+ * Open extension shortcuts configuration page.
+  */
+  function openShortcutSettings(): Promise<any>;
+  /**
+ * Reset a command's details to what is specified in the manifest.
+  */
+  function reset(/**
+ * The name of the command.
+  */
+
+name: string): Promise<any>;
   /**
  * Update the details of an already defined command.
   */
@@ -3637,25 +4041,13 @@ detail: {
   */
     description?: string
   /**
-   * An empty string to clear the shortcut, or a string matching the format defined by the <a href='url-commands-shortcuts'>MDN page of the commands API</a>  to set a new shortcut key. If the string does not match this format, the function throws an error.
+   * An empty string to clear the shortcut, or a string matching the format defined by the $(url:commands-shortcuts)[MDN page of the commands API]  to set a new shortcut key. If the string does not match this format, the function throws an error.
   */
     shortcut?: string
 
   }): Promise<any>;
-  /**
- * Reset a command's details to what is specified in the manifest.
-  */
-  function reset(/**
- * The name of the command.
-  */
-
-name: string): Promise<any>;
-  /**
- * Returns all the registered extension commands for this extension and their shortcut (if active).
-  */
-  function getAll(): Promise<Command[] | null>;
     const onCommand: EventHandler<  /**
- * Fired when a registered command is activated using a keyboard shortcut. This is a user input event handler. For asynchronous listeners some <a href='url-user-input-restrictions'>restrictions</a> apply.
+ * Fired when a registered command is activated using a keyboard shortcut. This is a user input event handler. For asynchronous listeners some $(url:user-input-restrictions)[restrictions] apply.
   */
   ((command: string, /**
  * The details of the active tab while the command occurred.
@@ -3726,13 +4118,13 @@ declare namespace browser.compose {
   /**
    * An additional fcc folder which can be selected while composing the message, an empty string if not used. The permission <permission>accountsRead</permission> is required to use this property.
   */
-    additionalFccFolder?:  folders.MailFolderId |  folders.MailFolder | ''
+    additionalFccFolder?:  folders.MailFolder | '' |  folders.MailFolderId
   /**
    * Whether the public OpenPGP key of the sending identity should be attached to the message.
   */
     attachPublicPGPKey?: boolean
   /**
-   * Whether or not the vCard of the used identity will be attached to the message during send. **Note:** If the value has not been modified, selecting a different identity will load the default value of the new identity.
+   * Whether or not the vCard of the used identity will be attached to the message during send.
   */
     attachVCard?: boolean
   /**
@@ -3792,7 +4184,7 @@ declare namespace browser.compose {
   /**
    *  This value overrides the default fcc setting (defined by the used identity) for this message only. Either a $(ref:folders.MailFolder) specifying the folder for the copy of the sent message, or an empty string to not save a copy at all. The permission <permission>accountsRead</permission> is required to use this property.
   */
-    overrideDefaultFccFolder?:  folders.MailFolderId |  folders.MailFolder | ''
+    overrideDefaultFccFolder?:  folders.MailFolder | '' |  folders.MailFolderId
   /**
    *  This value overrides the default fcc setting (defined by the used identity) for this message only. Either a $(ref:folders.MailFolderId) specifying the folder for the copy of the sent message, or an empty string to not save a copy at all. Reset when set to <var>null</var>. The permission <permission>accountsRead</permission> is required to use this property.
   */
@@ -3810,7 +4202,7 @@ declare namespace browser.compose {
  | 'high'
  | 'highest'
   /**
-   * The id of the original message (in case of draft, template, forward or reply). Read-only. Is <var>null</var> in all other cases or if the original message was opened from file.
+   * The id of the original message (in case of draft, template, forward or reply). Read-only. Is <var>undefined</var> in all other cases or if the original message was opened from file.
   */
     relatedMessageId?:  messages.MessageId
     replyTo?: ComposeRecipientList
@@ -3886,7 +4278,7 @@ declare namespace browser.compose {
   export interface EncryptionPropertiesOpenPGP {
     name: string
   /**
-   * Whether encryption of the message body using the OpenPGP technology is enabled. **Note:** If encryption is enabled, but the <a href='url-help-cannot-encrypt'>preconditions</a> for sending an encrypted message are not met, the message cannot be sent.
+   * Whether encryption of the message body using the OpenPGP technology is enabled.
   */
     encryptBody: boolean
   /**
@@ -3903,7 +4295,7 @@ declare namespace browser.compose {
   export interface EncryptionPropertiesSMIME {
     name: string
   /**
-   * Whether encryption of the message body using the S/MIME technology is enabled. **Note:** If encryption is enabled, but the <a href='url-help-cannot-encrypt'>preconditions</a> for sending an encrypted message are not met, the message cannot be sent.
+   * Whether encryption of the message body using the S/MIME technology is enabled.
   */
     encryptBody: boolean
   /**
@@ -3915,12 +4307,6 @@ declare namespace browser.compose {
 
   /**
  * Open a new message compose window.
-
-**Note:** The compose format can be set by <var>details.isPlainText</var> or by specifying only one of <var>details.body</var> or <var>details.plainTextBody</var>. Otherwise the default compose format of the selected identity is used.
-
-**Note:** Specifying <var>details.body</var> and <var>details.plainTextBody</var> without also specifying <var>details.isPlainText</var> threw an exception in Thunderbird up to version 97. Since Thunderbird 98, this combination creates a compose window with the compose format of the selected identity, using the matching <var>details.body</var> or <var>details.plainTextBody</var> value.
-
-**Note:** If no identity is specified, this function is using the default identity and not the identity of the referenced message.
   */
   function beginNew(/**
  * If specified, the message or template to edit as a new message.
@@ -3929,12 +4315,6 @@ declare namespace browser.compose {
 messageId?:  messages.MessageId, details?: ComposeDetails): Promise< tabs.Tab | null>;
   /**
  * Open a new message compose window replying to a given message.
-
-**Note:** The compose format can be set by <var>details.isPlainText</var> or by specifying only one of <var>details.body</var> or <var>details.plainTextBody</var>. Otherwise the default compose format of the selected identity is used.
-
-**Note:** Specifying <var>details.body</var> and <var>details.plainTextBody</var> without also specifying <var>details.isPlainText</var> threw an exception in Thunderbird up to version 97. Since Thunderbird 98, this combination creates a compose window with the compose format of the selected identity, using the matching <var>details.body</var> or <var>details.plainTextBody</var> value.
-
-**Note:** If no identity is specified, this function is using the default identity and not the identity of the referenced message.
   */
   function beginReply(/**
  * The message to reply to, as retrieved using other APIs.
@@ -3945,12 +4325,6 @@ messageId:  messages.MessageId, replyType?: 'replyToSender'
  | 'replyToAll', details?: ComposeDetails): Promise< tabs.Tab | null>;
   /**
  * Open a new message compose window forwarding a given message.
-
-**Note:** The compose format can be set by <var>details.isPlainText</var> or by specifying only one of <var>details.body</var> or <var>details.plainTextBody</var>. Otherwise the default compose format of the selected identity is used.
-
-**Note:** Specifying <var>details.body</var> and <var>details.plainTextBody</var> without also specifying <var>details.isPlainText</var> threw an exception in Thunderbird up to version 97. Since Thunderbird 98, this combination creates a compose window with the compose format of the selected identity, using the matching <var>details.body</var> or <var>details.plainTextBody</var> value.
-
-**Note:** If no identity is specified, this function is using the default identity and not the identity of the referenced message.
   */
   function beginForward(/**
  * The message to forward, as retrieved using other APIs.
@@ -3964,10 +4338,6 @@ messageId:  messages.MessageId, forwardType?: 'forwardInline'
   function getComposeDetails(tabId: number): Promise<ComposeDetails | null>;
   /**
  * Updates the compose window. The properties of the given $(ref:compose.ComposeDetails) object will be used to overwrite the current values of the specified compose window, so only properties that are to be changed should be included. Modified settings will be treated as user initiated, and turn off further automatic changes on these settings.
-
-When updating any of the array properties (<var>customHeaders</var> and most address fields), make sure to first get the current values to not accidentally remove all existing entries when setting the new value.
-
-**Note:** The compose format of an existing compose window cannot be changed. Since Thunderbird 98, setting conflicting values for <var>details.body</var>, <var>details.plainTextBody</var> or <var>details.isPlaintext</var> no longer throws an exception, instead the compose window chooses the matching <var>details.body</var> or <var>details.plainTextBody</var> value and ignores the other.
   */
   function setComposeDetails(tabId: number, details: ComposeDetails): Promise<any>;
   /**
@@ -3983,7 +4353,7 @@ When updating any of the array properties (<var>customHeaders</var> and most add
   */
   function listAttachments(tabId: number): Promise<ComposeAttachment[] | null>;
   /**
- * Gets the content of a $(ref:compose.ComposeAttachment) as a <a href='url-dom-file'>File</a> object.
+ * Gets the content of a $(ref:compose.ComposeAttachment) as a $(url:dom-file)[File] object.
   */
   function getAttachmentFile(/**
  * The unique identifier for the attachment.
@@ -4040,7 +4410,7 @@ id: number): Promise</* "unknown" undefined */ object | null>;
     mode: 'draft'
  | 'template'
   /**
-   * The saved message(s). The number of saved messages depends on the applied file carbon copy configuration (fcc).
+   * An array with exactly one element, the saved message.
   */
     messages: messages.MessageHeader[]
 
@@ -4050,7 +4420,7 @@ id: number): Promise</* "unknown" undefined */ object | null>;
   */
   function getComposeState(tabId: number): Promise<ComposeState | null>;
     const onBeforeSend: EventHandler<  /**
- * Fired when a message is about to be sent from the compose window. This is a user input event handler. For asynchronous listeners some <a href='url-user-input-restrictions'>restrictions</a> apply.
+ * Fired when a message is about to be sent from the compose window. This is a user input event handler. For asynchronous listeners some $(url:user-input-restrictions)[restrictions] apply.
   */
   ((tab:  tabs.Tab, /**
  * The current state of the compose window. This is functionally the same as calling the $(ref:compose.getComposeDetails) function.
@@ -4095,7 +4465,7 @@ details: ComposeDetails) => object)>;
   */
     error?: string
   /**
-   * The saved message(s). The number of saved messages depends on the applied file carbon copy configuration (fcc).
+   * An array with exactly one element, the saved message.
   */
     messages: messages.MessageHeader[]
 
@@ -4231,7 +4601,7 @@ declare namespace browser.windows {
   */
   function getAll(getInfo?: GetInfo): Promise<Window[] | null>;
   /**
- * Creates (opens) a new window with any optional sizing, position or default URL provided. When loading a page into a popup window, same-site links are opened within the same window, all other links are opened in the user's default browser. To override this behavior, add-ons have to register a <a href='url-content-script-click-capture'>content script</a> , capture click events and handle them manually. Same-site links with targets other than <var>_self</var> are opened in a new tab in the most recent <var>normal</var> Thunderbird window.
+ * Creates (opens) a new window with any optional sizing, position or default URL provided. When loading a page into a popup window, same-site links are opened within the same window, all other links are opened in the user's default browser. To override this behavior, add-ons have to register a $(url:content-script-click-capture)[content script] , capture click events and handle them manually. Same-site links with targets other than <var>_self</var> are opened in a new tab in the most recent <var>normal</var> Thunderbird window.
   */
   function create(createData?: {
     /**
@@ -4267,13 +4637,19 @@ declare namespace browser.windows {
   */
     state?: WindowState
   /**
-   * Allow scripts running inside the window to close the window by calling `window.close()`.
+   * Allow scripts running inside the window to close the window by calling `window.close()`. Defaults to <var>true</var> when the given URL points to an extension page (a page included with this extension and loaded with the <var>moz-extension:</var> protocol), defaults to <var>false</var> otherwise.
   */
     allowScriptsToClose?: boolean
   /**
-   * The CookieStoreId to use for all tabs that were created when the window is opened.
+   * The $(url:cookieStore)[CookieStore] id which all initially opened tabs should use. Either a custom id created using the $(url:contextualIdentity)[contextualIdentities API], or a built-in one: <var>firefox-default</var>, <var>firefox-container-1</var>, <var>firefox-container-2</var>, <var>firefox-container-3</var>, <var>firefox-container-4</var>, <var>firefox-container-5</var>.
   */
     cookieStoreId?: string
+  /**
+   * Thunderbird is a mail client, not a browser. It is possible to load a web page, but opening follow-up pages through hyperlinks should be handled by the user's default browser. This property specifies to what extent this behavior should be enforced. The default <var>balanced</var> link handler will open links to the same host directly in Thunderbird, everything else will be opened in the user's default browser. A <var>relaxed</var> link handler will open all links inside of Thunderbird, a <var>strict</var> link handler will open all links in the user's default browser, except links to the same page.
+  */
+    linkHandler?: 'strict'
+ | 'balanced'
+ | 'relaxed'
   /**
    * A string to add to the beginning of the window title.
   */
@@ -4343,7 +4719,7 @@ window: Window) => void)>;
 
 windowId: number) => void)>;
     const onFocusChanged: EventHandler<  /**
- * Fired when the currently focused window changes. Will be $(ref:windows.WINDOW_ID_NONE), if all windows have lost focus. **Note:** On some Linux window managers, WINDOW_ID_NONE will always be sent immediately preceding a switch from one window to another.
+ * Fired when the currently focused window changes. Will be $(ref:windows.WINDOW_ID_NONE), if all windows have lost focus.
   */
   ((/**
  * ID of the newly focused window.
@@ -4410,7 +4786,7 @@ declare namespace browser.tabs {
   */
     height?: number
   /**
-   * The <a href='url-cookieStore'>CookieStore</a> id used by the tab. Either a custom id created using the <a href='url-contextualIdentity'>contextualIdentities API</a>, or a built-in one: <var>firefox-default</var>, <var>firefox-container-1</var>, <var>firefox-container-2</var>, <var>firefox-container-3</var>, <var>firefox-container-4</var>, <var>firefox-container-5</var>. **Note:** The naming pattern was deliberately not changed for Thunderbird, but kept for compatibility reasons.
+   * The $(url:cookieStore)[CookieStore] id used by the tab. Either a custom id created using the $(url:contextualIdentity)[contextualIdentities API], or a built-in one: <var>firefox-default</var>, <var>firefox-container-1</var>, <var>firefox-container-2</var>, <var>firefox-container-3</var>, <var>firefox-container-4</var>, <var>firefox-container-5</var>.
   */
     cookieStoreId?: string
     type?: TabType
@@ -4422,6 +4798,10 @@ declare namespace browser.tabs {
    * The id of the space.
   */
     spaceId?: number
+  /**
+   * The ID of the group that the tab belongs to. -1 if the tab does not belong to a tab group.
+  */
+    groupId?: number
 
   }
 
@@ -4447,14 +4827,14 @@ declare namespace browser.tabs {
   */
   type WindowType = string;
   /**
- * Event names supported in onUpdated.
+ * Event names supported in $(ref:tabs.onUpdated).
   */
   /**
- * Event names supported in onUpdated.
+ * Event names supported in $(ref:tabs.onUpdated).
   */
   type UpdatePropertyName = string;
   /**
- * An object describing filters to apply to tabs.onUpdated events.
+ * An object describing filters to apply to $(ref:tabs.onUpdated) events.
   */
   export interface UpdateFilter {
   /**
@@ -4475,11 +4855,11 @@ declare namespace browser.tabs {
   */
   function get(tabId: number): Promise<Tab | null>;
   /**
- * Gets the tab that this script call is being made from. May be <var>undefined</var> if called from a non-tab context (for example: a background page or popup view).
+ * Gets the tab that this script call is being made from. Returns <var>undefined</var> if called from a non-tab context (for example a background page or a popup view).
   */
   function getCurrent(): Promise<Tab | null>;
   /**
- * Connects to the content script(s) in the specified tab. The <a href='url-runtime-on-connect'>runtime.onConnect</a> event is fired in each content script running in the specified tab for the current extension. For more details, see <a href='url-content-scripts'>Content Script Messaging</a>.
+ * Connects to the content script(s) in the specified tab. The $(url:runtime-on-connect)[runtime.onConnect] event is fired in each content script running in the specified tab for the current extension. For more details, see $(url:content-scripts)[Content Script Messaging].
   */
   function connect(tabId: number, connectInfo?: {
     /**
@@ -4493,7 +4873,7 @@ declare namespace browser.tabs {
 
   }): undefined;
   /**
- * Sends a single message to the content script(s) in the specified tab, with an optional callback to run when a response is sent back. The <a href='url-runtime-on-message'>runtime.onMessage</a> event is fired in each content script running in the specified tab for the current extension.
+ * Sends a single message to the content script(s) in the specified tab, with an optional callback to run when a response is sent back. The $(url:runtime-on-message)[runtime.onMessage] event is fired in each content script running in the specified tab for the current extension.
   */
   function sendMessage(tabId: number, message: any, options?: {
     /**
@@ -4503,7 +4883,7 @@ declare namespace browser.tabs {
 
   }): Promise<any>;
   /**
- * Creates a new content tab. Use the $(doc:messageDisplay) to open messages. Only supported in <var>normal</var> windows. Same-site links in the loaded page are opened within Thunderbird, all other links are opened in the user's default browser. To override this behavior, add-ons have to register a <a href='url-content-script-click-capture'>content script</a> , capture click events and handle them manually.
+ * Creates a new content tab. To create message tabs, use the $(ref:messageDisplay.open). Only supported in <var>normal</var> windows. Same-site links in the loaded page are opened within Thunderbird, all other links are opened in the user's default browser. To override this behavior, add-ons have to register a $(url:content-script-click-capture)[content script] , capture click events and handle them manually.
   */
   function create(/**
  * Properties for the new tab. Defaults to an empty tab, if no <var>url</var> is provided.
@@ -4527,9 +4907,15 @@ createProperties: {
   */
     active?: boolean
   /**
-   * The <a href='url-cookieStore'>CookieStore</a> id the new tab should use. Either a custom id created using the <a href='url-contextualIdentity'>contextualIdentities API</a>, or a built-in one: <var>firefox-default</var>, <var>firefox-container-1</var>, <var>firefox-container-2</var>, <var>firefox-container-3</var>, <var>firefox-container-4</var>, <var>firefox-container-5</var>. **Note:** The naming pattern was deliberately not changed for Thunderbird, but kept for compatibility reasons.
+   * The $(url:cookieStore)[CookieStore] id the new tab should use. Either a custom id created using the $(url:contextualIdentity)[contextualIdentities API], or a built-in one: <var>firefox-default</var>, <var>firefox-container-1</var>, <var>firefox-container-2</var>, <var>firefox-container-3</var>, <var>firefox-container-4</var>, <var>firefox-container-5</var>.
   */
     cookieStoreId?: string
+  /**
+   * Thunderbird is a mail client, not a browser. It is possible to load a web page, but opening follow-up pages through hyperlinks should be handled by the user's default browser. This property specifies to what extent this behavior should be enforced. The default <var>balanced</var> link handler will open links to the same host directly in Thunderbird, everything else will be opened in the user's default browser. A <var>relaxed</var> link handler will open all links inside of Thunderbird, a <var>strict</var> link handler will open all links in the user's default browser, except links to the same page.
+  */
+    linkHandler?: 'strict'
+ | 'balanced'
+ | 'relaxed'
 
   }): Promise<Tab | null>;
   /**
@@ -4581,7 +4967,7 @@ tabId: number): Promise<Tab | null>;
   */
     title?: string
   /**
-   * Match tabs against one or more <a href='url-match-patterns'>URL Patterns</a>. Note that fragment identifiers are not matched.
+   * Match tabs against one or more $(url:match-patterns)[URL Patterns]. Fragment identifiers are not matched.
   */
     url?: string | string[]
   /**
@@ -4597,7 +4983,7 @@ tabId: number): Promise<Tab | null>;
   */
     index?: number
   /**
-   * The <a href='url-cookieStore'>CookieStore</a> id(s) used by the tabs. Either custom ids created using the <a href='url-contextualIdentity'>contextualIdentities API</a>, or built-in ones: <var>firefox-default</var>, <var>firefox-container-1</var>, <var>firefox-container-2</var>, <var>firefox-container-3</var>, <var>firefox-container-4</var>, <var>firefox-container-5</var>. **Note:** The naming pattern was deliberately not changed for Thunderbird, but kept for compatibility reasons.
+   * The $(url:cookieStore)[CookieStore] id(s) used by the tabs. Either custom ids created using the $(url:contextualIdentity)[contextualIdentities API], or built-in ones: <var>firefox-default</var>, <var>firefox-container-1</var>, <var>firefox-container-2</var>, <var>firefox-container-3</var>, <var>firefox-container-4</var>, <var>firefox-container-5</var>.
   */
     cookieStoreId?: string[] | string
 
@@ -4615,7 +5001,7 @@ tabId: number, /**
 
 updateProperties: {
     /**
-   * A URL of a page to load. If the URL points to a content page (a web page, an extension page or a registered WebExtension protocol handler page), the tab will navigate to the requested page. All other URLs will be opened externally without changing the tab. **Note:** This function will throw an error, if a content page is loaded into a non-content tab (its type must be either <var>content</var> or <var>mail</var>).
+   * A URL of a page to load. If the URL points to a content page (a web page, an extension page or a registered WebExtension protocol handler page), the tab will navigate to the requested page. All other URLs will be opened externally without changing the tab.
   */
     url?: string
   /**
@@ -4630,7 +5016,7 @@ updateProperties: {
 
 updateProperties: {
     /**
-   * A URL of a page to load. If the URL points to a content page (a web page, an extension page or a registered WebExtension protocol handler page), the tab will navigate to the requested page. All other URLs will be opened externally without changing the tab. **Note:** This function will throw an error, if a content page is loaded into a non-content tab (its type must be either <var>content</var> or <var>mail</var>).
+   * A URL of a page to load. If the URL points to a content page (a web page, an extension page or a registered WebExtension protocol handler page), the tab will navigate to the requested page. All other URLs will be opened externally without changing the tab.
   */
     url?: string
   /**
@@ -4640,7 +5026,7 @@ updateProperties: {
 
   }): Promise<Tab | null>;
   /**
- * Moves one or more tabs to a new position within its current window, or to a different window. Note that tabs can only be moved to and from windows of type <var>normal</var>.
+ * Moves one or more tabs to a new position within its current window, or to a different window. Tabs can only be moved to and from windows of type <var>normal</var>.
   */
   function move(/**
  * The tab or list of tabs to move.
@@ -4680,7 +5066,7 @@ tabId?: number, reloadProperties?: {
 
 tabIds: number | number[]): Promise<void | null>;
   /**
- * Injects JavaScript code into a page. For details, see the <a href='url-content-scripts'>programmatic injection</a> section of the content scripts doc.
+ * Injects JavaScript code into a page. For details, see the $(url:content-scripts)[programmatic injection] section of the content scripts doc.
   */
   function executeScript(/**
  * The ID of the tab in which to run the script; defaults to the active tab of the current window.
@@ -4697,7 +5083,7 @@ details:  extensionTypes.InjectDetails): Promise<any[] | null>;
 
 details:  extensionTypes.InjectDetails): Promise<any[] | null>;
   /**
- * Injects CSS into a page. For details, see the <a href='url-content-scripts'>programmatic injection</a> section of the content scripts doc.
+ * Injects CSS into a page. For details, see the $(url:content-scripts)[programmatic injection] section of the content scripts doc.
   */
   function insertCSS(/**
  * The ID of the tab in which to insert the CSS; defaults to the active tab of the current window.
@@ -4714,7 +5100,7 @@ details:  extensionTypes.InjectDetails): Promise<void | null>;
 
 details:  extensionTypes.InjectDetails): Promise<void | null>;
   /**
- * Removes injected CSS from a page. For details, see the <a href='url-content-scripts'>programmatic injection</a> section of the content scripts doc.
+ * Removes injected CSS from a page. For details, see the $(url:content-scripts)[programmatic injection] section of the content scripts doc.
   */
   function removeCSS(/**
  * The ID of the tab from which to remove the injected CSS; defaults to the active tab of the current window.
@@ -4731,7 +5117,7 @@ details:  extensionTypes.InjectDetails): Promise<void | null>;
 
 details:  extensionTypes.InjectDetails): Promise<void | null>;
     const onCreated: EventHandler<  /**
- * Fired when a tab is created. Note that the tab's URL may not be set at the time this event fired, but you can listen to onUpdated events to be notified when a URL is set.
+ * Fired when a tab is created. The tab may still be loading, with its title being <var>loading...</var> and its URL being <var>about:blank</var>. To detect when the tab has finished loading, listen to the $(ref:tabs.onUpdated) event.
   */
   ((/**
  * Details of the tab that was created.
@@ -4774,7 +5160,7 @@ tab: Tab) => void)>;
 
   }) => void)>;
     const onActivated: EventHandler<  /**
- * Fires when the active tab in a window changes. Note that the tab's URL may not be set at the time this event fired, but you can listen to onUpdated events to be notified when a URL is set.
+ * Fires when the active tab in a window changes. The tab's URL may not be set at the time this event fired, listen to the $(ref:tabs.onUpdated) event instead to be notified when a URL is set.
   */
   ((activeInfo: {
     /**
@@ -4829,7 +5215,7 @@ const TAB_ID_NONE = -1;
 
 declare namespace browser.menus {
   /**
- * The different contexts a menu can appear in. Specifying <var>all</var> is equivalent to the combination of all other contexts excluding <var>tab</var> and <var>tools_menu</var>. More information about each context can be found in the <a href='url-ui-elements'>Supported UI Elements</a> article on developer.thunderbird.net.
+ * The different contexts a menu can appear in. Specifying <var>all</var> is equivalent to the combination of all other contexts excluding <var>tab</var> and <var>tools_menu</var>. More information about each context can be found in the $(url:ui-elements)[Supported UI Elements] article on developer.thunderbird.net.
   */
   type ContextType = 'all'
  | 'all_message_attachments'
@@ -4841,6 +5227,7 @@ declare namespace browser.menus {
  | 'editable'
  | 'folder_pane'
  | 'frame'
+ | 'header_pane_link'
  | 'image'
  | 'link'
  | 'message_attachments'
@@ -4887,27 +5274,27 @@ declare namespace browser.menus {
   */
     viewType?:  extension.ViewType
   /**
-   * If the element is a link, the text of that link. **Note:** Host permission is required.
+   * If the element is a link, the text of that link.
   */
     linkText?: string
   /**
-   * If the element is a link, the URL it points to. **Note:** Host permission is required.
+   * If the element is a link, the URL it points to.
   */
     linkUrl?: string
   /**
-   * Will be present for elements with a *src* URL. **Note:** Host permission is required.
+   * Will be present for elements with a *src* URL.
   */
     srcUrl?: string
   /**
-   * The URL of the page where the menu item was clicked. This property is not set if the click occurred in a context where there is no current page, such as in a launcher context menu. **Note:** Host permission is required.
+   * The URL of the page where the menu item was clicked. This property is not set if the click occurred in a context where there is no current page, such as in a launcher context menu.
   */
     pageUrl?: string
   /**
-   * The URL of the frame of the element where the context menu was clicked, if it was in a frame. **Note:** Host permission is required.
+   * The URL of the frame of the element where the context menu was clicked, if it was in a frame.
   */
     frameUrl?: string
   /**
-   * The text for the context selection, if any. **Note:** Host permission is required.
+   * The text for the context selection, if any.
   */
     selectionText?: string
   /**
@@ -5067,13 +5454,21 @@ declare namespace browser.menus {
   */
   type MenuIconPath = string | string;
   /**
- * A *dictionary object* to specify paths for multiple icons in different sizes, so the best matching icon can be used, instead of scaling a standard icon to fit the pixel density of the user's display. Each entry is a *name-value* pair, with *name* being a size and *value* being a $(ref:menus.MenuIconPath). Example: <literalinclude>includes/IconPath.json<lang>JSON</lang></literalinclude>See the <a href='url-choosing-icon-size'>MDN documentation about choosing icon sizes</a> for more information on this. 
+ * A *dictionary object* to specify paths for multiple icons in different sizes, so the best matching icon can be used, instead of scaling a standard icon to fit the pixel density of the user's display. Each entry is a *name-value* pair, with *name* being a size and *value* being a $(ref:menus.MenuIconPath).
   */
   export interface MenuIconDictionary {
   }
 
   /**
- * Creates a new context menu item. Note that if an error occurs during creation, you may not find out until the creation callback fires (the details will be in <a href='url-runtime-last-error'>runtime.lastError</a>).
+ * A predefined command to open an action popup.
+  */
+  type MenuActionCommand = '_execute_browser_action'
+ | '_execute_compose_action'
+ | '_execute_message_display_action' | '_execute_action'
+ | '_execute_compose_action'
+ | '_execute_message_display_action';
+  /**
+ * Creates a new context menu item. Note that if an error occurs during creation, you may not find out until the creation callback fires (the details will be in $(url:runtime-last-error)[runtime.lastError]).
   */
   function create(createProperties: {
     /**
@@ -5127,7 +5522,7 @@ tab:  tabs.Tab) => void ,
   */
     parentId?: number | string
   /**
-   * Lets you restrict the item to apply only to documents whose URL matches one of the given patterns. (This applies to frames as well.) For details on the format of a pattern, see <a href='url-match-patterns'>Match Patterns</a>.
+   * Lets you restrict the item to apply only to documents whose URL matches one of the given patterns. (This applies to frames as well.) For details on the format of a pattern, see $(url:match-patterns)[Match Patterns].
   */
     documentUrlPatterns?: string[]
   /**
@@ -5138,7 +5533,10 @@ tab:  tabs.Tab) => void ,
    * Whether this context menu item is enabled or disabled. Defaults to true.
   */
     enabled?: boolean
-    command?: string | string
+  /**
+   * Specifies a command to issue for the context click. Can either be a user defined command, or one of the predefined action commands.
+  */
+    command?: string |  menus.MenuActionCommand
 
   }): undefined;
   /**
@@ -5164,14 +5562,14 @@ updateProperties: {
   */
     visible?: boolean
     onclick?: /* or any?  */   (info: OnClickData, /**
- * The details of the tab where the click took place. **Note:** this parameter only present for extensions.
+ * The details of the tab where the click took place.
   */
 
 tab:  tabs.Tab) => void , 
  /* x7 */ 
 
   /**
-   * **Note:** You cannot change an item to be a child of one of its own descendants.
+   * The hierarchical parent of the element. Updating an element to become a child of its own descendants is not supported.
   */
     parentId?: number | string
     documentUrlPatterns?: string[]
@@ -5192,7 +5590,7 @@ menuItemId: number | string): Promise<void | null>;
   */
   function removeAll(): Promise<void | null>;
   /**
- * Show the matching menu items from this extension instead of the default menu. This should be called during a <a href='url-contextmenu-event'>contextmenu</a> event handler, and only applies to the menu that opens after this event.
+ * Show the matching menu items from this extension instead of the default menu. This should be called during a $(url:contextmenu-event)[contextmenu] event handler, and only applies to the menu that opens after this event.
   */
   function overrideContext(contextOptions: {
     /**
@@ -5214,7 +5612,7 @@ menuItemId: number | string): Promise<void | null>;
   */
   function refresh(): Promise<any>;
   /**
- * Retrieve the element that was associated with a recent <a href='url-contextmenu-event'>contextmenu</a> event.
+ * Retrieve the element that was associated with a recent $(url:contextmenu-event)[contextmenu] event.
   */
   function getTargetElement(/**
  * The identifier of the clicked element, available as <var>info.targetElementId</var> in the $(ref:menus.onShown) and $(ref:menus.onClicked) events.
@@ -5222,7 +5620,7 @@ menuItemId: number | string): Promise<void | null>;
 
 targetElementId: number): object;
     const onClicked: EventHandler<  /**
- * Fired when a context menu item is clicked. This is a user input event handler. For asynchronous listeners some <a href='url-user-input-restrictions'>restrictions</a> apply.
+ * Fired when a context menu item is clicked. This is a user input event handler. For asynchronous listeners some $(url:user-input-restrictions)[restrictions] apply.
   */
   ((/**
  * Information about the item clicked and the context where the click happened.
@@ -5253,62 +5651,6 @@ tab:  tabs.Tab) => void)>;
  * The maximum number of top level extension items that can be added to an extension action context menu. Any items beyond this limit will be ignored.
   */
 const ACTION_MENU_TOP_LEVEL_LIMIT = 6;
-}
-
-declare namespace browser.messengerUtilities {
-  /**
- * Representation of a parsed mailbox string (see RFC 5322, section 3.4).
-  */
-  export interface ParsedMailbox {
-  /**
-   * The <var>display-name</var> associated with the provided address or group, if available.
-  */
-    name?: string
-  /**
-   * The <var>addr-spec</var> associated with the provided address, if available.
-  */
-    email?: string
-  /**
-   * The members of the group, if available.
-  */
-    group?: messengerUtilities.ParsedMailbox[]
-
-  }
-
-  /**
- * Converts the provided body to readable plain text, without tags and leading/trailing whitespace.
-  */
-  function convertToPlainText(/**
- * The to-be-converted body.
-  */
-
-body: string, options?: {
-    /**
-   * The converted plain text will be wrapped to lines not longer than 72 characters and use format flowed, as defined by RFC 2646.
-  */
-    flowed?: boolean
-
-  }): Promise<string | null>;
-  /**
- * Returns the provided file size in a human readable format (e.g. <var>12 bytes</var> or <var>11,4 GB</var>).
-  */
-  function formatFileSize(/**
- * The size in bytes.
-  */
-
-sizeInBytes: number): Promise<string | null>;
-  /**
- * Parse a mailbox string containing one or more email addresses (see RFC 5322, section 3.4).
-  */
-  function parseMailboxString(/**
- * The string to be parsed (e.g. <var>User <user@example.com>, other-user@example.com</var>)
-  */
-
-mailboxString: string, /**
- * Keep grouped hierachies. Groups may be specified in a mailbox string as follows: <var>GroupName : user1 <user1@example.com>, user2@example,com ;</var>.
-  */
-
-preserveGroups?: boolean): Promise<messengerUtilities.ParsedMailbox[] | null>;
 }
 
 declare namespace browser.scripting.compose {
@@ -5349,7 +5691,7 @@ declare namespace browser.scripting.compose {
 
 filter?: ComposeScriptFilter): Promise<ComposeScriptDetails[]>;
   /**
- * Registers one or more compose scripts for this extension, which should be injected into the message compose editor. **Note:** Registered scripts will only be applied to newly opened message compose tabs. To apply the script to already open message compose tabs, manually inject your script by calling $(ref:scripting.executeScript) for each of the open <var>messageCompose</var> tabs.
+ * Registers one or more compose scripts for this extension, which should be injected into the message compose editor.
   */
   function registerScripts(/**
  * Contains a list of compose scripts to be registered. If there are errors during script parsing/file validation, or if the IDs specified already exist, then no scripts are registered.
@@ -5404,7 +5746,7 @@ declare namespace browser.scripting.messageDisplay {
 
 filter?: MessageDisplayScriptFilter): Promise<MessageDisplayScriptDetails[]>;
   /**
- * Registers one or more message display scripts for this extension, which should be injected into displayed messages. **Note:** Registered scripts will only be applied to newly opened messages. To apply the script to already open messages, manually inject your script by calling $(ref:scripting.executeScript) for each of the open <var>messageDisplay</var> tabs.
+ * Registers one or more message display scripts for this extension, which should be injected into displayed messages.
   */
   function registerScripts(/**
  * Contains a list of message display scripts to be registered. If there are errors during script parsing/file validation, or if the IDs specified already exist, then no scripts are registered.
@@ -5421,6 +5763,9 @@ scripts: MessageDisplayScriptDetails[]): Promise<void>;
 filter?: MessageDisplayScriptFilter): Promise<void>;
 }
 
+  /**
+ * The spacesToolbar API allows to manage built-in and custom spaces, and to add buttons for custom spaces to Thunderbird's spaces toolbar.
+  */
 declare namespace browser.spacesToolbar {
   export interface ButtonProperties {
   /**
@@ -5530,7 +5875,7 @@ declare namespace browser.composeScripts {
   }
 
   /**
- * Register a compose script programmatically. **Note:** Registered scripts will only be applied to newly opened message composer tabs. To apply the script to already open message composer tab, manually inject your script by calling $(ref:tabs.executeScript) for each of the open <var>messageCompose</var> tabs.
+ * Register a compose script programmatically.
   */
   function register(composeScriptOptions: RegisteredComposeScriptOptions): Promise<any>;
 }
@@ -5571,11 +5916,14 @@ declare namespace browser.messageDisplayScripts {
   }
 
   /**
- * Register a message display script programmatically. **Note:** Registered scripts will only be applied to newly opened messages. To apply the script to already open messages, manually inject your script by calling $(ref:tabs.executeScript) for each of the open <var>messageDisplay</var> tabs.
+ * Register a message display script programmatically.
   */
   function register(messageDisplayScriptOptions: RegisteredMessageDisplayScriptOptions): Promise<any>;
 }
 
+  /**
+ * The accounts API provides access to the user's server accounts.
+  */
 declare namespace browser.accounts {
   /**
  * An object describing a mail account, as returned for example by the $(ref:accounts.list) and $(ref:accounts.get) methods.
@@ -5590,9 +5938,9 @@ declare namespace browser.accounts {
   */
     name: string
   /**
-   * What sort of account this is, e.g. <var>imap</var>, <var>nntp</var>, or <var>pop3</var>.
+   * What sort of account this is. Either one of the natively supported account types, or an account type added by an extension.
   */
-    type: string
+    type:  accounts.NativeMailAccountType |  accounts.ExtensionMailAccountType
   /**
    * The folders for this account. The property may be <var>null</var>, if inclusion of folders had not been requested.
   */
@@ -5616,15 +5964,26 @@ declare namespace browser.accounts {
   */
   type MailAccountId = string;
   /**
- * The type of an account.
+ * The type of an account natively supported by Thunderbird.
   */
-  type MailAccountType = 'imap'
- | 'pop3'
+  type NativeMailAccountType = 'ews'
+ | 'imap'
  | 'nntp'
- | 'none' | 'imap'
+ | 'none'
  | 'pop3'
+ | 'rss' | 'ews'
+ | 'imap'
+ | 'local'
  | 'nntp'
- | 'local';
+ | 'pop3'
+ | 'rss';
+  /**
+ * The type of an account which was added by an extension. For the time being there is no guarantee for account types added by extensions to always work as expected.
+  */
+  /**
+ * The type of an account which was added by an extension. For the time being there is no guarantee for account types added by extensions to always work as expected.
+  */
+  type ExtensionMailAccountType = string;
   /**
  * Returns all mail accounts. They will be returned in the same order as used in Thunderbird's folder pane.
   */
@@ -5648,7 +6007,7 @@ includeSubFolders?: boolean): Promise<accounts.MailAccount[] | null>;
  * Specifies whether the $(ref:folders.MailFolder) in the <var>rootFolder</var> property of the returned $(ref:accounts.MailAccount) should populate its <var>subFolders</var> property, and include all (nested!) subfolders. Defaults to <var>false</var>.
   */
 
-includeSubFolders?: boolean): Promise< accounts.MailAccount | null>;
+includeSubFolders?: boolean): Promise< accounts.MailAccount | void /* could not determine correct type */ | null>;
   /**
  * Returns details of the requested account, or <var>null</var> if it doesn't exist.
   */
@@ -5705,6 +6064,9 @@ includeSubFolders?: boolean): Promise< accounts.MailAccount | void /* could not 
   }) => void)>;
 }
 
+  /**
+ * The cloudFile (a.k.a. fileLink) API allows to create a provider to store large attachments in the cloud instead of attaching them directly to the message.
+  */
 declare namespace browser.cloudFile {
   /**
  * Information about a cloud file account.
@@ -5774,7 +6136,7 @@ declare namespace browser.cloudFile {
   */
     timestamp: number
   /**
-   * A format options object as used by <a href='url-date-time-format'>Intl.DateTimeFormat</a>. Defaults to: <literalinclude>includes/cloudFile/defaultDateFormat.js<lang>JavaScript</lang></literalinclude>
+   * A format options object as used by $(url:date-time-format)[Intl.DateTimeFormat].
   */
     format?: /* "unknown" undefined */ object
 
@@ -5829,7 +6191,7 @@ declare namespace browser.cloudFile {
   }
 
   /**
- * Retrieve information about a single cloud file account, or <var>undefined</var> if it does not exists
+ * Retrieve information about a single cloud file account. Returns <var>undefined</var>, if the requested account does not exist.
   */
   function getAccount(/**
  * Unique identifier of the account.
@@ -5841,7 +6203,7 @@ accountId: string): Promise<CloudFileAccount | null>;
   */
   function getAllAccounts(): Promise<CloudFileAccount[] | null>;
   /**
- * Update a cloud file account.
+ * Update a cloud file account. Returns <var>undefined</var>, if the requested account does not exist.
   */
   function updateAccount(/**
  * Unique identifier of the account.
@@ -5957,16 +6319,34 @@ account: CloudFileAccount) => void)>;
 accountId: string) => void)>;
 }
 
+  /**
+ * The messengerSettings API allows to access global messenger settings.
+  */
+declare namespace browser.messengerSettings {
+  /**
+ * Whether long lines in outgoing plain text messages will get soft line breaks (<var> 
+</var>) or hard line breaks (<var>
+</var>), to comply with requirements from RFC 2822. Soft line breaks will be ignored when displayed by the receiving client. When flowed output is enabled, add-ons should not create plain text messages with manually inserted hard or soft line breaks to achieve a certain text width, as that will most probably interfere with the default line break handling and generate ridged text. When flowed output is disabled, add-ons could add hard line breaks to have control over the final message, but any line longer than the maximum line length will still receive additional hard line breaks. See $(ref:messengerSettings.messageLineLengthLimit).
+  */
+const messagePlainTextFlowedOutputEnabled:  types.Setting;
+  /**
+ * The line length limit for outgoing messages, to comply with requirements from RFC 2822. See description of $(ref:messengerSettings.messagePlainTextFlowedOutputEnabled).
+  */
+const messageLineLengthLimit:  types.Setting;
+}
+
 declare namespace browser.permissions {
   export interface Permissions {
-    permissions?: manifest.OptionalPermission[]
+    permissions?: []
     origins?: manifest.MatchPattern[]
+    data_collection?: manifest.OptionalDataCollectionPermission[]
 
   }
 
   export interface AnyPermissions {
-    permissions?: manifest.Permission[]
+    permissions?: []
     origins?: manifest.MatchPattern[]
+    data_collection?: manifest.OptionalDataCollectionPermission[]
 
   }
 
@@ -6460,6 +6840,10 @@ declare namespace browser.runtime {
    * The URL of the page or frame that opened the connection. If the sender is in an iframe, it will be iframe's URL not the URL of the page which hosts it.
   */
     url?: string
+  /**
+   * The worldId of the USER_SCRIPT world that sent the message. Only present on onUserScriptMessage and onUserScriptConnect (in port.sender) events.
+  */
+    userScriptWorldId?: string
 
   }
 
@@ -6722,6 +7106,10 @@ details: {
  * Fired when a connection is made from either an extension process or a content script.
   */
   ((port: Port) => void)>;
+    const onUserScriptConnect: EventHandler<  /**
+ * Fired when a connection is made from a USER_SCRIPT world registered through the userScripts API.
+  */
+  ((port: Port) => void)>;
     const onConnectExternal: EventHandler<  /**
  * Fired when a connection is made from another extension.
   */
@@ -6747,6 +7135,25 @@ sendResponse: /* or any?  */   () => void ,
  /* x7 */) => boolean)>;
     const onMessageExternal: EventHandler<  /**
  * Fired when a message is sent from another extension/app. Cannot be used in a content script.
+  */
+  ((/**
+ * The message sent by the calling script.
+  */
+
+message: any, sender: MessageSender, /**
+ * Function to call (at most once) when you have a response. The argument should be any JSON-ifiable object. If you have more than one `onMessage` listener in the same document, then only one may send a response. This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until `sendResponse` is called).
+  */
+
+sendResponse: /* or any?  */   () => void , 
+ /* x7 */) => boolean) | 
+  ((sender: MessageSender, /**
+ * Function to call (at most once) when you have a response. The argument should be any JSON-ifiable object. If you have more than one `onMessage` listener in the same document, then only one may send a response. This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until `sendResponse` is called).
+  */
+
+sendResponse: /* or any?  */   () => void , 
+ /* x7 */) => boolean)>;
+    const onUserScriptMessage: EventHandler<  /**
+ * Fired when a message is sent from a USER_SCRIPT world registered through the userScripts API.
   */
   ((/**
  * The message sent by the calling script.
@@ -7276,7 +7683,7 @@ declare namespace browser.networkStatus {
   }
 
   /**
- * Returns the $(ref:NetworkLinkInfo} of the current network connection.
+ * Returns the $(ref:NetworkLinkInfo) of the current network connection.
   */
   function getLinkInfo(): Promise<any>;
     const onConnectionChanged: EventHandler<  /**
@@ -7453,6 +7860,10 @@ messageName: string, /**
 
 substitutions?: any): string;
   /**
+ * Gets the preferred locales of the operating system. This is different from the locales set in the browser; to get those, use $(ref:i18n.getAcceptLanguages).
+  */
+  function getPreferredSystemLanguages(): Promise<LanguageCode[]>;
+  /**
  * Gets the browser UI language of the browser. This is different from $(ref:i18n.getAcceptLanguages) which returns the preferred user languages.
   */
   function getUILanguage(): string;
@@ -7524,10 +7935,10 @@ declare namespace browser.dns {
   */
 declare namespace browser.declarativeNetRequest {
   /**
- * How the requested resource will be used. Comparable to the webRequest.ResourceType type.
+ * How the requested resource will be used. Comparable to the webRequest.ResourceType type. object_subrequest is unsupported.
   */
   /**
- * How the requested resource will be used. Comparable to the webRequest.ResourceType type.
+ * How the requested resource will be used. Comparable to the webRequest.ResourceType type. object_subrequest is unsupported.
   */
   type ResourceType = string;
   /**
@@ -7951,6 +8362,41 @@ const DYNAMIC_RULESET_ID = _dynamic;
  * Ruleset ID for the session-scoped rules added by the extension.
   */
 const SESSION_RULESET_ID = _session;
+}
+
+declare namespace browser.trial {
+}
+
+  /**
+ * Use the trial ML API to run Machine Learning models requests from extensions pages or content scripts.
+  */
+declare namespace browser.trial.ml {
+  export interface CreateEngineRequest {
+  }
+
+  export interface RunEngineRequest {
+  }
+
+  /**
+ * Prepare the inference engine
+  */
+  function createEngine(CreateEngineRequest: CreateEngineRequest): Promise<any>;
+  /**
+ * Call the inference engine
+  */
+  function runEngine(RunEngineRequest: RunEngineRequest): Promise<any>;
+  /**
+ * Delete the models the extension downloaded.
+  */
+  function deleteCachedModels(): Promise<any>;
+    const onProgress: EventHandler<  /**
+ * Events from the inference engine.
+  */
+  ((/**
+ * Object containing the data, see https://firefox-source-docs.mozilla.org/toolkit/components/ml/notifications.html
+  */
+
+progressData: /* "unknown" undefined */ object) => void)>;
 }
 
   /**
@@ -8614,18 +9060,156 @@ declare namespace browser.userScripts {
   */
   export interface RegisteredUserScript {
   /**
- * Unregister a user script registered programmatically
+   * The ID of the user script specified in the API call. This property must not start with a '_' as it's reserved as a prefix for generated script IDs.
   */
-
-  unregister(): Promise<any>;
-
+    id: string
+  /**
+   * If allFrames is `true`, implies that the JavaScript should be injected into all frames of current page. By default, it's `false` and is only injected into the top frame.
+  */
+    allFrames?: boolean
+  /**
+   * The list of ScriptSource objects defining sources of scripts to be injected into matching pages.
+  */
+    js: ScriptSource[]
+  /**
+   * At least one of matches or includeGlobs should be non-empty. The script runs in documents whose URL match either pattern.
+  */
+    matches?: manifest.MatchPattern[]
+    excludeMatches?: manifest.MatchPattern[]
+  /**
+   * At least one of matches or includeGlobs should be non-empty. The script runs in documents whose URL match either pattern.
+  */
+    includeGlobs?: string[]
+    excludeGlobs?: string[]
+  /**
+   * The soonest that the JavaScript will be injected into the tab. Defaults to "document_idle".
+  */
+    runAt?:  extensionTypes.RunAt
+  /**
+   * The JavaScript script for a script to execute within. Defaults to "USER_SCRIPT".
+  */
+    world?: ExecutionWorld
+  /**
+   * If specified, specifies a specific user script world ID to execute in. Only valid if `world` is omitted or is `USER_SCRIPT`. If `worldId` is omitted, the script will execute in the default user script world (""). Values with leading underscores (`_`) are reserved. The maximum length is 256.
+  */
+    worldId?: string
 
   }
 
   /**
- * Register a user script programmatically given its $(ref:userScripts.UserScriptOptions), and resolves to a $(ref:userScripts.RegisteredUserScript) instance
+ * The JavaScript world for a script to execute within. `USER_SCRIPT` is the default execution environment of user scripts, `MAIN` is the web page's execution environment.
   */
-  function register(userScriptOptions: UserScriptOptions): Promise<any>;
+  /**
+ * The JavaScript world for a script to execute within. `USER_SCRIPT` is the default execution environment of user scripts, `MAIN` is the web page's execution environment.
+  */
+  type ExecutionWorld = string;
+  /**
+ * Optional filter to use with getScripts() and unregister().
+  */
+  export interface UserScriptFilter {
+    ids?: string[]
+
+  }
+
+  /**
+ * Object with file xor code property. Equivalent to the ExtensionFileOrCode, except the file remains a relative URL.
+  */
+  type ScriptSource = {
+    /**
+   * The path of the JavaScript file to inject relative to the extension's root directory.
+  */
+    file: string
+
+  } | {
+      code: string
+
+  };
+  /**
+ * The configuration of a USER_SCRIPT world.
+  */
+  export interface WorldProperties {
+  /**
+   * The identifier of the world. Values with leading underscores (`_`) are reserved. The maximum length is 256. Defaults to the default USER_SCRIPT world ("").
+  */
+    worldId?: string
+  /**
+   * The world's Content Security Policy. Defaults to the CSP of regular content scripts, which prohibits dynamic code execution such as eval.
+  */
+    csp?: string
+  /**
+   * Whether the runtime.sendMessage and runtime.connect methods are exposed. Defaults to not exposing these messaging APIs.
+  */
+    messaging?: boolean
+
+  }
+
+  /**
+ * Register a user script programmatically given its $(ref:userScripts.UserScriptOptions), and resolves to an object with the unregister() function
+  */
+  function register(userScriptOptions: UserScriptOptions): Promise<{
+    /**
+   * Unregister a user script registered programmatically
+  */
+    unregister: /* or any?  */   () => Promise<any> , 
+ /* x7 */ 
+
+
+  }>;
+  /**
+ * Registers one or more user scripts for this extension.
+  */
+  function register(/**
+ * List of user scripts to be registered.
+  */
+
+scripts: RegisteredUserScript[]): Promise<any>;
+  /**
+ * Updates one or more user scripts for this extension.
+  */
+  function update(/**
+ * List of user scripts to be updated.
+  */
+
+scripts: {
+      js?: ScriptSource[]
+
+  }[]): Promise<any>;
+  /**
+ * Unregisters all dynamically-registered user scripts for this extension.
+  */
+  function unregister(/**
+ * If specified, this method unregisters only the user scripts that match it.
+  */
+
+filter?: UserScriptFilter): Promise<any>;
+  /**
+ * Returns all dynamically-registered user scripts for this extension.
+  */
+  function getScripts(/**
+ * If specified, this method returns only the user scripts that match it.
+  */
+
+filter?: UserScriptFilter): Promise<RegisteredUserScript[]>;
+  /**
+ * Configures the environment for scripts running in a USER_SCRIPT world.
+  */
+  function configureWorld(/**
+ * The desired configuration for a USER_SCRIPT world.
+  */
+
+properties: WorldProperties): Promise<any>;
+  /**
+ * Resets the configuration for a given world. That world will fall back to the default world's configuration.
+  */
+  function resetWorldConfiguration(/**
+ * The ID of the USER_SCRIPT world to reset. If omitted or empty, resets the default world's configuration.
+  */
+
+worldId?: string): Promise<any>;
+  /**
+ * Returns all registered USER_SCRIPT world configurations.
+  */
+  function getWorldConfigurations(): Promise<WorldProperties[]>;
     const onBeforeScript: EventHandler<  /**
  * Event called when a new userScript global has been created
   */
@@ -9202,28 +9786,6 @@ options: {
 
   }): Promise<any>;
   /**
- * Submits a custom ping to the Telemetry back-end, with an encrypted payload. Requires a telemetry entry in the manifest to be used.
-  */
-  function submitEncryptedPing(/**
- * The data payload for the ping, which will be encrypted.
-  */
-
-message: /* "unknown" undefined */ object, /**
- * Options object.
-  */
-
-options: {
-    /**
-   * Schema name used for payload.
-  */
-    schemaName: string
-  /**
-   * Schema version used for payload.
-  */
-    schemaVersion: number
-
-  }): Promise<any>;
-  /**
  * Checks if Telemetry upload is enabled.
   */
   function canUpload(): Promise<any>;
@@ -9360,7 +9922,7 @@ category: string, /**
 
 data: /* "unknown" undefined */ object): Promise<any>;
   /**
- * Enable recording of events in a category. Events default to recording disabled. This allows to toggle recording for all events in the specified category.
+ * Enable recording of events in a category. Events default to recording enabled. This allows to toggle recording for all events in the specified category.
   */
   function setEventRecordingEnabled(/**
  * The category name.
@@ -9392,6 +9954,10 @@ declare namespace browser.cookies {
    * The first-party URL of the cookie, if the cookie is in storage partitioned by the top-level site.
   */
     topLevelSite?: string
+  /**
+   * Whether or not the cookie is in a third-party context, respecting ancestor chains.
+  */
+    hasCrossSiteAncestor?: boolean
 
   }
 
@@ -10313,6 +10879,10 @@ const zoomFullPage:  types.Setting;
  * This boolean setting controls whether zoom is applied on a per-site basis or to the current tab only. If privacy.resistFingerprinting is true, this setting has no effect and zoom is applied to the current tab only.
   */
 const zoomSiteSpecific:  types.Setting;
+  /**
+ * This boolean setting controls whether vertical tabs are enabled.
+  */
+const verticalTabs:  types.Setting;
 }
 
   /**
@@ -10430,7 +11000,7 @@ alarmInfo: {
   */
     periodInMinutes?: number
 
-  }): void;
+  }): Promise<void | null>;
   function create(/**
  * Details about the alarm. The alarm first fires either at 'when' milliseconds past the epoch (if 'when' is provided), after 'delayInMinutes' minutes from the current time (if 'delayInMinutes' is provided instead), or after 'periodInMinutes' minutes from the current time (if only 'periodInMinutes' is provided). Users should never provide both 'when' and 'delayInMinutes'. If 'periodInMinutes' is provided, then the alarm recurs repeatedly after that many minutes.
   */
@@ -10449,7 +11019,7 @@ alarmInfo: {
   */
     periodInMinutes?: number
 
-  }): void;
+  }): Promise<void | null>;
   /**
  * Retrieves details about the specified alarm.
   */
@@ -10849,6 +11419,12 @@ keys?: string | string[] | /* "unknown" undefined */ object): Promise</* "unknow
 keys?: string | string[]): Promise<number>;
 
   /**
+ * Gets the keys of all items in storage.
+  */
+
+  getKeys(): Promise<string[]>;
+
+  /**
  * Sets multiple items.
   */
 
@@ -10877,7 +11453,7 @@ keys: string | string[]): Promise<void | null>;
 
   }
 
-  export interface StorageAreaSync {
+  export interface StorageAreaWithUsage {
   /**
  * Gets one or more items from storage.
   */
@@ -10897,6 +11473,12 @@ keys?: string | string[] | /* "unknown" undefined */ object): Promise</* "unknow
   */
 
 keys?: string | string[]): Promise<number>;
+
+  /**
+ * Gets the keys of all items in storage.
+  */
+
+  getKeys(): Promise<string[]>;
 
   /**
  * Sets multiple items.
@@ -10942,7 +11524,7 @@ areaName: string) => void)>;
   /**
  * Items in the `sync` storage area are synced by the browser.
   */
-const sync: StorageAreaSync;
+const sync: StorageAreaWithUsage;
   /**
  * Items in the `local` storage area are local to each machine.
   */
@@ -10954,7 +11536,7 @@ const managed: StorageArea;
   /**
  * Items in the `session` storage area are kept in memory, and only until the either browser or extension is closed or reloaded.
   */
-const session: StorageArea;
+const session: StorageAreaWithUsage;
 }
 
   /**
