@@ -1,6 +1,6 @@
 {
     "name": "FullSaveMessages",
-    "version": "0.1.0",
+    "version": "1.5.1",
     "description": "Manage emails",
     "main": "./src/root.js",
     "types": "./src/root.d.ts",
