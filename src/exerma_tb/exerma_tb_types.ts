@@ -5,6 +5,7 @@
  * ----------------------------
  *
  * Versions:
+ *   2025-08-23: Del: Remove localSaveFile API, replaced by Thunderbird FSA
  *   2024-02-19: Add: Import '../../api/LocalSaveFileAPI/implementation'
  *   2023-09-07: Add: Tab and nTab types 
  *   2023-08-13: First version
@@ -12,7 +13,6 @@
  */
 
     import '../../dependancies/generate-mail-extension-typings'
-    import '../../api/LocalSaveFileAPI/implementation'
 
     // Thunderbird prototypes
     export const messenger = browser

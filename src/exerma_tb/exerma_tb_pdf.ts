@@ -261,8 +261,7 @@
                 const list = myDoc.createElement('ul')
                 list.setAttribute('class', htmlTargets?.attachmentUlClass ?? cHtmlPdfTemplateAttachmentUlClass)
                 attachments.forEach(aFile => {
-                    const doc = (myDoc as Document)
-                    const item = doc.createElement('li')
+                    const item = myDoc.createElement('li')
                     item.setAttribute('class', htmlTargets?.attachmentLiClass ?? cHtmlPdfTemplateAttachmentLiClass)
                     item.innerText = aFile.name + ' (' + numberToByteSize(aFile.size, 1) + ')'
                     list.appendChild(item)

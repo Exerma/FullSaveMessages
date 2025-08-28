@@ -91,7 +91,7 @@
                                         mailsHeaders: message.mailsHeaders,
                                         mailsOfTabId: message.mailsOfTabId,
                                         selectedOnly: message.selectedOnly,
-                                        targetDirectory: message.targetDirectory,
+                                        folderId: message.folderId,
                                         mailsSubjects: message.mailsSubjects,
                                         mailsSenders: message.mailsSenders,
                                         saveEml: message.saveEml,

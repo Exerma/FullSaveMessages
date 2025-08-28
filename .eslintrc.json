@@ -9,7 +9,7 @@
         "standard-with-typescript",
 		"plugin:jsdoc/recommended"
     ],
-    "ignorePatterns": ["/node_module/","*.js","*.cjs"],
+    "ignorePatterns": ["/node_module/","*.js","*.cjs","*.mjs"],
     "overrides": [
         {
             "env": {

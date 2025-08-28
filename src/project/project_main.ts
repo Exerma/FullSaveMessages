@@ -20,8 +20,9 @@
  *
  */
     // --------------- Imports
-    import type * as ex                          from '../exerma_base/exerma_types'
-    import type * as exTb                        from '../exerma_tb/exerma_tb_types'
+    import type * as ex                            from '../exerma_base/exerma_types'
+    import type * as exTb                          from '../exerma_tb/exerma_tb_types'
+    import type * as fsa                           from '../../api/modules/fsa.mjs'
     import log, { cRaiseUnexpected, cInfoStarted } from '../exerma_base/exerma_log'
     import {
                 tbGetMessageDate,
@@ -199,7 +200,7 @@
                                                     mailsHeaders: headers,
                                                     mailsSubjects: new Map<number, string>(),
                                                     mailsSenders: new Map<number, string>(),
-                                                    targetDirectory: cNullString,
+                                                    folderId: cNullString,
                                                     saveEml: false,
                                                     savePdf: false,
                                                     saveHtml: false,
@@ -798,7 +799,7 @@
      *                  defined as key in the params.mailsSubject parameter.
      * @param {boolean}          params.selectedOnly is true if only the selected emails have to be 
      *                  exfiltered, false if all the emails of this tab have to be exfiltered
-     * @param {string}           params.targetDirectory is the folder where to save files
+     * @param {fsa.tbFolderIdType}   params.folderId is the folder where to save files
      * @param {ex.MNumberString} params.mailsSubjects is the corrected subject to use for each
      *                  email (email ID as key) to exfiltered: <emailID;correctedSubject>.
      *                  EMails with missing IDs are using the real email subject.
@@ -813,7 +814,7 @@
     export async function exfiltrateEmails (params: { mailsHeaders: exTb.AMailHeader
                                                       mailsOfTabId: ex.uNumber
                                                       selectedOnly: boolean
-                                                      targetDirectory: string
+                                                      folderId: fsa.tbFolderIdType
                                                       mailsSubjects: ex.MNumberString
                                                       mailsSenders: ex.MNumberString
                                                       saveEml: boolean
@@ -839,7 +840,7 @@
                                                                                   params.mailsSubjects,
                                                                                   params.mailsSenders,
                                                                                   cDefaultTemplate)
-            let absolutePath = params.targetDirectory
+            let folderId = params.folderId
             const nbMails = params.mailsHeaders.length
             if (nbMails > 0) {
 
@@ -852,23 +853,23 @@
                 //                                         }))
 
                 // Save next emails
-                let cancelled = false
+                let success = true
                 const saveAllPromises = new Array<Promise<string>>()
-                for (let iMail = 0; (iMail < nbMails) && (!cancelled); ++iMail) {
+                for (let iMail = 0; (iMail < nbMails) && (success); ++iMail) {
 
                     const header = params.mailsHeaders.at(iMail) as messenger.messages.MessageHeader
                     const exfiltrateResult = await exfiltrateEmail(header, {
                                                             filename: filenames?.get(header.id),
                                                             subject: params.mailsSubjects.get(header.id),
                                                             sender: params.mailsSenders.get(header.id),
-                                                            targetPath: absolutePath,
+                                                            folderId,
                                                             saveEml: params.saveEml,
                                                             savePdf: params.savePdf,
                                                             saveHtml: params.saveHtml,
                                                             saveAttachments: params.saveAttachments
                                                         })
-                    absolutePath = exfiltrateResult[0]
-                    cancelled = exfiltrateResult[1]
+                    folderId = exfiltrateResult[0]
+                    success = exfiltrateResult[1]
                     
                 }
 
@@ -907,7 +908,7 @@
      * '               current subject of the message
      * @param {string} params.sender is the author name (sender) to use for name building 
      * '               instead of the current author of the message
-     * @param {string} params.targetPath is the target directory where 
+     * @param {fsa.tbFolderIdType} params.folderId is the target directory where 
      *                 to save the files in.
      *                 If not provided, then ask user for the destination and use the target path
      *                 as current default path and return fullname of the EML file
@@ -920,18 +921,18 @@
      *                  before the attachment file name (if provided). If not provided, then use
      *                  "YYYY-MM-DD HHMM__" before the filename of the attachment.
      * @returns {Promise<[string, boolean]>} is a Promise to return absolute target path & name (as first
-     *                  value) and if the user has cancelled (as second value):
+     *                  value) and if it was a success (as second value):
      *                       Syntax:
      *                           const saveResult = await saveBlob(...)
-     *                           const absolutePath = saveResult[0]
-     *                           const cancelled = saveResult[1]
+     *                           const folderId = saveResult[0]
+     *                           const success = saveResult[1]
      */
     async function exfiltrateEmail (messageHeader: messenger.messages.MessageHeader,
                                     params: {
                                         filename?: string
                                         subject?: string
                                         sender?: string
-                                        targetPath?: string
+                                        folderId?: any
                                         saveEml: boolean
                                         savePdf: boolean
                                         saveHtml: boolean
@@ -946,9 +947,9 @@
         log().trace(cSourceName, cInfoStarted)
 
         // This target path will be fed by asking destination if not provided
-        let absolutePath: string = params?.targetPath ?? cNullString
+        let absolutePath: fsa.tbFolderIdType = params?.folderId ?? cNullString
         let filename: string = params?.filename ?? cNullString
-        let cancelled = false
+        let success = true
 
         try {
 
@@ -988,42 +989,42 @@
                     const emlData = await emlBlob.arrayBuffer()
                     const saveResult = await saveBlob(emlData, filename, absolutePath, { setExt: 'eml' })
                     absolutePath = saveResult[0]
-                    cancelled = saveResult[1]
+                    success = saveResult[1]
                 }
 
                 // ----- Save PDF and HTML file
-                if ((!cancelled) && ((params.savePdf) || (params.saveHtml))) {
+                if ((success) && ((params.savePdf) || (params.saveHtml))) {
 
                     // Create the Html file and its PDF 
                     const [pdfDoc, htmlDoc] = await createPdf(messageHeader, cResourcePdfTemplate) //, {}, { noPdf: true })
 
                     // Save PDF File
-                    if ((!cancelled) && (params.savePdf) && (pdfDoc !== undefined)) {
+                    if ((success) && (params.savePdf) && (pdfDoc !== undefined)) {
                     
                         const pdfBlob: Blob = pdfDoc.output('blob')
                         const pdfData = await pdfBlob.arrayBuffer()
                         pdfDoc.close()
                         const saveResult = await saveBlob(pdfData, filename, absolutePath, { setExt: 'pdf' })
                         absolutePath = saveResult[0]
-                        cancelled = saveResult[1]
+                        success = saveResult[1]
                     
                     }
 
                     // Save HTML file
-                    if ((!cancelled) && (params.saveHtml) && (htmlDoc !== undefined)) {
+                    if ((success) && (params.saveHtml) && (htmlDoc !== undefined)) {
                         
                         const htmlBlob = new Blob([htmlDoc.documentElement.outerHTML], { type: 'text/html' } )
                         const htmlData = await htmlBlob.arrayBuffer()
                         const saveResult = await saveBlob(htmlData, filename, absolutePath, { setExt: 'html' })
                         absolutePath = saveResult[0]
-                        cancelled = saveResult[1]
+                        success = saveResult[1]
                         
                     }
                 
                 }
 
                 // Save attachments
-                if ((!cancelled) && (params.saveAttachments)) {
+                if ((success) && (params.saveAttachments)) {
                     
                     log().trace(cSourceName, 'Save attachments')
 
@@ -1067,11 +1068,11 @@
                                     log().debugInfo(cSourceName, uniquename)
                                     const saveResult = await saveBlob(fileBlob, uniquename, absolutePath)
                                     absolutePath = saveResult[0]
-                                    cancelled = saveResult[1]
+                                    success = saveResult[1]
 
                                     log().debugInfo(cSourceName, 'absolutePath = ' + absolutePath)
 
-                                    if (cancelled) break
+                                    if (!success) break
 
                                 } catch (error) {
 
@@ -1097,7 +1098,7 @@
         }
 
         // Done
-        return [absolutePath, cancelled]
+        return [absolutePath, success]
                                 
     }
 
@@ -1138,9 +1139,9 @@
 
     /**
      * Ask the user for the target folder where to exfilter the messages into
-     * @returns {string} the target path selected by user
+     * @returns {fsa.tbFolderIdType} the target path selected by user
      */
-    export async function askForTargetFolder (): Promise<string> {
+    export async function askForTargetFolder (): Promise<fsa.tbFolderIdType> {
 
         const cSourceName = 'project/project_main.ts/askForTargetFolder'
 
@@ -1149,7 +1150,7 @@
         try {
 
             // const targetPath = await showDirectoryPicker()
-            const result: string = '' // targetPath.name
+            const result: fsa.tbFolderIdType = null // targetPath.name
             return result
 
         } catch (error) {

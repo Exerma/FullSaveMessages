@@ -285,7 +285,7 @@
      * @returns {string} is the messagePart structure with some information as an html string
      */
     export function tbExploreMessagePartStructure (messagePart: messenger.messages.MessagePart,
-                                                 margin: number = 0): string {
+                                                   margin: number = 0): string {
 
         const cSourceName = 'exerma_tb/exerma_tb_messages.ts/tbExploreMessagePartStructure'
             

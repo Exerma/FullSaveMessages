@@ -46,15 +46,5 @@
         "64": "images/icon-64px-light.png",
         "32": "images/icon-32px-light.png",
         "16": "images/icon-16px-light.png"
-    },
-    "experiment_apis": {
-        "localSaveFile": {
-            "schema": "api/LocalSaveFileAPI/schema.json",
-            "parent": {
-                "scopes": [ "addon_parent" ],
-                "paths": [ [ "localSaveFile" ] ],
-                "script": "api/LocalSaveFileAPI/implementation.js"
-            }
-        }
     }
 }

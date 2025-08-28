@@ -20,6 +20,7 @@
     // --------------- Imports
     import type * as ex                        from '../exerma_base/exerma_types'
     import type * as exTb                      from '../exerma_tb/exerma_tb_types'
+    import type * as fsa                       from '../../api/modules/fsa.d.mts'
     import { cEventClick, cEventLoad, cNullString }         from '../exerma_base/exerma_consts'
     import {
              createAndAddElement,
@@ -185,7 +186,7 @@
 
         try {
             // --> Get the target path
-            const targetPath: string = await askForTargetFolder()
+            const folderId: fsa.tbFolderIdType = await askForTargetFolder()
 
             // --> Retrieve subjects to use for messages exfiltration
             const subjectReplacement: ex.MStringString = await buildUserReplacements(cHtmlPopArchivesClassSubjectBloc)
@@ -245,7 +246,7 @@
                                                         mailsHeaders: gTargetHeaders,
                                                         mailsSubjects,
                                                         mailsSenders,
-                                                        targetDirectory: targetPath,
+                                                        folderId,
                                                         saveEml: true,
                                                         savePdf: true,
                                                         saveHtml: true,

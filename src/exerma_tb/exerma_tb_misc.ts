@@ -2,6 +2,7 @@
  *  (c) Patrick Seuret, 2023  
  * ---------------------------------------------------------------------------
  *  exerma_tb_misc.js
+ *  https://github.com/thunderbird/webext-file-system-access/blob/main/README.md
  * ---------------------------------------------------------------------------
  *
  * Versions:
@@ -14,6 +15,7 @@
  */
 
     // --------------- Imports
+    import * as fsa from '../../api/modules/fsa.mjs'
     import { cNullString } from '../exerma_base/exerma_consts'
     import { cRaiseUnexpected, log } from '../exerma_base/exerma_log'
     import { buildFullname, setFileExt } from '../exerma_base/exerma_files'
@@ -116,74 +118,102 @@
      * Save the provided blob on disk using the experiment API saveFile().
      * @param {ArrayBuffer} dataBuffer is an array with the data to save
      * @param {string} filename is the name of the file to save
-     * @param {string} absolutePath is the absolute path where to save the file.
+     * @param {fsa.tbFolderIdType} folderId is the ID of the folder where to save the file (returned 
+     *                       by a FSA directory picker).
      *                       If not provided or is an empty string, then ask the user where to save it.
      *                       If provided, then use it without asking
      * @param {object} options contains optional options
      * @param {string} options.setExt is an optional extension to set to the filename (only used if both
-     *                       the filename and absolutePath are provided)
-     * @returns {[string, boolean]} is the full path and name of the file (as first member) and if the
-     *                       user has cancelled (second member):
+     *                       the filename and folderId are provided)
+     * @returns {[any, boolean]} is the folderIds (as first member) and if success (second member):
      *                       Syntax:
      *                           const saveResult = await saveBlob(...)
-     *                           const absolutePath = saveResult[0]
+     *                           const folderId = saveResult[0]
      *                           const cancelled = saveResult[1]
      */
     export async function saveBlob (dataBuffer: ArrayBuffer,
                                     filename: string,
-                                    absolutePath: string = cNullString,
+                                    folderId: fsa.tbFolderIdType,
                                     options?: {
                                         setExt: string
-                                    }): Promise<[string, boolean]> {
+                                    }): Promise<[fsa.tbFolderIdType, boolean]> {
 
         const cSourceName: string = 'exerma_tb/exerma_tb_misc.ts/saveBlob'
 
         try {
 
+            // Check if the FSA proxy is available and bail out if not.
+            let fsaAvailable = false
+            try {
+                await fsa.getVersion()
+                fsaAvailable = true
+            } catch {
+                // fsa not available
+            }
+            if (!fsaAvailable) {
+                log().debugInfo(cSourceName, 'FSA not available')
+                // return [null, false] as const
+            }
+
+            log().debugInfo(cSourceName, 'folderId: ' + folderId)
+
             // Need to ask user where to save it ?
-            if ((absolutePath === cNullString) || (filename === cNullString)) {
-
-                // If no target path is provided, then ask user for destination and retrive the selected directory for next saves
-                // Prepare to hijack the destination file to retrieve **full path**
-                const getAbsolutePath = (downloadItem: messenger.downloads.DownloadItem): void => { absolutePath = downloadItem?.filename }
+            if (filename === cNullString) {
+                // No filename provided: ask user for both folder and filename
                 const dataBlob: Blob = new Blob([dataBuffer])
-                const dataUrl = URL.createObjectURL(dataBlob)
-                
-                messenger.downloads.onCreated.addListener(getAbsolutePath)  // Will be removed in the "finally" clause
-                try {
+                const resultFile = await fsa.writeFileWithPicker(
+                                            dataBlob,
+                                            {
+                                                read: false,
+                                                write: true
+                                            },
+                                            {
+                                                filters: [{ type: 'all' }],
+                                                defaultName: cNullString,
+                                                defaultFolderId: folderId
+                                            }
+                                        )
+                return [resultFile.folderId, resultFile.file != null] as const
+            } else
+            if ((folderId === null) || (folderId === undefined) || (folderId === cNullString)) {
 
-                    const targetFile = await messenger.downloads.download({
-                        url: dataUrl,
-                        filename: setFileExt(filename, options?.setExt ?? cNullString),
-                        saveAs: true
-                    })
-                    return [absolutePath, targetFile === null] as const
-
-                } catch (error) {
-
-                    // User cancelling download raise an error (and other errors too ;-) but we consider all errors as cancellation )
-                    return [absolutePath, true]
-
-                } finally {
-
-                    // Assert the listener is removed after download
-                    messenger.downloads.onCreated.removeListener(getAbsolutePath)
-
+                log().debugInfo(cSourceName, 'getFolderWithPicker')
+                // Filename provided but not the directory
+                const newFolderId = await fsa.getFolderWithPicker(
+                                            {
+                                                read: true,
+                                                write: true
+                                            },
+                                            {
+                                                filters: [],
+                                                defaultName: cNullString,
+                                                defaultFolderId: folderId
+                                            }
+                                        )
+                if (newFolderId == null) {
+                    // User has cancelled or an error has occurred
+                    return [null, false]
                 }
+                log().trace(cSourceName, 'Folder ID: $newFolderId')
+
+                // Save file in the selected folder
+                const dataBlob: Blob = new Blob([dataBuffer])
+                const resultFile = await fsa.writeFile(dataBlob, folderId, filename)
+                return [resultFile.folderId, resultFile == null] as const
 
             } else {
 
-                // Target path is known, use it silently
-                const fullname = buildFullname(absolutePath, filename, { setExt: options?.setExt })
-                await messenger.localSaveFile.saveFile(fullname, dataBuffer)
-                return [fullname, false] as const
+                // Both the directory and filename are known
+                const dataBlob: Blob = new Blob([dataBuffer])
+                const resultFile = await fsa.writeFile(dataBlob, folderId, filename)
+                return [folderId, resultFile != null] as const
 
             }
 
         } catch (error) {
             
             log().raiseError(cSourceName, cRaiseUnexpected, error as Error)
-            return [cNullString, false] as const
+            return [null, false] as const
 
         }
 

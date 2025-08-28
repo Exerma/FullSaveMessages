@@ -44,6 +44,7 @@
     // ---------- Imports
     import type * as ex                       from '../exerma_base/exerma_types'
     import type * as exTb                     from '../exerma_tb/exerma_tb_types'
+    import type * as fsa                      from '../../api/modules/fsa.d.mts'
     import { cNullString }                    from '../exerma_base/exerma_consts'
     import { CMessage, type exMessageName }   from '../exerma_base/exerma_messages'
 
@@ -214,7 +215,7 @@
         public readonly mailsHeaders: exTb.AMailHeader
         public readonly mailsSubjects: ex.MNumberString  // <mailId; subject to use>
         public readonly mailsSenders: ex.MNumberString   // <mailId; sender to use>
-        public readonly targetDirectory: string
+        public readonly folderId: fsa.tbFolderIdType
         public readonly saveEml: boolean
         public readonly savePdf: boolean
         public readonly saveHtml: boolean
@@ -241,7 +242,7 @@
          * @param {boolean} params.saveEml is used to save the EML file (if true) or don't save it (if false)
          * @param {boolean} params.savePdf is used to save the PDF file (if true) or don't save it (if false)
          * @param {boolean} params.saveHtml is used to save the HTML file (if true) or don't save it (if false)
-         * @param {string}  params.targetDirectory is the target directory to save
+         * @param {fsa.tbFolderIdType}  params.folderId is the target directory to save
          *              the files in
          * @param {boolean} params.saveAttachments is used to save attachement (if true)
          */
@@ -253,7 +254,7 @@
                         mailsHeaders: exTb.AMailHeader
                         mailsSubjects: ex.MNumberString
                         mailsSenders: ex.MNumberString
-                        targetDirectory: string
+                        folderId: fsa.tbFolderIdType
                         saveEml: boolean
                         savePdf: boolean
                         saveHtml: boolean
@@ -269,7 +270,7 @@
                             this.mailsHeaders = params.mailsHeaders
                             this.mailsSubjects = params.mailsSubjects
                             this.mailsSenders = params.mailsSenders
-                            this.targetDirectory = params.targetDirectory
+                            this.folderId = params.folderId
                             this.saveEml = params.saveEml
                             this.savePdf = params.savePdf
                             this.saveHtml = params.saveHtml
